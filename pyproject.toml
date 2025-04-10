@@ -1,0 +1,88 @@
+[tool.poetry]
+name = "extended_lengyel"
+version = "0.1.0"
+description = ""
+authors = ["Commonwealth Fusion Systems"]
+readme = "README.md"
+classifiers = [
+"Development Status :: 5 - Production/Stable",
+"Intended Audience :: Science/Research",
+"Programming Language :: Python :: 3",
+"Programming Language :: Python :: 3.12",
+"Programming Language :: Python :: 3 :: Only",
+"Topic :: Scientific/Engineering :: Physics",
+"License :: OSI Approved :: MIT License",
+]
+
+
+[tool.poetry.dependencies]
+python = ">=3.12,<3.13"
+cfspopcon = "^7.0.2"
+numpy = "^2.0.1"
+matplotlib = "^3.9.1"
+scipy = "^1.14.0"
+ipykernel = "^6.29.5"
+pickleshare = "^0.7.5"
+radas = "^2024.7.1"
+jupyter = "^1.0.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.2"
+coverage = "^7.6"
+pytest-cov = "^5.0"
+ruff = "^0.7.0"
+nbmake = "^1.5"
+ipdb = "^0.13.13"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.pytest.ini_options]
+addopts = "--cov=extended_lengyel --cov-report term-missing --cov-report xml:coverage.xml --verbose -s"
+testpaths = [
+  "tests",
+]
+filterwarnings = [
+  "error",
+  "ignore:numpy.ndarray size changed, may indicate binary incompatibility. Expected 16 from C header, got 96 from PyObject"
+]
+
+[tool.ruff]
+lint.select = [
+  "A", # avoid shadowing
+  "B", # flake8-bugbear
+  "C4", # comprehensions 
+  "D", #docstrings
+  "E", # pycodestyle Errors
+  "ERA", # no commented out code
+  "F", # pyflakes
+  "FLY", # flynt
+  "I001", # isort
+  "ISC", # implicit string concatenation
+  "PERF", # Perflint
+  "PIE", # flake8-pie
+  "PGH", # pygrep-hooks
+  "PL", # pylint
+  "Q", # flake8-quotes
+  "RUF", # ruff builtins e.g. noqa checking
+  "T10", # flake8-debugger (no breakpoint etc)
+  "TCH",# type-checking imports
+  "UP", # pyupgrade
+  "W", # pycodestyle warnings
+  ]
+
+lint.ignore = [
+  "E501", # Never enforce line length violations, we have black for that.
+  "PLR0913", #ignore limit on number of args
+  "PLR2004", #ignore magic values warning, at least for now
+  "C408", # use {} instead of dict(), but we use dict heavily, for now leave it
+  "ISC001",
+  "I001", # Ignore unsorted imports (Algorithms must be imported in order).
+  "PERF203", # Allow try/except in loops
+  "PERF403", # Allow dictionary construction via iteration
+]
+lint.pyupgrade.keep-runtime-typing=true
+lint.pydocstyle.convention = "google"
+target-version = "py39"
+line-length = 140

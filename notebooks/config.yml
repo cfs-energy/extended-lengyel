@@ -1,0 +1,50 @@
+base:
+  impurity_species: Nitrogen
+  reference_ne_tau: 0.5 ms n20
+  ion_mass: 2.0 amu
+  sheath_heat_transmission_factor: 8.0
+  divertor_broadening_factor: 3.0
+  divertor_parallel_length: 5.0 m
+  parallel_connection_length: 20 m
+  fraction_of_P_SOL_to_divertor: 2/3
+  lambda_int: 5 mm
+  target_angle_of_incidence: 3 degree
+  target_electron_temp: 2.34 eV
+  SOL_momentum_loss_fraction: 0.5
+
+machine_geometry:
+  major_radius: 1.65 m
+  minor_radius: 0.5 m
+
+target_constraints:
+  heat_flux_perp_to_target: 2.3 MW / m**2
+  impurity_fraction: 4 %
+  hydrogen_effective_ionization_energy: 15.0 eV
+
+fast_neutrals:
+  fast_neutral_penetration_factor: 10.0
+  fast_neutral_fraction: 0.5
+
+field_at_omp:
+  plasma_current: 1.0 MA
+  magnetic_field_on_axis: 2.5 T
+  elongation_psi95: 1.6
+  triangularity_psi95: 0.3
+  ratio_of_upstream_to_average_poloidal_field: 4/3
+
+AUG_39520_t5s:
+  plasma_current: 1.0MA
+  magnetic_field_on_axis: 2.5T
+  impurity_species_list: ["Nitrogen", "Argon"]
+  impurity_weights_list: [1.0, 0.05]
+  separatrix_electron_density: 3.3e19/m^3
+  target_electron_temp: 2.0eV
+  power_crossing_separatrix: 5.5MW
+  fraction_of_P_SOL_to_divertor: 3.7/5.5
+
+AUG_39520_t5s_reference:
+  separatrix_electron_density: 3.3e19/m^3
+  seperatrix_electron_temp: 100eV
+  divertor_neutral_pressure: 1.9Pa
+  nitrogen_concentration: 2%
+  argon_concentration: 0.1%
