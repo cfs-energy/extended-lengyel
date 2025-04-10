@@ -1,0 +1,99 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: workflow_actions
+
+# Controls when the workflow will run
+on:
+  # Triggers the workflow on push or pull request events but only for the "main" branch
+  pull_request: []
+  push:
+    tags:
+      - '*'
+    branches:
+      - 'main'
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    tag: "Manual run"
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  radas:
+    runs-on: ubuntu-22.04
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+
+      - name: Install Poetry
+        run: curl -sSL https://install.python-poetry.org | python - --version 1.8.2
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'poetry'
+      
+      - name: Setup
+        run: poetry install
+
+      - name: Cache radas results
+        id: radas
+        uses: actions/cache@v4
+        with:
+          path: ./radas_dir
+          key: radas-${{ hashFiles('poetry.lock')}}
+      
+      - name: Make radas data
+        if: steps.radas.outputs.cache-hit != 'true'
+        run: poetry run radas -s deuterium -s nitrogen -s neon -s argon
+      
+      - name: Upload radas artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: radas_dir
+          path: ./radas_dir
+
+  build:
+    needs: radas
+    # The type of runner that the job will run on
+    runs-on: ubuntu-22.04
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.12']  # should test the versions we allow for in pyproject.toml
+
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+
+      - name: Install Poetry
+        run: curl -sSL https://install.python-poetry.org | python - --version 1.8.2
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'poetry'
+
+      - name: Setup
+        run: poetry install
+
+      - uses: actions/cache/restore@v4
+        id: radas
+        with:
+          path: ./radas_dir
+          key: radas-${{ hashFiles('poetry.lock')}}
+
+      - name: Check cache hit
+        if: steps.radas.outputs.cache-hit != 'true'
+        run: exit 1
+
+      - name: Test repository
+        run: poetry run pytest tests
+      
+      - name: Test notebooks
+        run: poetry run python notebooks/run_notebooks.py
+
+      - name: Run ruff
+        run: poetry run ruff check --fix extended_lengyel
