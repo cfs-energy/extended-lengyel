@@ -5,7 +5,7 @@
 
 This project gives a Python implementation of the `extended Lengyel` model developed in Body, Kallenbach and Eich, 2025, submitted to Nuclear Fusion and available at [arxiv.org/abs/2504.05486](https://arxiv.org/abs/2504.05486). The project also reproduces the model presented in [Kallenbach et al., 2016, "Analytical calculations for impurity seeded  partially detached divertor conditions"](http://dx.doi.org/10.1088/0741-3335/58/4/045013).
 
-The software can be found in the `extended_lengyel' folder. This contains the following subprojects
+The software can be found in the `extended_lengyel` folder. This contains the following subprojects
 * `kallenbach_model`: the model introduced in Kallenbach et al., 2016, "Analytical calculations for impurity seeded  partially detached divertor conditions".
 * `spatial_lengyel_model`: a version of the Lengyel model which does not switch to the temperature-integral form.
 * `extended_lengyel_model`: the main extended Lengyel model discussed in the paper.
