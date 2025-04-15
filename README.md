@@ -26,7 +26,7 @@ The analysis in the notebooks is configured via the `notebooks/config.yml` file 
 The extended Lengyel model can be installed using `poetry`, which can be installed via the [poetry installation guide](https://python-poetry.org/docs/#installation). Once you have poetry installed, installing the library should be as straightfoward as
 ```bash
 poetry install
-poetry run poetry run radas -s deuterium -s nitrogen -s neon -s argon
+poetry run radas -s deuterium -s nitrogen -s neon -s argon
 poetry run pytest
 ```
 
