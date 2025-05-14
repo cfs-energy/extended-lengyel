@@ -221,11 +221,15 @@ def calc_Kallenbach_kappa_z(z_effective):
 
 @Algorithm.register_algorithm(return_keys=["B_t_out_mid", "B_pol_out_mid", "separatrix_average_poloidal_field"])
 def calc_upstream_field(
-    magnetic_field_on_axis, major_radius, minor_radius, elongation_psi95, plasma_current, ratio_of_upstream_to_average_poloidal_field
+    magnetic_field_on_axis, major_radius, minor_radius, elongation_psi95, triangularity_psi95, plasma_current, ratio_of_upstream_to_average_poloidal_field
 ):
     """Calculate upstream magnetic field."""
+    shaping_factor = np.sqrt(
+        ((1.0 + elongation_psi95**2.0 * (1.0 + 2.0 * triangularity_psi95**2.0 - 1.2 * triangularity_psi95**3.0)) / 2.0)
+    )
+
     upstream_toroidal_field = magnetic_field_on_axis * (major_radius / (major_radius + minor_radius))
-    separatrix_average_poloidal_field = ureg.mu_0 * plasma_current / (2.0 * np.pi * minor_radius * np.sqrt((1 + elongation_psi95**2) / 2))
+    separatrix_average_poloidal_field = ureg.mu_0 * plasma_current / (2.0 * np.pi * minor_radius * shaping_factor)
     upstream_poloidal_field = ratio_of_upstream_to_average_poloidal_field * separatrix_average_poloidal_field
 
     return upstream_toroidal_field, upstream_poloidal_field, separatrix_average_poloidal_field
