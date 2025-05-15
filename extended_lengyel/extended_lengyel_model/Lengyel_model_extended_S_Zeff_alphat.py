@@ -53,6 +53,7 @@ def run_extended_lengyel_model_with_S_Zeff_and_alphat_correction(
     fieldline_pitch_at_omp,
     cylindrical_safety_factor,
     separatrix_average_poloidal_field,
+    ratio_of_upstream_to_average_poloidal_field,
     iterations_for_Lengyel_model: int = 5,
     iterations_for_alphat: int = 5,
     mask_invalid_results: bool = True,
@@ -64,19 +65,21 @@ def run_extended_lengyel_model_with_S_Zeff_and_alphat_correction(
     alpha_t = 0.0
 
     for _ in range(item(iterations_for_alphat)):
-        poloidal_sound_larmor_radius = calc_larmor_radius(
+        separatrix_average_poloidal_sound_larmor_radius = calc_larmor_radius(
             species_temperature=separatrix_electron_temp,
             magnetic_field_strength=separatrix_average_poloidal_field,
             species_mass=ion_mass,
         )
-        lambda_q = calc_lambda_q_Eich2020H(alpha_t, poloidal_sound_larmor_radius)
+        separatrix_average_lambda_q = calc_lambda_q_Eich2020H(alpha_t, separatrix_average_poloidal_sound_larmor_radius)
+        ratio_of_upstream_to_average_lambda_q = ratio_of_upstream_to_average_poloidal_field * (major_radius + minor_radius) / major_radius
+        lambda_q_outboard_midplane = separatrix_average_lambda_q / ratio_of_upstream_to_average_lambda_q
 
         q_parallel = calc_parallel_heat_flux_density(
             power_crossing_separatrix=power_crossing_separatrix,
             fraction_of_P_SOL_to_divertor=f_share,
             major_radius=major_radius,
             minor_radius=minor_radius,
-            lambda_q=lambda_q,
+            lambda_q=lambda_q_outboard_midplane,
             fieldline_pitch_at_omp=fieldline_pitch_at_omp,
         )
 
@@ -145,7 +148,7 @@ def run_extended_lengyel_model_with_S_Zeff_and_alphat_correction(
         parallel_heat_flux_at_cc_interface,
         alpha_t,
         q_parallel,
-        lambda_q,
+        lambda_q_outboard_midplane,
     )
 
 
