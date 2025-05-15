@@ -1,0 +1,9 @@
+## Use regular fonts instead of italic for math in figures
+mathtext.default:  regular
+## Use high resolution for figures
+figure.dpi:        300
+savefig.dpi:       300
+savefig.bbox:      tight
+
+# Use mathtext for scientific notation.
+axes.formatter.use_mathtext: True
