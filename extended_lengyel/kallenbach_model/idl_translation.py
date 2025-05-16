@@ -360,7 +360,7 @@ CompositeAlgorithm(
             "calc_parallel_to_perp_factor",
             "calc_lambda_q_from_lambda_int",
             "calc_parallel_heat_flux_at_target",
-            "calc_upstream_field",
+            "calc_magnetic_field_and_safety_factor",
             "calc_fieldline_pitch_at_omp",
             "calc_flux_tube_cross_section_area_in_divertor",
             "calc_flux_tube_cross_section_area_out_of_divertor",

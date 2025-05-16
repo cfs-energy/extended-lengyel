@@ -55,8 +55,7 @@ from cfspopcon.named_options import AtomicSpecies
 # To find an algorithm called "alg", search both cfspopcon and extended_lengyel for a function called "alg" with an
 # @Algorithm.register_algorithm decorator, or a CompositeAlgorithm with name="alg".
 algorithm = cfspopcon.CompositeAlgorithm.from_list([
-    "calc_upstream_field",
-    "calc_cylindrical_edge_safety_factor",
+    "calc_magnetic_field_and_safety_factor",
     "calc_fieldline_pitch_at_omp",
     "set_radas_dir",
     "read_atomic_data",
