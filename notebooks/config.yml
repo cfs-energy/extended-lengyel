@@ -40,7 +40,7 @@ AUG_39520_t5s:
   separatrix_electron_density: 3.3e19/m^3
   target_electron_temp: 2.0eV
   power_crossing_separatrix: 5.5MW
-  fraction_of_P_SOL_to_divertor: 3.7/5.5
+  fraction_of_P_SOL_to_divertor: 2/3
 
 AUG_39520_t5s_reference:
   separatrix_electron_density: 3.3e19/m^3

@@ -4,6 +4,8 @@
 [![Licence](https://img.shields.io/badge/Software%20License-MIT-brightgreen)](LICENSE)
 [![Build Status](https://github.com/cfs-energy/extended-lengyel/actions/workflows/workflow_actions.yml/badge.svg)](https://github.com/cfs-energy/extended-lengyel/actions)
 
+![flowchart](.github/flowchart.png)
+
 This project gives a Python implementation of the `extended Lengyel` model developed in Body, Kallenbach and Eich, 2025, submitted to Nuclear Fusion and available at [arxiv.org/abs/2504.05486](https://arxiv.org/abs/2504.05486). The project also reproduces the model presented in [Kallenbach et al., 2016, "Analytical calculations for impurity seeded  partially detached divertor conditions"](http://dx.doi.org/10.1088/0741-3335/58/4/045013).
 
 The software can be found in the `extended_lengyel` folder. This contains the following subprojects
@@ -53,8 +55,7 @@ from cfspopcon.named_options import AtomicSpecies
 # To find an algorithm called "alg", search both cfspopcon and extended_lengyel for a function called "alg" with an
 # @Algorithm.register_algorithm decorator, or a CompositeAlgorithm with name="alg".
 algorithm = cfspopcon.CompositeAlgorithm.from_list([
-    "calc_upstream_field",
-    "calc_cylindrical_edge_safety_factor",
+    "calc_magnetic_field_and_safety_factor",
     "calc_fieldline_pitch_at_omp",
     "set_radas_dir",
     "read_atomic_data",
