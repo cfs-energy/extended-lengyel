@@ -1,17 +1,16 @@
 import numpy as np
 import pytest
 from cfspopcon.formulas.atomic_data import read_atomic_data
-from cfspopcon.formulas.impurities.edge_radiator_conc import build_L_int_integrator
+from cfspopcon.formulas.impurities.edge_radiator_conc import build_L_int_integrator as _build_L_int_integrator
 from cfspopcon.named_options import AtomicSpecies
 from cfspopcon.unit_handling import ureg
 
 from extended_lengyel.directories import radas_dir
-from extended_lengyel.extended_lengyel_model import (
-    build_mixed_seeding_L_int_integrator,
-    build_mixed_seeding_mean_charge_interpolator,
+from extended_lengyel.extended_lengyel_model.Lengyel_model_core import (
+    build_L_int_integrator,
+    build_mean_charge_interpolator,
+    _build_mean_charge_interpolator,
 )
-from extended_lengyel.extended_lengyel_model.mean_charge_interpolator import build_mean_charge_interpolator
-
 
 def test_mixed_seeding_L_int():
     atomic_data = read_atomic_data(radas_dir)
@@ -26,7 +25,7 @@ def test_mixed_seeding_L_int():
     single_L_int = dict()
 
     for species in species_list:
-        single_L_int[species] = build_L_int_integrator(
+        single_L_int[species] = _build_L_int_integrator(
             atomic_data=atomic_data,
             impurity_species=species,
             reference_electron_density=reference_electron_density,
@@ -37,7 +36,7 @@ def test_mixed_seeding_L_int():
         weights = [0.0, 0.0, 0.0]
         weights[i] = 1.0
 
-        mixed_L_int = build_mixed_seeding_L_int_integrator(
+        mixed_L_int = build_L_int_integrator(
             impurity_species_list=species_list,
             impurity_weights_list=weights,
             atomic_data=atomic_data,
@@ -49,7 +48,7 @@ def test_mixed_seeding_L_int():
 
     weights = [0.1, 0.2, 0.3]
 
-    mixed_L_int = build_mixed_seeding_L_int_integrator(
+    mixed_L_int = build_L_int_integrator(
         impurity_species_list=species_list,
         impurity_weights_list=weights,
         atomic_data=atomic_data,
@@ -79,7 +78,7 @@ def test_mixed_seeding_mean_charge():
     single_mean_charge = dict()
 
     for species in species_list:
-        single_mean_charge[species] = build_mean_charge_interpolator(
+        single_mean_charge[species] = _build_mean_charge_interpolator(
             atomic_data=atomic_data,
             impurity_species=species,
             reference_electron_density=reference_electron_density,
@@ -90,7 +89,7 @@ def test_mixed_seeding_mean_charge():
         weights = [0.0, 0.0, 0.0]
         weights[i] = 1.0
 
-        mixed_mean_charge = build_mixed_seeding_mean_charge_interpolator(
+        mixed_mean_charge = build_mean_charge_interpolator(
             impurity_species_list=species_list,
             impurity_weights_list=weights,
             atomic_data=atomic_data,
@@ -102,7 +101,7 @@ def test_mixed_seeding_mean_charge():
 
     weights = [0.1, 0.2, 0.3]
 
-    mixed_mean_charge = build_mixed_seeding_mean_charge_interpolator(
+    mixed_mean_charge = build_mean_charge_interpolator(
         impurity_species_list=species_list,
         impurity_weights_list=weights,
         atomic_data=atomic_data,

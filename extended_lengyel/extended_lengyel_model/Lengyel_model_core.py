@@ -2,12 +2,11 @@
 
 import xarray as xr
 from cfspopcon import Algorithm
-from cfspopcon.formulas.impurities.edge_radiator_conc import build_L_int_integrator
+from cfspopcon.formulas.impurities.edge_radiator_conc import build_L_int_integrator as _build_L_int_integrator
 from cfspopcon.named_options import AtomicSpecies
 from cfspopcon.formulas.atomic_data import AtomicData
-from cfspopcon.unit_handling import ureg, Unitfull
-
-from .mean_charge_interpolator import build_mean_charge_interpolator
+from cfspopcon.unit_handling import convert_units, magnitude, ureg, wraps_ufunc, Unitfull
+from scipy.interpolate import InterpolatedUnivariateSpline  # type:ignore[import-untyped]
 
 
 def item(val):
@@ -34,7 +33,7 @@ class L_int_integrator:
         self.weights_list = impurity_weights_list
 
         for impurity_species in impurity_species_list:
-            integrator = build_L_int_integrator(
+            integrator = _build_L_int_integrator(
                 atomic_data=item(atomic_data),
                 impurity_species=item(impurity_species),
                 reference_electron_density=reference_electron_density,
@@ -63,7 +62,7 @@ class L_int_integrator:
 
 
 @Algorithm.register_algorithm(return_keys=["L_int_integrator"])
-def build_mixed_seeding_L_int_integrator(
+def build_L_int_integrator(
     impurity_species_list,
     impurity_weights_list,
     atomic_data,
@@ -84,6 +83,40 @@ def build_mixed_seeding_L_int_integrator(
         reference_electron_density=reference_electron_density,
     )
 
+def _build_mean_charge_interpolator(
+    atomic_data,
+    impurity_species,
+    reference_electron_density,
+    reference_ne_tau,
+):
+    """Build an interpolator to calculate the mean charge."""
+    if isinstance(impurity_species, xr.DataArray):
+        impurity_species = impurity_species.item()
+
+    electron_density_ref = magnitude(convert_units(reference_electron_density, ureg.m**-3))
+    reference_ne_tau_ref = magnitude(convert_units(reference_ne_tau, ureg.m**-3 * ureg.s))
+
+    mean_z_curve = (
+        atomic_data.get_dataset(impurity_species)
+        .equilibrium_mean_charge_state.sel(
+            dim_electron_density=electron_density_ref, method="nearest", tolerance=1e-6 * electron_density_ref
+        )
+        .sel(dim_ne_tau=reference_ne_tau_ref, method="nearest", tolerance=1e-6 * reference_ne_tau_ref)
+    )
+
+    electron_temp = mean_z_curve.dim_electron_temp
+    interpolator = InterpolatedUnivariateSpline(electron_temp, magnitude(mean_z_curve))
+
+    def mean_charge_state(electron_temp: float) -> float:
+        integrated_mean_z: float = interpolator(electron_temp)
+        return integrated_mean_z
+
+    mean_charge_state_integrator = wraps_ufunc(
+        input_units=dict(electron_temp=ureg.eV), return_units=dict(mean_charge_state=ureg.dimensionless)
+    )(mean_charge_state)
+    return mean_charge_state_integrator
+
+
 
 class Mean_charge_interpolator:
     """Class to hold a mixed-seeding mean charge interpolator."""
@@ -101,7 +134,7 @@ class Mean_charge_interpolator:
         self.weights_list = impurity_weights_list
 
         for impurity_species in impurity_species_list:
-            interpolator = build_mean_charge_interpolator(
+            interpolator = _build_mean_charge_interpolator(
                 atomic_data=item(atomic_data),
                 impurity_species=item(impurity_species),
                 reference_electron_density=reference_electron_density,
@@ -134,7 +167,7 @@ class Mean_charge_interpolator:
 
 
 @Algorithm.register_algorithm(return_keys=["mean_charge_interpolator"])
-def build_mixed_seeding_mean_charge_interpolator(
+def build_mean_charge_interpolator(
     impurity_species_list,
     impurity_weights_list,
     atomic_data,

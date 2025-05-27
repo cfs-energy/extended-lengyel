@@ -157,8 +157,8 @@ CompositeAlgorithm(
         Algorithm.get_algorithm(alg)
         for alg in [
             "read_atomic_data",
-            "build_mixed_seeding_L_int_integrator",
-            "build_mixed_seeding_mean_charge_interpolator",
+            "build_L_int_integrator",
+            "build_mean_charge_interpolator",
             "calc_kappa_e0",
             "calc_momentum_loss_from_cc_fit",
             "calc_power_loss_from_cc_fit",

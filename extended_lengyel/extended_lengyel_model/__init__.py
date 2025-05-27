@@ -10,8 +10,8 @@ from .convective_loss_fits import (
     temperature_fit_function,
 )
 from .Lengyel_model_core import (
-    build_mixed_seeding_L_int_integrator,
-    build_mixed_seeding_mean_charge_interpolator,
+    build_L_int_integrator,
+    build_mean_charge_interpolator,
 )
 from .power_loss import (
     calc_parallel_heat_flux_at_target_from_power_loss_fraction,
@@ -52,8 +52,8 @@ __all__ = [
     "calc_parallel_heat_flux_at_target_from_power_loss_fraction",
     "calc_separatrix_electron_temp_with_broadening",
     "calc_separatrix_total_pressure_LG",
-    "build_mixed_seeding_L_int_integrator",
-    "build_mixed_seeding_mean_charge_interpolator",
+    "build_L_int_integrator",
+    "build_mean_charge_interpolator",
     "run_basic_lengyel_model",
     "run_extended_lengyel_model_with_S_correction",
     "run_extended_lengyel_model_with_S_and_Zeff_correction",

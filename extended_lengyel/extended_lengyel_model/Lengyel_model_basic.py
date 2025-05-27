@@ -39,7 +39,7 @@ CompositeAlgorithm(
             "set_radas_dir",
             "read_atomic_data",
             "set_single_impurity_species",
-            "build_mixed_seeding_L_int_integrator",
+            "build_L_int_integrator",
             "calc_kappa_e0",
             "calc_Goldston_kappa_z",
             "calc_momentum_loss_from_cc_fit",
