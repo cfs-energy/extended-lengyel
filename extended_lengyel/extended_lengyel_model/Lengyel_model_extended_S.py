@@ -3,11 +3,12 @@
 import numpy as np
 import xarray as xr
 from cfspopcon import Algorithm, CompositeAlgorithm
+from cfspopcon.unit_handling import ureg
 
-from .Lengyel_model_core import item
+from .Lengyel_model_core import item, L_int_integrator
 
 
-@Algorithm.register_algorithm(return_keys=["impurity_fraction", "radiated_fraction_above_xpt", "radiated_fraction_below_xpt"])
+@Algorithm.register_algorithm(return_keys=["impurity_fraction", "radiated_fraction_above_xpt"])
 def run_extended_lengyel_model_with_S_correction(
     q_parallel,
     divertor_broadening_factor,
@@ -19,37 +20,41 @@ def run_extended_lengyel_model_with_S_correction(
     electron_temp_at_cc_interface,
     divertor_entrance_electron_temp,
     L_int_integrator,
+    background_cz_L_int = L_int_integrator.empty(),
     mask_invalid_results: bool = True,
 ):
     """Calculate the impurity fraction required to radiate a given fraction of the power in the scrape-off-layer."""
-    LINT_cc_div = item(L_int_integrator)(electron_temp_at_cc_interface, divertor_entrance_electron_temp)
-    LINT_div_u = item(L_int_integrator)(divertor_entrance_electron_temp, separatrix_electron_temp)
-    LINT_cc_u = item(L_int_integrator)(electron_temp_at_cc_interface, separatrix_electron_temp)
+    # Seed impurities
+    Ls_cc_div = item(L_int_integrator)(electron_temp_at_cc_interface, divertor_entrance_electron_temp)
+    Ls_div_u = item(L_int_integrator)(divertor_entrance_electron_temp, separatrix_electron_temp)
+    Ls_cc_u = item(L_int_integrator)(electron_temp_at_cc_interface, separatrix_electron_temp)
+    
+    # Fixed impurities
+    Lf_cc_div = item(background_cz_L_int)(electron_temp_at_cc_interface, divertor_entrance_electron_temp)
+    Lf_div_u = item(background_cz_L_int)(divertor_entrance_electron_temp, separatrix_electron_temp)
+    Lf_cc_u = item(background_cz_L_int)(electron_temp_at_cc_interface, separatrix_electron_temp)
 
-    radiated_fraction_above_xpt = 1.0 - np.sqrt(
-        (LINT_cc_div + LINT_div_u * (parallel_heat_flux_at_cc_interface / q_parallel) ** 2)
-        / (LINT_cc_div + LINT_div_u / divertor_broadening_factor**2)
+    qu = q_parallel
+    qcc = parallel_heat_flux_at_cc_interface
+    b = divertor_broadening_factor
+    k = 2.0 * (kappa_e0 / kappa_z) * separatrix_electron_density**2 * separatrix_electron_temp**2
+
+    q_div_squared = (
+        (Ls_div_u * (qcc**2 + k * Lf_cc_div) + Ls_cc_div * (qu**2 - k * Lf_div_u))
+        / (Ls_div_u / b**2  + Ls_cc_div)
     )
-
-    total_radiated_fraction = (1.0 - parallel_heat_flux_at_cc_interface / q_parallel) * divertor_broadening_factor
-    radiated_fraction_above_xpt = np.minimum(radiated_fraction_above_xpt, total_radiated_fraction)
-    radiated_fraction_above_xpt = np.maximum(radiated_fraction_above_xpt, 0.0)
-
-    qdiv = (1 - radiated_fraction_above_xpt) * q_parallel
-    radiated_fraction_below_xpt = 1.0 - parallel_heat_flux_at_cc_interface / qdiv
-
-    kappa = kappa_e0 / kappa_z
+    q_div_squared = np.maximum(q_div_squared, 0.0 * ureg.W**2 * ureg.m**-4)
+    f_rad_main = 1.0 - np.sqrt(q_div_squared) / qu
 
     c_z = (
-        q_parallel**2
-        + ((1 / divertor_broadening_factor) ** 2 - 1) * (1 - radiated_fraction_above_xpt) ** 2 * q_parallel**2
-        - parallel_heat_flux_at_cc_interface**2
-    ) / (2.0 * kappa * separatrix_electron_density**2 * separatrix_electron_temp**2 * LINT_cc_u)
+        (qu**2 + (1 / b**2 - 1) * q_div_squared - qcc**2) / (k * Ls_cc_u)
+        - Lf_cc_u / Ls_cc_u
+    )
 
     if mask_invalid_results:
         c_z = xr.where(c_z < 0.0, np.nan, c_z)
 
-    return c_z, radiated_fraction_above_xpt, radiated_fraction_below_xpt
+    return c_z, f_rad_main
 
 
 CompositeAlgorithm(

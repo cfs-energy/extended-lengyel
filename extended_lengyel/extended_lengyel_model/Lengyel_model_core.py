@@ -1,12 +1,14 @@
 """Core functions for evaluating the Lengyel model."""
 
 import xarray as xr
+import numpy as np
 from cfspopcon import Algorithm
 from cfspopcon.formulas.impurities.edge_radiator_conc import build_L_int_integrator as _build_L_int_integrator
 from cfspopcon.named_options import AtomicSpecies
 from cfspopcon.formulas.atomic_data import AtomicData
 from cfspopcon.unit_handling import convert_units, magnitude, ureg, wraps_ufunc, Unitfull
 from scipy.interpolate import InterpolatedUnivariateSpline  # type:ignore[import-untyped]
+from typing import Self
 
 
 def item(val):
@@ -18,7 +20,7 @@ def item(val):
 
 
 class L_int_integrator:
-    """Class to hold a mixed-seeding L-int integrator."""
+    """Class to hold an L-int integrator."""
 
     def __init__(
         self,
@@ -44,7 +46,7 @@ class L_int_integrator:
 
     def __call__(self, start_temp: Unitfull, stop_temp: Unitfull) -> Unitfull:
         """Return sum_z(Lint(start_temp, stop_temp) * wz), handling input and output units."""
-        weighted_L_INT = 0.0
+        weighted_L_INT = 0.0 * ureg.W * ureg.m**3 * ureg.eV**1.5
 
         for weight, integrator in zip(self.weights_list, self.integrators):
             weighted_L_INT += weight * integrator(start_temp, stop_temp)
@@ -59,6 +61,11 @@ class L_int_integrator:
             weighted_L_INT += weight * integrator.unitless_func(start_temp, stop_temp)
 
         return weighted_L_INT
+    
+    @classmethod
+    def empty(cls) -> Self:
+        """Returns an empty L_int_integrator which always returns 0.0."""
+        return cls(impurity_species_list=[], impurity_weights_list=[], atomic_data=None)
 
 
 @Algorithm.register_algorithm(return_keys=["L_int_integrator"])
@@ -118,8 +125,8 @@ def _build_mean_charge_interpolator(
 
 
 
-class Mean_charge_interpolator:
-    """Class to hold a mixed-seeding mean charge interpolator."""
+class Change_in_Zeff_interpolator:
+    """Class to hold a mixed-seeding Zeff interpolator."""
 
     def __init__(
         self,
@@ -129,7 +136,7 @@ class Mean_charge_interpolator:
         reference_ne_tau: Unitfull = 0.5 * ureg.ms * ureg.n20,
         reference_electron_density: Unitfull = 1.0 * ureg.n20,
     ):
-        """Initializes a Mean_charge_interpolator from linked lists of impurity species and weights."""
+        """Initializes a Change_in_Zeff_interpolator from linked lists of impurity species and weights."""
         self.interpolators = []
         self.weights_list = impurity_weights_list
 
@@ -144,7 +151,7 @@ class Mean_charge_interpolator:
             self.interpolators.append(interpolator)
 
     def __call__(self, electron_temp: Unitfull) -> Unitfull:
-        """Return sum_z(<Z>(electron_temp) * wz) / sum_z(wz), handling input and output units."""
+        """Return the change in Zeff due to each impurity species, handling input and output units."""
         weighted_mean_charge = 0.0
         total_weights = 0.0
 
@@ -152,7 +159,7 @@ class Mean_charge_interpolator:
             weighted_mean_charge += weight * interpolator(electron_temp)
             total_weights += weight
 
-        return weighted_mean_charge / total_weights
+        return weighted_mean_charge / np.maximum(total_weights, np.finfo(float).eps)
 
     def unitless_eval(self, electron_temp: Unitfull) -> Unitfull:
         """Return sum_z(<Z>(electron_temp) * wz) / sum_z(wz), without handling input and output units."""
@@ -163,7 +170,12 @@ class Mean_charge_interpolator:
             weighted_mean_charge += weight * interpolator.unitless_func(electron_temp)
             total_weights += weight
 
-        return weighted_mean_charge / total_weights
+        return weighted_mean_charge / np.maximum(total_weights, np.finfo(float).eps)
+    
+    @classmethod
+    def empty(cls) -> Self:
+        """Returns an empty Change_in_Zeff_interpolator which always returns 0.0."""
+        return cls(impurity_species_list=[], impurity_weights_list=[], atomic_data=None)
 
 
 @Algorithm.register_algorithm(return_keys=["mean_charge_interpolator"])
@@ -174,8 +186,8 @@ def build_mean_charge_interpolator(
     reference_ne_tau=0.5 * ureg.ms * ureg.n20,
     reference_electron_density=1.0 * ureg.n20,
 ):
-    """Build a mean charge state interpolator which returns sum(w_z <Z>)/sum(w_z)."""
-    return Mean_charge_interpolator(
+    """Build a change-in-Zeff interpolator which returns how much each species changes Z-effective."""
+    return Change_in_Zeff_interpolator(
         impurity_species_list=impurity_species_list,
         impurity_weights_list=impurity_weights_list,
         atomic_data=atomic_data,

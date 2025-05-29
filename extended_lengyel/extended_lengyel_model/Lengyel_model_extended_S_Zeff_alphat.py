@@ -3,7 +3,7 @@
 import numpy as np
 import xarray as xr
 from cfspopcon import Algorithm, CompositeAlgorithm
-
+from typing import Optional
 
 from cfspopcon.unit_handling import ureg
 from cfspopcon.formulas.metrics import calc_alpha_t
@@ -12,14 +12,13 @@ from cfspopcon.formulas.separatrix_conditions.separatrix_operational_space.share
 from cfspopcon.formulas.metrics.larmor_radius import calc_larmor_radius
 
 from .Lengyel_model_extended_S_Zeff import run_extended_lengyel_model_with_S_and_Zeff_correction
-from .Lengyel_model_core import item
+from .Lengyel_model_core import item, L_int_integrator, Mean_charge_interpolator
 
 
 @Algorithm.register_algorithm(
     return_keys=[
         "impurity_fraction",
         "radiated_fraction_above_xpt",
-        "radiated_fraction_below_xpt",
         "z_effective",
         "divertor_entrance_electron_temp",
         "separatrix_electron_temp",
@@ -54,6 +53,8 @@ def run_extended_lengyel_model_with_S_Zeff_and_alphat_correction(
     cylindrical_safety_factor,
     separatrix_average_poloidal_field,
     ratio_of_upstream_to_average_poloidal_field,
+    background_cz_L_int= L_int_integrator.empty(),
+    background_cz_mean_charge= Mean_charge_interpolator.empty(),
     iterations_for_Lengyel_model: int = 5,
     iterations_for_alphat: int = 5,
     mask_invalid_results: bool = True,
@@ -86,7 +87,6 @@ def run_extended_lengyel_model_with_S_Zeff_and_alphat_correction(
         (
             c_z,
             radiated_fraction_above_xpt,
-            radiated_fraction_below_xpt,
             z_effective,
             divertor_entrance_electron_temp,
             separatrix_electron_temp,
@@ -109,13 +109,16 @@ def run_extended_lengyel_model_with_S_Zeff_and_alphat_correction(
             sheath_heat_transmission_factor=sheath_heat_transmission_factor,
             L_int_integrator=L_int_integrator,
             mean_charge_interpolator=mean_charge_interpolator,
+            background_cz_L_int=background_cz_L_int,
+            background_cz_mean_charge=background_cz_mean_charge,
             iterations_for_Lengyel_model=iterations_for_Lengyel_model,
             mask_invalid_results=False,
         )
 
         # Use the separatrix electron temperature to calculate Z-eff for alpha-t
-        mean_z = item(mean_charge_interpolator)(separatrix_electron_temp)
-        z_effective_upstream = 1.0 + mean_z * (mean_z - 1.0) * c_z
+        seed_mean_z = item(mean_charge_interpolator)(separatrix_electron_temp)
+        fixed_mean_z = item(background_cz_mean_charge)(separatrix_electron_temp)
+        z_effective_upstream = 1.0 + seed_mean_z * (seed_mean_z - 1.0) * c_z + fixed_mean_z * (fixed_mean_z - 1.0)
         z_effective_upstream = np.maximum(z_effective_upstream, 1.0)
 
         alpha_t = calc_alpha_t(
@@ -138,7 +141,6 @@ def run_extended_lengyel_model_with_S_Zeff_and_alphat_correction(
     return (
         c_z,
         radiated_fraction_above_xpt,
-        radiated_fraction_below_xpt,
         z_effective,
         divertor_entrance_electron_temp,
         separatrix_electron_temp,

@@ -2,6 +2,8 @@
 "cz*fz": ""
 "p0(1+fz*cz)/1.3": ""
 "Psep/R/lambda_int": ""
+background_cz_L_int: null
+background_cz_mean_charge: null
 change_in_parallel_convective_heat_flux: "eV / s / meter ** 2"
 charge_exchange_integral: "eV / meter ** 3"
 charge_exchange_power_loss: "eV / s / meter ** 3"

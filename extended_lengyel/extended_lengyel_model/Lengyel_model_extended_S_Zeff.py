@@ -3,13 +3,14 @@
 import numpy as np
 import xarray as xr
 from cfspopcon import Algorithm, CompositeAlgorithm
+from typing import Optional
 
 from ..initialize import calc_Goldston_kappa_z
 from .convective_loss_fits import calc_parallel_heat_flux_from_conv_loss
 from .power_loss import calc_parallel_heat_flux_at_target_from_power_loss_fraction, calc_required_power_loss_fraction
 from .upstream_temp import calc_separatrix_electron_temp_with_broadening, calc_separatrix_total_pressure_LG
 
-from .Lengyel_model_core import item
+from .Lengyel_model_core import item, L_int_integrator, Mean_charge_interpolator
 from .Lengyel_model_extended_S import run_extended_lengyel_model_with_S_correction
 
 
@@ -17,7 +18,6 @@ from .Lengyel_model_extended_S import run_extended_lengyel_model_with_S_correcti
     return_keys=[
         "impurity_fraction",
         "radiated_fraction_above_xpt",
-        "radiated_fraction_below_xpt",
         "z_effective",
         "divertor_entrance_electron_temp",
         "separatrix_electron_temp",
@@ -42,6 +42,8 @@ def run_extended_lengyel_model_with_S_and_Zeff_correction(
     sheath_heat_transmission_factor,
     L_int_integrator,
     mean_charge_interpolator,
+    background_cz_L_int= L_int_integrator.empty(),
+    background_cz_mean_charge= Mean_charge_interpolator.empty(),
     iterations_for_Lengyel_model: int = 5,
     mask_invalid_results: bool = True,
 ):
@@ -78,7 +80,7 @@ def run_extended_lengyel_model_with_S_and_Zeff_correction(
             parallel_heat_flux_at_target, SOL_power_loss_fraction_in_convection_layer
         )
 
-        c_z, radiated_fraction_above_xpt, radiated_fraction_below_xpt = run_extended_lengyel_model_with_S_correction(
+        c_z, radiated_fraction_above_xpt = run_extended_lengyel_model_with_S_correction(
             q_parallel=q_parallel,
             divertor_broadening_factor=divertor_broadening_factor,
             kappa_e0=kappa_e0,
@@ -89,11 +91,14 @@ def run_extended_lengyel_model_with_S_and_Zeff_correction(
             electron_temp_at_cc_interface=electron_temp_at_cc_interface,
             divertor_entrance_electron_temp=divertor_entrance_electron_temp,
             L_int_integrator=L_int_integrator,
+            background_cz_L_int=background_cz_L_int,
             mask_invalid_results=False,
         )
 
-        mean_z = item(mean_charge_interpolator)(divertor_entrance_electron_temp)
-        z_effective = 1.0 + mean_z * (mean_z - 1.0) * c_z
+        seed_mean_z = item(mean_charge_interpolator)(divertor_entrance_electron_temp, normalize=True)
+        fixed_mean_z = item(background_cz_mean_charge)(divertor_entrance_electron_temp, normalize=False)
+        z_effective = 1.0 + seed_mean_z * (seed_mean_z - 1.0) * c_z + fixed_mean_z * (fixed_mean_z - 1.0)
+        import ipdb; ipdb.set_trace()
 
     if mask_invalid_results:
         mask = c_z > 0.0
@@ -103,7 +108,6 @@ def run_extended_lengyel_model_with_S_and_Zeff_correction(
     return (
         c_z,
         radiated_fraction_above_xpt,
-        radiated_fraction_below_xpt,
         z_effective,
         divertor_entrance_electron_temp,
         separatrix_electron_temp,
