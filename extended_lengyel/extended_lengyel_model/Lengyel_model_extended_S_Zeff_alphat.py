@@ -12,7 +12,8 @@ from cfspopcon.formulas.separatrix_conditions.separatrix_operational_space.share
 from cfspopcon.formulas.metrics.larmor_radius import calc_larmor_radius
 
 from .Lengyel_model_extended_S_Zeff import run_extended_lengyel_model_with_S_and_Zeff_correction
-from .Lengyel_model_core import item, L_int_integrator, Mean_charge_interpolator
+from .Lengyel_model_core import CzLINT_integrator, Mean_charge_interpolator
+from ..xr_helpers import item
 
 
 @Algorithm.register_algorithm(
@@ -43,8 +44,8 @@ def run_extended_lengyel_model_with_S_Zeff_and_alphat_correction(
     SOL_power_loss_fraction_in_convection_layer,
     ion_mass,
     sheath_heat_transmission_factor,
-    L_int_integrator,
-    mean_charge_interpolator,
+    CzLINT_for_seed_impurities,
+    mean_charge_for_seed_impurities,
     fraction_of_P_SOL_to_divertor,
     power_crossing_separatrix,
     major_radius,
@@ -53,8 +54,8 @@ def run_extended_lengyel_model_with_S_Zeff_and_alphat_correction(
     cylindrical_safety_factor,
     separatrix_average_poloidal_field,
     ratio_of_upstream_to_average_poloidal_field,
-    background_cz_L_int= L_int_integrator.empty(),
-    background_cz_mean_charge= Mean_charge_interpolator.empty(),
+    CzLINT_for_fixed_impurities = CzLINT_integrator.empty(),
+    mean_charge_for_fixed_impurities= Mean_charge_interpolator.empty(),
     iterations_for_Lengyel_model: int = 5,
     iterations_for_alphat: int = 5,
     mask_invalid_results: bool = True,
@@ -107,19 +108,24 @@ def run_extended_lengyel_model_with_S_Zeff_and_alphat_correction(
             SOL_power_loss_fraction_in_convection_layer=SOL_power_loss_fraction_in_convection_layer,
             ion_mass=ion_mass,
             sheath_heat_transmission_factor=sheath_heat_transmission_factor,
-            L_int_integrator=L_int_integrator,
-            mean_charge_interpolator=mean_charge_interpolator,
-            background_cz_L_int=background_cz_L_int,
-            background_cz_mean_charge=background_cz_mean_charge,
+            CzLINT_for_seed_impurities=CzLINT_for_seed_impurities,
+            mean_charge_for_seed_impurities=mean_charge_for_seed_impurities,
+            CzLINT_for_fixed_impurities=CzLINT_for_fixed_impurities,
+            mean_charge_for_fixed_impurities=mean_charge_for_fixed_impurities,
             iterations_for_Lengyel_model=iterations_for_Lengyel_model,
             mask_invalid_results=False,
         )
 
         # Use the separatrix electron temperature to calculate Z-eff for alpha-t
-        seed_mean_z = item(mean_charge_interpolator)(separatrix_electron_temp)
-        fixed_mean_z = item(background_cz_mean_charge)(separatrix_electron_temp)
-        z_effective_upstream = 1.0 + seed_mean_z * (seed_mean_z - 1.0) * c_z + fixed_mean_z * (fixed_mean_z - 1.0)
-        z_effective_upstream = np.maximum(z_effective_upstream, 1.0)
+        seed_mean_z = item(mean_charge_for_seed_impurities)(separatrix_electron_temp)
+        fixed_mean_z = item(mean_charge_for_fixed_impurities)(separatrix_electron_temp)
+        seed_c_z = c_z * item(CzLINT_for_seed_impurities).weights
+        fixed_c_z = item(CzLINT_for_fixed_impurities).weights
+        z_effective_upstream = (
+            1.0
+            + (seed_mean_z * (seed_mean_z - 1.0) * seed_c_z).sum(dim="dim_species")
+            + (fixed_mean_z * (fixed_mean_z - 1.0) * fixed_c_z).sum(dim="dim_species")
+        )
 
         alpha_t = calc_alpha_t(
             separatrix_electron_density=separatrix_electron_density,
@@ -159,8 +165,8 @@ CompositeAlgorithm(
         Algorithm.get_algorithm(alg)
         for alg in [
             "read_atomic_data",
-            "build_L_int_integrator",
-            "build_mean_charge_interpolator",
+            "build_CzLINT_for_seed_impurities",
+            "build_mean_charge_for_seed_impurities",
             "calc_kappa_e0",
             "calc_momentum_loss_from_cc_fit",
             "calc_power_loss_from_cc_fit",

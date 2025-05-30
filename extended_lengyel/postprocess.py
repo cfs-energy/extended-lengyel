@@ -5,6 +5,7 @@ import xarray as xr
 from cfspopcon.algorithm_class import Algorithm
 from cfspopcon.named_options import AtomicSpecies
 from cfspopcon.unit_handling import magnitude_in_units, ureg
+from .xr_helpers import item
 
 
 @Algorithm.register_algorithm(return_keys=["separatrix_electron_density"])
@@ -76,8 +77,7 @@ def calc_radiative_efficiency(
         AtomicSpecies.Argon: 90.0,
     }
 
-    if isinstance(impurity_species, xr.DataArray):
-        impurity_species = impurity_species.item()
+    impurity_species = item(impurity_species)
 
     return radiative_efficiency[impurity_species]
 
@@ -171,8 +171,7 @@ def calc_mach_number(ion_velocity, sound_speed):
 @Algorithm.register_algorithm(return_keys=["charge_exchange_power_loss"])
 def calc_charge_exchange_power_loss_density(deuterium_adas_data, electron_density, electron_temp, neutral_density, ion_density):
     """Calculate the charge_exchange_power_loss."""
-    if isinstance(deuterium_adas_data, xr.DataArray):
-        deuterium_adas_data = deuterium_adas_data.item()
+    deuterium_adas_data = item(deuterium_adas_data)
     charge_exchange_rate = deuterium_adas_data.charge_exchange_rate.eval(electron_density, electron_temp) * neutral_density * ion_density
     return electron_temp * charge_exchange_rate
 
@@ -182,8 +181,7 @@ def calc_ionization_power_loss_density(
     hydrogen_effective_ionization_energy, deuterium_adas_data, electron_density, electron_temp, neutral_density
 ):
     """Calculate the ionization_power_loss."""
-    if isinstance(deuterium_adas_data, xr.DataArray):
-        deuterium_adas_data = deuterium_adas_data.item()
+    deuterium_adas_data = item(deuterium_adas_data)
     ionization_rate = deuterium_adas_data.ionization_rate.eval(electron_density, electron_temp) * electron_density * neutral_density
     return hydrogen_effective_ionization_energy * ionization_rate
 
@@ -191,16 +189,14 @@ def calc_ionization_power_loss_density(
 @Algorithm.register_algorithm(return_keys=["hydrogen_radiated_power"])
 def calc_hydrogen_radiated_power_density(deuterium_adas_data, electron_density, electron_temp, ion_density):
     """Calculate the hydrogen_radiated_power."""
-    if isinstance(deuterium_adas_data, xr.DataArray):
-        deuterium_adas_data = deuterium_adas_data.item()
+    deuterium_adas_data = item(deuterium_adas_data)
     return deuterium_adas_data.radiative_power_coeff.eval(electron_density, electron_temp) * ion_density * electron_density
 
 
 @Algorithm.register_algorithm(return_keys=["impurity_radiated_power"])
 def calc_impurity_radiated_power_density(impurity_adas_data, electron_density, electron_temp, impurity_fraction):
     """Calculate the impurity_radiated_power."""
-    if isinstance(impurity_adas_data, xr.DataArray):
-        impurity_adas_data = impurity_adas_data.item()
+    impurity_adas_data = item(impurity_adas_data)
     return impurity_adas_data.radiative_power_coeff.eval(electron_density, electron_temp) * impurity_fraction * electron_density**2
 
 

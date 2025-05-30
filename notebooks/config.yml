@@ -35,8 +35,8 @@ field_at_omp:
 AUG_39520_t5s:
   plasma_current: 1.0MA
   magnetic_field_on_axis: 2.5T
-  impurity_species_list: ["Nitrogen", "Argon"]
-  impurity_weights_list: [1.0, 0.05]
+  seed_impurity_species: ["Nitrogen", "Argon"]
+  seed_impurity_weights: [1.0, 0.05]
   separatrix_electron_density: 3.3e19/m^3
   target_electron_temp: 2.0eV
   power_crossing_separatrix: 5.5MW

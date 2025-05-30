@@ -11,7 +11,7 @@ from .directories import radas_dir
 
 from cfspopcon.formulas.separatrix_conditions.separatrix_operational_space.shared import calc_lambda_q_Eich2020H
 from cfspopcon.formulas.metrics.larmor_radius import calc_larmor_radius
-
+from .xr_helpers import item
 
 @Algorithm.register_algorithm(return_keys=["radas_dir"])
 def set_radas_dir():
@@ -22,18 +22,15 @@ def set_radas_dir():
 @Algorithm.register_algorithm(return_keys=["deuterium_adas_data"])
 def read_deuterium_adas_data(reference_ne_tau, radas_dir=None):
     """Read in the deuterium radas data."""
-    if isinstance(radas_dir, xr.DataArray):
-        radas_dir = radas_dir.item()
+    radas_dir = item(radas_dir)
     return AtomicSpeciesAdasData(species_name="deuterium", reference_ne_tau=reference_ne_tau, radas_dir=radas_dir)
 
 
 @Algorithm.register_algorithm(return_keys=["impurity_adas_data"])
 def read_impurity_adas_data(impurity_species: AtomicSpecies, reference_ne_tau, radas_dir=None):
     """Read in the radas data corresponding to the specified edge impurity species."""
-    if isinstance(impurity_species, xr.DataArray):
-        impurity_species = impurity_species.item()
-    if isinstance(radas_dir, xr.DataArray):
-        radas_dir = radas_dir.item()
+    impurity_species = item(impurity_species)
+    radas_dir = item(radas_dir)
 
     return AtomicSpeciesAdasData(species_name=impurity_species, reference_ne_tau=reference_ne_tau, radas_dir=radas_dir)
 
@@ -160,8 +157,7 @@ def calc_z_effective(
     reference_electron_density=1e20 * ureg.m**-3,
 ):
     """Calculate the effective charge due to the seeding species."""
-    if isinstance(impurity_adas_data, xr.DataArray):
-        impurity_adas_data = impurity_adas_data.item()
+    impurity_adas_data = item(impurity_adas_data)
 
     mean_z = impurity_adas_data.mean_charge.eval(reference_electron_density, reference_electron_temp)
 
@@ -236,13 +232,13 @@ def calc_magnetic_field_and_safety_factor(
     return upstream_toroidal_field, upstream_poloidal_field, separatrix_average_poloidal_field, cylindrical_safety_factor
 
 
-@Algorithm.register_algorithm(return_keys=["impurity_species_list", "impurity_weights_list"])
+@Algorithm.register_algorithm(return_keys=["seed_impurity_species", "seed_impurity_weights"])
 def set_single_impurity_species(impurity_species):
     """Convert a single edge impurity species into arrays compatible with mixed-impurity seeding routines."""
-    impurity_species_list = xr.DataArray([impurity_species], dims="dim_species")
-    impurity_weights_list = xr.DataArray([1.0], dims="dim_species")
+    seed_impurity_species = [item(impurity_species)]
+    seed_impurity_weights = xr.DataArray([1.0], coords=dict(dim_species = seed_impurity_species))
 
-    return impurity_species_list, impurity_weights_list
+    return seed_impurity_species, seed_impurity_weights
 
 
 @Algorithm.register_algorithm(return_keys=["kappa_z"])

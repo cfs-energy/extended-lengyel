@@ -2,14 +2,14 @@
 "cz*fz": ""
 "p0(1+fz*cz)/1.3": ""
 "Psep/R/lambda_int": ""
-background_cz_L_int: null
-background_cz_mean_charge: null
 change_in_parallel_convective_heat_flux: "eV / s / meter ** 2"
 charge_exchange_integral: "eV / meter ** 3"
 charge_exchange_power_loss: "eV / s / meter ** 3"
 conducted_fraction_at_cc_interface: ""
 conductive_heat_flux_at_target: "W / m**2"
 convective_heat_flux_at_target: "W / m**2"
+CzLINT_for_fixed_impurities: null
+CzLINT_for_seed_impurities: null
 deuterium_adas_data: null
 divertor_broadening_factor: ""
 divertor_entrance_electron_density: "m**-3"
@@ -29,6 +29,8 @@ fast_neutral_flux: "m**-2 / s"
 fast_neutral_fraction: ""
 fast_neutral_penetration_factor: ""
 fast_neutral_velocity: "m / s"
+fixed_impurity_species: null
+fixed_impurity_weights: null
 flux_density_to_pascals_factor: "(m**-2 / s) / Pa"
 flux_tube_cross_section_area_in_divertor: "m**2"
 flux_tube_cross_section_area_out_of_divertor: "m**2"
@@ -42,8 +44,6 @@ hydrogen_radiated_power: "eV / s / meter ** 3"
 impurity_adas_data: null
 impurity_fraction: "percent"
 impurity_radiated_power: "eV / s / meter ** 3"
-impurity_species_list: null
-impurity_weights_list: null
 ion_density: "m**-3"
 ion_mass: "amu"
 ion_temp: "eV"
@@ -55,12 +55,12 @@ ionization_power_loss: "eV / s / meter ** 3"
 iterations_for_alphat: null
 iterations_for_Lengyel_model: null
 kappa_z: ""
-L_int_integrator: null
 lambda_int: "m"
 mach_number_at_target: ""
 mach_number: ""
 mask_invalid_results: null
-mean_charge_interpolator: null
+mean_charge_for_fixed_impurities: null
+mean_charge_for_seed_impurities: null
 model_success: null
 neutral_density_at_cc_interface: "m**-3"
 neutral_density_at_target: "m**-3"
@@ -79,12 +79,14 @@ parallel_ion_flux_to_target: "m**-2 / s"
 parallel_to_perp_factor: ""
 perp_ion_flux_to_target: "m**-2 / s"
 radiated_fraction_above_xpt: ""
-radiated_fraction_below_xpt: ""
 radiative_efficiency: ""
 ratio_of_upstream_to_average_poloidal_field: ""
 reference_electron_temp: "eV"
+rtol_nearest_for_atomic_data: null
 s_parallel_at_cc_interface: "m"
 s_parallel: "m"
+seed_impurity_species: null
+seed_impurity_weights: null
 separatrix_average_poloidal_field: "T"
 separatrix_mach_number: ""
 separatrix_ratio_of_electron_to_ion_density: ""

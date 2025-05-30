@@ -5,8 +5,8 @@ import xarray as xr
 from cfspopcon import Algorithm, CompositeAlgorithm
 from cfspopcon.unit_handling import ureg
 
-from .Lengyel_model_core import item, L_int_integrator
-
+from .Lengyel_model_core import CzLINT_integrator
+from ..xr_helpers import item
 
 @Algorithm.register_algorithm(return_keys=["impurity_fraction", "radiated_fraction_above_xpt"])
 def run_extended_lengyel_model_with_S_correction(
@@ -19,20 +19,20 @@ def run_extended_lengyel_model_with_S_correction(
     separatrix_electron_temp,
     electron_temp_at_cc_interface,
     divertor_entrance_electron_temp,
-    L_int_integrator,
-    background_cz_L_int = L_int_integrator.empty(),
+    CzLINT_for_seed_impurities,
+    CzLINT_for_fixed_impurities = CzLINT_integrator.empty(),
     mask_invalid_results: bool = True,
 ):
     """Calculate the impurity fraction required to radiate a given fraction of the power in the scrape-off-layer."""
     # Seed impurities
-    Ls_cc_div = item(L_int_integrator)(electron_temp_at_cc_interface, divertor_entrance_electron_temp)
-    Ls_div_u = item(L_int_integrator)(divertor_entrance_electron_temp, separatrix_electron_temp)
-    Ls_cc_u = item(L_int_integrator)(electron_temp_at_cc_interface, separatrix_electron_temp)
+    Ls_cc_div = item(CzLINT_for_seed_impurities)(electron_temp_at_cc_interface, divertor_entrance_electron_temp)
+    Ls_div_u = item(CzLINT_for_seed_impurities)(divertor_entrance_electron_temp, separatrix_electron_temp)
+    Ls_cc_u = item(CzLINT_for_seed_impurities)(electron_temp_at_cc_interface, separatrix_electron_temp)
     
     # Fixed impurities
-    Lf_cc_div = item(background_cz_L_int)(electron_temp_at_cc_interface, divertor_entrance_electron_temp)
-    Lf_div_u = item(background_cz_L_int)(divertor_entrance_electron_temp, separatrix_electron_temp)
-    Lf_cc_u = item(background_cz_L_int)(electron_temp_at_cc_interface, separatrix_electron_temp)
+    Lf_cc_div = item(CzLINT_for_fixed_impurities)(electron_temp_at_cc_interface, divertor_entrance_electron_temp)
+    Lf_div_u = item(CzLINT_for_fixed_impurities)(divertor_entrance_electron_temp, separatrix_electron_temp)
+    Lf_cc_u = item(CzLINT_for_fixed_impurities)(electron_temp_at_cc_interface, separatrix_electron_temp)
 
     qu = q_parallel
     qcc = parallel_heat_flux_at_cc_interface
@@ -64,7 +64,7 @@ CompositeAlgorithm(
             "set_radas_dir",
             "read_atomic_data",
             "set_single_impurity_species",
-            "build_L_int_integrator",
+            "build_CzLINT_for_seed_impurities",
             "calc_kappa_e0",
             "calc_Goldston_kappa_z",
             "calc_momentum_loss_from_cc_fit",
@@ -89,7 +89,7 @@ CompositeAlgorithm(
             "set_radas_dir",
             "read_atomic_data",
             "set_single_impurity_species",
-            "build_L_int_integrator",
+            "build_CzLINT_for_seed_impurities",
             "calc_kappa_e0",
             "calc_Goldston_kappa_z",
             "calc_momentum_loss_from_cc_fit",
