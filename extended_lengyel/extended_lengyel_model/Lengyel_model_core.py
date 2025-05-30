@@ -96,7 +96,7 @@ class CzLINT_integrator:
         electron_temp = Lz_curve.dim_electron_temp
         Lz_sqrt_Te = Lz_curve * np.sqrt(electron_temp)
 
-        interpolator = InterpolatedUnivariateSpline(electron_temp, magnitude(Lz_sqrt_Te))
+        interpolator = InterpolatedUnivariateSpline(electron_temp, magnitude(Lz_sqrt_Te), ext=3)
 
         def L_int(start_temp: float, stop_temp: float) -> float:
             integrated_Lz: float = interpolator.integral(start_temp, stop_temp)
@@ -201,7 +201,7 @@ class Mean_charge_interpolator:
         )
 
         electron_temp = mean_z_curve.dim_electron_temp
-        interpolator = InterpolatedUnivariateSpline(electron_temp, magnitude(mean_z_curve))
+        interpolator = InterpolatedUnivariateSpline(electron_temp, magnitude(mean_z_curve), ext=3)
 
         def mean_charge_state(electron_temp: float) -> float:
             integrated_mean_z: float = interpolator(electron_temp)
@@ -236,3 +236,23 @@ def build_mean_charge_for_fixed_impurities(
         rtol_nearest_for_atomic_data = 1e-6,
     ) -> Mean_charge_interpolator:
     return Mean_charge_interpolator(fixed_impurity_species, atomic_data, reference_ne_tau, reference_electron_density, rtol_nearest_for_atomic_data)
+
+def calc_z_effective(electron_temp,
+                        c_z,
+                        mean_charge_for_seed_impurities: Mean_charge_interpolator,
+                        mean_charge_for_fixed_impurities: Mean_charge_interpolator,
+                        CzLINT_for_seed_impurities: CzLINT_integrator,
+                        CzLINT_for_fixed_impurities: CzLINT_integrator,
+                        starting_z_effective: float = 1.0,
+                        ) -> Unitfull:
+    """Calculate the effective charge due to seed and fixed impurities."""
+    seed_mean_z = item(mean_charge_for_seed_impurities)(electron_temp)
+    fixed_mean_z = item(mean_charge_for_fixed_impurities)(electron_temp)
+    seed_c_z = c_z * item(CzLINT_for_seed_impurities).weights
+    fixed_c_z = item(CzLINT_for_fixed_impurities).weights
+    z_effective = (
+        starting_z_effective
+        + (seed_mean_z * (seed_mean_z - 1.0) * seed_c_z).sum(dim="dim_species")
+        + (fixed_mean_z * (fixed_mean_z - 1.0) * fixed_c_z).sum(dim="dim_species")
+    )
+    return z_effective

@@ -1,11 +1,13 @@
 import numpy as np
+import xarray as xr
 import pytest
 from cfspopcon.formulas.atomic_data import read_atomic_data
 from cfspopcon.named_options import AtomicSpecies
 from cfspopcon.unit_handling import ureg
 
 from extended_lengyel.directories import radas_dir
-from extended_lengyel.extended_lengyel_model.Lengyel_model_core import CzLINT_integrator, Mean_charge_interpolator, item
+from extended_lengyel.extended_lengyel_model.Lengyel_model_core import CzLINT_integrator, Mean_charge_interpolator, calc_z_effective
+from extended_lengyel.xr_helpers import item
 from cfspopcon.unit_handling import magnitude_in_units, ureg, get_units
 
 def compare_magnitude(a, b):
@@ -90,3 +92,63 @@ def test_mixed_seeding_mean_charge():
 
     with pytest.raises(AssertionError):
         assert np.allclose(*compare_magnitude(single_mean_charge[AtomicSpecies.Nitrogen](temp), mixed_mean_charge(temp)), atol=0.0)
+
+def test_calc_z_effective():
+    atomic_data = read_atomic_data(radas_dir)
+
+
+    z_eff_no_impurities = calc_z_effective(
+        electron_temp=100.0 * ureg.eV,
+        c_z = 1e-2,
+        mean_charge_for_seed_impurities = Mean_charge_interpolator.empty(),
+        mean_charge_for_fixed_impurities = Mean_charge_interpolator.empty(),
+        CzLINT_for_seed_impurities = CzLINT_integrator.empty(),
+        CzLINT_for_fixed_impurities = CzLINT_integrator.empty(),
+    )
+
+    assert np.isclose(z_eff_no_impurities, 1.0)
+
+    z_eff_no_impurities = calc_z_effective(
+        electron_temp=xr.DataArray(np.array([100.0, 120.0]) * ureg.eV, dims="dim_Te"),
+        c_z = xr.DataArray(np.array([1.0, 2.0]) * ureg.percent, dims="dim_c_z"),
+        mean_charge_for_seed_impurities = Mean_charge_interpolator.empty(),
+        mean_charge_for_fixed_impurities = Mean_charge_interpolator.empty(),
+        CzLINT_for_seed_impurities = CzLINT_integrator.empty(),
+        CzLINT_for_fixed_impurities = CzLINT_integrator.empty(),
+    )
+
+    assert np.allclose(magnitude_in_units(z_eff_no_impurities, ureg.dimensionless), 1.0)
+
+    z_eff_hydrogen = calc_z_effective(
+        electron_temp=xr.DataArray(np.array([100.0, 120.0]) * ureg.eV, dims="dim_Te"),
+        c_z = xr.DataArray(np.array([1.0, 2.0]) * ureg.percent, dims="dim_c_z"),
+        mean_charge_for_seed_impurities = Mean_charge_interpolator.empty(),
+        mean_charge_for_fixed_impurities = Mean_charge_interpolator(["Hydrogen"], atomic_data),
+        CzLINT_for_seed_impurities = CzLINT_integrator.empty(),
+        CzLINT_for_fixed_impurities = CzLINT_integrator(["Hydrogen"], [1.0], atomic_data),
+    )
+
+    assert np.allclose(magnitude_in_units(z_eff_hydrogen, ureg.dimensionless), 1.0, rtol=1e-3)
+    
+    coronal_ne_tau = 1.0e20 * ureg.m**-3 * ureg.s
+
+    mean_charge_N = Mean_charge_interpolator(["Nitrogen"],
+                                             atomic_data,
+                                             ne_tau=coronal_ne_tau,
+                                             rtol_nearest=1
+    )
+    
+    assert np.isclose(magnitude_in_units(mean_charge_N(10.0 * ureg.keV), ureg.dimensionless), 7, rtol=1e-3)
+
+    z_eff_hydrogen = calc_z_effective(
+        electron_temp=xr.DataArray(np.array([10.0, 12.0]) * ureg.keV, dims="dim_Te"),
+        c_z = xr.DataArray(np.array([1.0]) * ureg.percent, dims="dim_c_z"),
+        mean_charge_for_seed_impurities = mean_charge_N,
+        mean_charge_for_fixed_impurities = Mean_charge_interpolator(["Hydrogen"], atomic_data),
+        CzLINT_for_seed_impurities = CzLINT_integrator(["Nitrogen"], [1.0], atomic_data, ne_tau=coronal_ne_tau, rtol_nearest=1),
+        CzLINT_for_fixed_impurities = CzLINT_integrator(["Hydrogen"], [1.0], atomic_data),
+    )
+
+    z_eff_expected = 1 + 1e-2 * 7 * (7 - 1)
+
+    assert np.allclose(magnitude_in_units(z_eff_hydrogen, ureg.dimensionless), z_eff_expected, rtol=1e-2)

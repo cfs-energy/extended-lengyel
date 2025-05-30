@@ -10,7 +10,7 @@ from .convective_loss_fits import calc_parallel_heat_flux_from_conv_loss
 from .power_loss import calc_parallel_heat_flux_at_target_from_power_loss_fraction, calc_required_power_loss_fraction
 from .upstream_temp import calc_separatrix_electron_temp_with_broadening, calc_separatrix_total_pressure_LG
 
-from .Lengyel_model_core import CzLINT_integrator, Mean_charge_interpolator
+from .Lengyel_model_core import CzLINT_integrator, Mean_charge_interpolator, calc_z_effective
 from .Lengyel_model_extended_S import run_extended_lengyel_model_with_S_correction
 from ..xr_helpers import item
 
@@ -96,14 +96,13 @@ def run_extended_lengyel_model_with_S_and_Zeff_correction(
             mask_invalid_results=False,
         )
 
-        seed_mean_z = item(mean_charge_for_seed_impurities)(divertor_entrance_electron_temp)
-        fixed_mean_z = item(mean_charge_for_fixed_impurities)(divertor_entrance_electron_temp)
-        seed_c_z = c_z * item(CzLINT_for_seed_impurities).weights
-        fixed_c_z = item(CzLINT_for_fixed_impurities).weights
-        z_effective = (
-            1.0
-            + (seed_mean_z * (seed_mean_z - 1.0) * seed_c_z).sum(dim="dim_species")
-            + (fixed_mean_z * (fixed_mean_z - 1.0) * fixed_c_z).sum(dim="dim_species")
+        z_effective = calc_z_effective(
+            divertor_entrance_electron_temp,
+            c_z,
+            mean_charge_for_seed_impurities,
+            mean_charge_for_fixed_impurities,
+            CzLINT_for_seed_impurities,
+            CzLINT_for_fixed_impurities,
         )
 
     if mask_invalid_results:

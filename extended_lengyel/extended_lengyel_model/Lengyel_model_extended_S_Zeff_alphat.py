@@ -12,7 +12,7 @@ from cfspopcon.formulas.separatrix_conditions.separatrix_operational_space.share
 from cfspopcon.formulas.metrics.larmor_radius import calc_larmor_radius
 
 from .Lengyel_model_extended_S_Zeff import run_extended_lengyel_model_with_S_and_Zeff_correction
-from .Lengyel_model_core import CzLINT_integrator, Mean_charge_interpolator
+from .Lengyel_model_core import CzLINT_integrator, Mean_charge_interpolator, calc_z_effective
 from ..xr_helpers import item
 
 
@@ -117,14 +117,13 @@ def run_extended_lengyel_model_with_S_Zeff_and_alphat_correction(
         )
 
         # Use the separatrix electron temperature to calculate Z-eff for alpha-t
-        seed_mean_z = item(mean_charge_for_seed_impurities)(separatrix_electron_temp)
-        fixed_mean_z = item(mean_charge_for_fixed_impurities)(separatrix_electron_temp)
-        seed_c_z = c_z * item(CzLINT_for_seed_impurities).weights
-        fixed_c_z = item(CzLINT_for_fixed_impurities).weights
-        z_effective_upstream = (
-            1.0
-            + (seed_mean_z * (seed_mean_z - 1.0) * seed_c_z).sum(dim="dim_species")
-            + (fixed_mean_z * (fixed_mean_z - 1.0) * fixed_c_z).sum(dim="dim_species")
+        z_effective_upstream = calc_z_effective(
+            separatrix_electron_temp,
+            c_z,
+            mean_charge_for_seed_impurities,
+            mean_charge_for_fixed_impurities,
+            CzLINT_for_seed_impurities,
+            CzLINT_for_fixed_impurities,
         )
 
         alpha_t = calc_alpha_t(
