@@ -2,7 +2,6 @@
 
 from cfspopcon import Algorithm
 from cfspopcon.formulas.scrape_off_layer.two_point_model.separatrix_pressure import calc_upstream_total_pressure
-from extended_lengyel.extended_lengyel_model.Lengyel_model_core import L_int_integrator
 import numpy as np
 from cfspopcon.unit_handling import wraps_ufunc, ureg
 from scipy.interpolate import InterpolatedUnivariateSpline
@@ -63,7 +62,7 @@ def calc_separatrix_electron_temp_with_broadening(
         impurity_fraction=ureg.dimensionless,
         kappa=ureg.W / (ureg.eV**3.5 * ureg.m),
         parallel_length=ureg.m,
-        L_int_integrator=None,
+        CzLINT_for_seed_impurities=None,
         search_factor=None,
         resolution=None,
     ),
@@ -77,7 +76,7 @@ def calc_electron_temp_from_parallel_length(
     impurity_fraction,
     kappa,
     parallel_length,
-    L_int_integrator: L_int_integrator,
+    CzLINT_for_seed_impurities,
     search_factor: int = 2,
     resolution: int = 20,
 ):
@@ -85,7 +84,7 @@ def calc_electron_temp_from_parallel_length(
     Te_tests = np.linspace(start=start_temp, stop=initial_guess_temp * search_factor, num=resolution)
     L_int_Te = np.zeros(Te_tests.size)
     for i, Te in enumerate(Te_tests):
-        L_int_Te[i] = L_int_integrator.unitless_eval(start_temp, Te)
+        L_int_Te[i] = CzLINT_for_seed_impurities.unitless_eval(start_temp, Te)
 
     q_start_squared = start_q_parallel**2
     dq_squared = 2.0 * kappa * total_pressure**2 * impurity_fraction * L_int_Te

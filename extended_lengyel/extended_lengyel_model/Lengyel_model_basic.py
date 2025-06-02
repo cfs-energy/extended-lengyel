@@ -4,7 +4,7 @@ import numpy as np
 import xarray as xr
 from cfspopcon import Algorithm, CompositeAlgorithm
 
-from .Lengyel_model_core import item
+from ..xr_helpers import item
 
 
 @Algorithm.register_algorithm(return_keys=["impurity_fraction"])
@@ -14,12 +14,12 @@ def run_basic_lengyel_model(
     separatrix_electron_density,
     separatrix_electron_temp,
     target_electron_temp,
-    L_int_integrator,
+    CzLINT_for_seed_impurities,
     SOL_power_loss_fraction,
     kappa_z,
 ):
     """Calculate the impurity fraction required to radiate a given fraction of the power in the scrape-off-layer, using the basic Lengyel model."""
-    LINT_t_u = item(L_int_integrator)(target_electron_temp, separatrix_electron_temp)
+    LINT_t_u = item(CzLINT_for_seed_impurities)(target_electron_temp, separatrix_electron_temp)
 
     kappa = kappa_e0 / kappa_z
 
@@ -39,7 +39,7 @@ CompositeAlgorithm(
             "set_radas_dir",
             "read_atomic_data",
             "set_single_impurity_species",
-            "build_mixed_seeding_L_int_integrator",
+            "build_CzLINT_for_seed_impurities",
             "calc_kappa_e0",
             "calc_Goldston_kappa_z",
             "calc_momentum_loss_from_cc_fit",
