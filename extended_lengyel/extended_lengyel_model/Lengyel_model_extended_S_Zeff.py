@@ -43,13 +43,17 @@ def run_extended_lengyel_model_with_S_and_Zeff_correction(
     sheath_heat_transmission_factor,
     CzLINT_for_seed_impurities,
     mean_charge_for_seed_impurities,
-    CzLINT_for_fixed_impurities= CzLINT_integrator.empty(),
-    mean_charge_for_fixed_impurities= Mean_charge_interpolator.empty(),
+    CzLINT_for_fixed_impurities: Optional[CzLINT_integrator] = None,
+    mean_charge_for_fixed_impurities: Optional[Mean_charge_interpolator] = None,
     iterations_for_Lengyel_model: int = 5,
     mask_invalid_results: bool = True,
 ):
     """Calculate the impurity fraction required to radiate a given fraction of the power in the scrape-off-layer, iterating to find a consistent Zeff."""
     z_effective = 1.0
+    if CzLINT_for_fixed_impurities is None:
+        CzLINT_for_fixed_impurities = CzLINT_integrator.empty()
+    if mean_charge_for_fixed_impurities is None:
+        mean_charge_for_fixed_impurities = Mean_charge_interpolator.empty()
 
     for _ in range(item(iterations_for_Lengyel_model)):
         kappa_z = calc_Goldston_kappa_z(z_effective)

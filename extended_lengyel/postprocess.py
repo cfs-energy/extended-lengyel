@@ -1,7 +1,6 @@
 """Post-process the results of the Kallenbach model, using the results of the main loop."""
 
 import numpy as np
-import xarray as xr
 from cfspopcon.algorithm_class import Algorithm
 from cfspopcon.named_options import AtomicSpecies
 from cfspopcon.unit_handling import magnitude_in_units, ureg

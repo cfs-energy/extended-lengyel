@@ -54,13 +54,18 @@ def run_extended_lengyel_model_with_S_Zeff_and_alphat_correction(
     cylindrical_safety_factor,
     separatrix_average_poloidal_field,
     ratio_of_upstream_to_average_poloidal_field,
-    CzLINT_for_fixed_impurities = CzLINT_integrator.empty(),
-    mean_charge_for_fixed_impurities= Mean_charge_interpolator.empty(),
+    CzLINT_for_fixed_impurities: Optional[CzLINT_integrator] = None,
+    mean_charge_for_fixed_impurities: Optional[Mean_charge_interpolator] = None,
     iterations_for_Lengyel_model: int = 5,
     iterations_for_alphat: int = 5,
     mask_invalid_results: bool = True,
 ):
     """Calculate the impurity fraction required to radiate a given fraction of the power in the scrape-off-layer, iterating to find a consistent Zeff."""
+    if CzLINT_for_fixed_impurities is None:
+        CzLINT_for_fixed_impurities = CzLINT_integrator.empty()
+    if mean_charge_for_fixed_impurities is None:
+        mean_charge_for_fixed_impurities = Mean_charge_interpolator.empty()
+
     f_share = (1.0 - 1.0 / np.e) * fraction_of_P_SOL_to_divertor
 
     separatrix_electron_temp = 100.0 * ureg.eV

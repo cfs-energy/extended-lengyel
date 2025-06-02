@@ -4,6 +4,7 @@ import numpy as np
 import xarray as xr
 from cfspopcon import Algorithm, CompositeAlgorithm
 from cfspopcon.unit_handling import ureg
+from typing import Optional
 
 from .Lengyel_model_core import CzLINT_integrator
 from ..xr_helpers import item
@@ -19,16 +20,19 @@ def run_extended_lengyel_model_with_S_correction(
     separatrix_electron_temp,
     electron_temp_at_cc_interface,
     divertor_entrance_electron_temp,
-    CzLINT_for_seed_impurities,
-    CzLINT_for_fixed_impurities = CzLINT_integrator.empty(),
+    CzLINT_for_seed_impurities: CzLINT_integrator,
+    CzLINT_for_fixed_impurities: Optional[CzLINT_integrator] = None,
     mask_invalid_results: bool = True,
 ):
     """Calculate the impurity fraction required to radiate a given fraction of the power in the scrape-off-layer."""
+    if CzLINT_for_fixed_impurities is None:
+        CzLINT_for_fixed_impurities = CzLINT_integrator.empty()
+
     # Seed impurities
     Ls_cc_div = item(CzLINT_for_seed_impurities)(electron_temp_at_cc_interface, divertor_entrance_electron_temp)
     Ls_div_u = item(CzLINT_for_seed_impurities)(divertor_entrance_electron_temp, separatrix_electron_temp)
     Ls_cc_u = item(CzLINT_for_seed_impurities)(electron_temp_at_cc_interface, separatrix_electron_temp)
-    
+
     # Fixed impurities
     Lf_cc_div = item(CzLINT_for_fixed_impurities)(electron_temp_at_cc_interface, divertor_entrance_electron_temp)
     Lf_div_u = item(CzLINT_for_fixed_impurities)(divertor_entrance_electron_temp, separatrix_electron_temp)

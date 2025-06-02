@@ -1,3 +1,5 @@
+"""Simple functions for use with xarray."""
+
 import xarray as xr
 
 def item(val):
