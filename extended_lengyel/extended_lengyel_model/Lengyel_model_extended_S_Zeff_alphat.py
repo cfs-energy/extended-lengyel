@@ -201,3 +201,31 @@ CompositeAlgorithm(
     name="compare_alphat_lengyel_model_to_kallenbach_scaling",
     register=True,
 )
+
+CompositeAlgorithm(
+    algorithms=[
+        Algorithm.get_algorithm(alg)
+        for alg in [
+            "calc_magnetic_field_and_safety_factor",
+            "calc_fieldline_pitch_at_omp",
+            "set_radas_dir",
+            "read_atomic_data",
+            "build_CzLINT_for_seed_impurities",
+            "calc_kappa_e0",
+            "build_mean_charge_for_seed_impurities",
+            "calc_momentum_loss_from_cc_fit",
+            "calc_power_loss_from_cc_fit",
+            "calc_electron_temp_from_cc_fit",
+            "run_extended_lengyel_model_with_S_Zeff_and_alphat_correction",
+            "calc_sound_speed_at_target",
+            "calc_target_density",
+            "calc_flux_density_to_pascals_factor",
+            "calc_parallel_to_perp_factor",
+            "calc_ion_flux_to_target",
+            "calc_divertor_neutral_pressure",
+            "calc_heat_flux_perp_to_target"
+        ]
+    ],
+    name="extended_lengyel_for_experiment_inputs",
+    register=True,
+)

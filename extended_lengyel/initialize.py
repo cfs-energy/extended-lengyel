@@ -232,15 +232,6 @@ def calc_magnetic_field_and_safety_factor(
     return upstream_toroidal_field, upstream_poloidal_field, separatrix_average_poloidal_field, cylindrical_safety_factor
 
 
-@Algorithm.register_algorithm(return_keys=["seed_impurity_species", "seed_impurity_weights"])
-def set_single_impurity_species(impurity_species):
-    """Convert a single edge impurity species into arrays compatible with mixed-impurity seeding routines."""
-    seed_impurity_species = [item(impurity_species)]
-    seed_impurity_weights = xr.DataArray([1.0], coords=dict(dim_species = seed_impurity_species))
-
-    return seed_impurity_species, seed_impurity_weights
-
-
 @Algorithm.register_algorithm(return_keys=["kappa_z"])
 def ignore_kappa_z():
     """Ignore the z-effective correction to the electron heat conductivity."""

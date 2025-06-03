@@ -276,3 +276,25 @@ def calc_z_effective(
     Zeff = sum[ c_s <Z_s> ] = sum[ w_f <Z_f> ] + c_z * sum[ w_s <Z_s> ]
     """
     return z_effective
+
+@Algorithm.register_algorithm(return_keys=["seed_impurity_species", "seed_impurity_weights"])
+def set_single_impurity_species(impurity_species):
+    """Convert a single edge impurity species into arrays compatible with mixed-impurity seeding routines."""
+    seed_impurity_species = [item(impurity_species)]
+    return setup_seed_impurities(seed_impurity_species, seed_impurity_weights=[1.0])
+
+@Algorithm.register_algorithm(return_keys=["seed_impurity_species", "seed_impurity_weights"])
+def setup_seed_impurities(seed_impurity_species, seed_impurity_weights) -> tuple[xr.DataArray, xr.DataArray]:
+    """Convert linked lists for seed impurity species into xarrays."""
+    seed_impurity_weights = xr.DataArray(seed_impurity_weights, coords=dict(dim_species = seed_impurity_species))
+    seed_impurity_species = xr.DataArray(seed_impurity_species, coords=dict(dim_species = seed_impurity_species))
+
+    return seed_impurity_species, seed_impurity_weights
+
+@Algorithm.register_algorithm(return_keys=["fixed_impurity_species", "fixed_impurity_weights"])
+def setup_fixed_impurities(fixed_impurity_species, fixed_impurity_weights) -> tuple[xr.DataArray, xr.DataArray]:
+    """Convert linked lists for fixed impurity species into xarrays."""
+    fixed_impurity_weights = xr.DataArray(fixed_impurity_weights, coords=dict(dim_species = fixed_impurity_species))
+    fixed_impurity_species = xr.DataArray(fixed_impurity_species, coords=dict(dim_species = fixed_impurity_species))
+
+    return fixed_impurity_species, fixed_impurity_weights
