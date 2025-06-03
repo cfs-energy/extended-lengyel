@@ -1,7 +1,7 @@
 """Read in a config.yml file and convert it into a form that can be used to run raddivmom algorithms."""
 
 import yaml
-from cfspopcon.unit_handling import Quantity, UndefinedUnitError, ureg
+from cfspopcon.unit_handling import Quantity, UndefinedUnitError
 from cfspopcon.named_options import AtomicSpecies
 from fractions import Fraction
 from typing import Any, Optional, Callable
@@ -18,7 +18,7 @@ def test_convert(element: str, conversion: Callable[[str], Any]) -> Any | None:
     except (ValueError, UndefinedUnitError):
         return None
 
-def convert_elements(element):
+def convert_elements(element): # noqa:PLR0911
     """Read the elements of the configuration and convert them to their underlying types."""
     if isinstance(element, dict):
         return {k: convert_elements(v) for k, v in element.items()}
@@ -35,17 +35,18 @@ def convert_elements(element):
             return val
         elif (val:=test_convert(element, lambda s: AtomicSpecies.__getitem__(str.capitalize(s)))) is not None:
             return val
-    
+
     raise NotImplementedError(f"Cannot handle {element} of type {type(element)}")
 
 
-def read_config(
+def read_config( # noqa:PLR0912
     elements: Optional[list[str]] = None,
     filepath = notebook_dir / "config.yml",
     overrides: Optional[dict[str, Any]] = None,
     keys: Optional[list[str]] = None,
     allowed_missing: Optional[list[str]] = None,
     warn_if_unused: bool = False,
+    convert_overrides: bool = False,
 ):
     """Read configuration file and return as a dictionary.
 
@@ -68,8 +69,11 @@ def read_config(
         flattened_config.update(config[element])
 
     for k, v in overrides.items():
-        flattened_config[k] = v
-    
+        if convert_overrides:
+            flattened_config[k] = convert_elements(v)
+        else:
+            flattened_config[k] = v
+
     flattened_config["seed_impurity_species"], flattened_config["seed_impurity_weights"] = \
         setup_impurities(flattened_config.get("seed_impurity_species", []), flattened_config.get("seed_impurity_weights", []))
     flattened_config["fixed_impurity_species"], flattened_config["fixed_impurity_weights"] = \
@@ -96,7 +100,7 @@ def read_config(
 
 def setup_impurities(impurity_species, impurity_weights) -> tuple[xr.DataArray, xr.DataArray]:
     """Convert linked lists for seed impurity species into xarrays."""
-    coords = {f"dim_species": np.atleast_1d(impurity_species)}
+    coords = {"dim_species": np.atleast_1d(impurity_species)}
     impurity_weights = xr.DataArray(np.atleast_1d(impurity_weights), coords=coords)
     impurity_species = xr.DataArray(np.atleast_1d(impurity_species), coords=coords)
 

@@ -84,6 +84,7 @@ lint.ignore = [
   "I001", # Ignore unsorted imports (Algorithms must be imported in order).
   "PERF203", # Allow try/except in loops
   "PERF403", # Allow dictionary construction via iteration
+  "B028", # warnings must have stacklevel
 ]
 lint.pyupgrade.keep-runtime-typing=true
 lint.pydocstyle.convention = "google"

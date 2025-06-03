@@ -9,7 +9,6 @@ import xarray as xr
 import yaml
 
 from . import config
-from . import extended_lengyel_model
 from .xr_helpers import item
 import cfspopcon
 
@@ -38,8 +37,10 @@ def run_extended_lengyel_cli(config_file: str, output_file: str, kwargs: tuple[t
     else:
         run_extended_lengyel(config_file, output_file, cli_args)
 
-def run_extended_lengyel(config_file, output_file, cli_args) -> None:
+def run_extended_lengyel(config_file, output_file, cli_args=None) -> None:
     """Run the extended Lengyel model as a calculator."""
+    if cli_args is None:
+        cli_args = {}
     config_file = Path(config_file).absolute()
     assert config_file.exists(), f"{config_file} not found."
     assert config_file.suffix == ".yml", f"{config_file} is not a YAML file."
@@ -73,12 +74,13 @@ def run_extended_lengyel(config_file, output_file, cli_args) -> None:
     ])
 
     data_vars = config.read_config(
-        elements        = ["input"],
-        filepath        = config_file,
-        keys            = algorithm.input_keys,
-        allowed_missing = algorithm.default_keys,
-        overrides       = cli_args,
-        warn_if_unused  = True,
+        elements          = ["input"],
+        filepath          = config_file,
+        keys              = algorithm.input_keys,
+        allowed_missing   = algorithm.default_keys,
+        overrides         = cli_args,
+        warn_if_unused    = True,
+        convert_overrides = True,
     )
 
     ds = xr.Dataset(data_vars=data_vars)
@@ -90,7 +92,7 @@ def run_extended_lengyel(config_file, output_file, cli_args) -> None:
     print("Extended lengyel model ran successfully.")
 
 def write_output_file(filepath: Path, ds: xr.Dataset):
-    """"""
+    """Write the results from the extended Lengyel model to a YAML file."""
     from cfspopcon.file_io import sanitize_variable, ignored_keys
     ignored_keys += [
         "seed_impurity_species",
@@ -106,11 +108,13 @@ def write_output_file(filepath: Path, ds: xr.Dataset):
     output_dict = dict()
 
     for key in ds.keys():
-        if key in ignored_keys: continue
+        if key in ignored_keys:
+            continue
         output_dict[key] = sanitize_variable(ds[key], key)
 
     for key in ds.coords:
-        if key in ignored_keys: continue
+        if key in ignored_keys:
+            continue
         output_dict[key] = sanitize_variable(ds[key], key)
 
     impurity_fraction = cfspopcon.unit_handling.magnitude_in_units(ds["impurity_fraction"], "")
@@ -123,14 +127,14 @@ def write_output_file(filepath: Path, ds: xr.Dataset):
     for cz in fixed_impurity_concentration:
         output_impurity_fraction["fixed_impurity"][item(cz.dim_species).name] = item(cz)
 
-    for k, v in output_dict.items():
-        units = getattr(v, "units", None)
-        v = v.values.tolist()
+    for key, val in output_dict.items():
+        units = getattr(val, "units", None)
+        v = val.values.tolist()
         if units is not None:
-            output_dict[k] = f"{v} {units}"
+            output_dict[key] = f"{v} {units}"
         else:
-            output_dict[k] = v
-        
+            output_dict[key] = v
+
     output_dict["impurity_fraction"] = output_impurity_fraction
 
     with open(filepath, "w") as f:

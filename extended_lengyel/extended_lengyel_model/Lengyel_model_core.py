@@ -112,7 +112,7 @@ class CzLINT_integrator:
     def empty(cls) -> Self:
         """Returns an empty CzLINT_integrator which always returns 0.0."""
         return cls.from_list(impurity_species_list=[], impurity_weights_list=[], atomic_data=None)
-    
+
     @classmethod
     def from_list(cls,
         impurity_species_list: list[str | AtomicSpecies],
@@ -206,7 +206,7 @@ class Mean_charge_interpolator:
     def empty(cls) -> Self:
         """Returns an empty Mean_charge_interpolator which always returns 0.0."""
         return cls.from_list(impurity_species_list=[], atomic_data=None)
-    
+
     @classmethod
     def from_list(cls,
         impurity_species_list: list[str | AtomicSpecies],
@@ -217,7 +217,7 @@ class Mean_charge_interpolator:
     ) -> Self:
         """Returns an CzLINT_integrator from linked lists of impurity species and weights."""
         impurity_species_list = [s if isinstance(s, AtomicSpecies) else AtomicSpecies[s] for s in impurity_species_list]
-        impurity_species_list = xr.DataArray(np.atleast_1d(impurity_species_list), coords={f"dim_species": np.atleast_1d(impurity_species_list)})
+        impurity_species_list = xr.DataArray(np.atleast_1d(impurity_species_list), coords={"dim_species": np.atleast_1d(impurity_species_list)})
         return cls(impurity_species_list, atomic_data, ne_tau, electron_density, rtol_nearest)
 
 def calc_z_effective(

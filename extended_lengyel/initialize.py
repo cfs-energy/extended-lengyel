@@ -1,7 +1,6 @@
 """Common initialization routines (shared by several models)."""
 
 import numpy as np
-import xarray as xr
 from cfspopcon.algorithm_class import Algorithm
 from cfspopcon.named_options import AtomicSpecies
 from cfspopcon.unit_handling import convert_units, ureg
