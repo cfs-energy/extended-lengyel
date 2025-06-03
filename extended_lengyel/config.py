@@ -9,7 +9,6 @@ import xarray as xr
 
 from extended_lengyel.directories import notebook_dir
 
-
 def test_convert(element: str, conversion: Callable[[str], Any]) -> Any | None:
     """Use the conversion routine to convert a string to another type. If this fails, return None."""
     try:
@@ -67,6 +66,13 @@ def read_config(
 
     for k, v in overrides.items():
         flattened_config[k] = v
+    
+    if "seed_impurity_species" in flattened_config.keys() and "seed_impurity_weights" in flattened_config.keys():
+        flattened_config["seed_impurity_species"], flattened_config["seed_impurity_weights"] = \
+            setup_impurities(flattened_config["seed_impurity_species"], flattened_config["seed_impurity_weights"])
+    if "fixed_impurity_species" in flattened_config.keys() and "fixed_impurity_weights" in flattened_config.keys():
+        flattened_config["fixed_impurity_species"], flattened_config["fixed_impurity_weights"] = \
+            setup_impurities(flattened_config["fixed_impurity_species"], flattened_config["fixed_impurity_weights"])
 
     if keys is None:
         return flattened_config
@@ -84,6 +90,12 @@ def read_config(
 
         return selected_config
 
+def setup_impurities(impurity_species, impurity_weights) -> tuple[xr.DataArray, xr.DataArray]:
+    """Convert linked lists for seed impurity species into xarrays."""
+    impurity_weights = xr.DataArray(impurity_weights, coords=dict(dim_species = impurity_species))
+    impurity_species = xr.DataArray(impurity_species, coords=dict(dim_species = impurity_species))
+
+    return impurity_species, impurity_weights
 
 def promote_to_coordinate(array, units, dims):
     """Convert an array of values to a coordinate for performing scans over."""

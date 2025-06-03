@@ -12,6 +12,7 @@ from cfspopcon.unit_handling import magnitude, ureg, wraps_ufunc, Unitfull, magn
 from scipy.interpolate import InterpolatedUnivariateSpline  # type:ignore[import-untyped]
 from typing import Self, Callable
 from ..xr_helpers import item
+from ..config import setup_impurities
 
 def get_species_array(impurity_species_list) -> list[AtomicSpecies]:
     """Get a list of impurity species."""
@@ -118,32 +119,6 @@ class CzLINT_integrator:
         return cls(impurity_species_list=[], impurity_weights_list=[], atomic_data=None)
 
 
-@Algorithm.register_algorithm(return_keys=["CzLINT_for_seed_impurities"])
-def build_CzLINT_for_seed_impurities(
-        seed_impurity_species,
-        seed_impurity_weights,
-        atomic_data,
-        reference_ne_tau = 0.5 * ureg.ms * ureg.n20,
-        reference_electron_density = 1.0 * ureg.n20,
-        rtol_nearest_for_atomic_data = 1e-6,
-    ) -> CzLINT_integrator:
-    """Build a CzLINT_integrator for the seed impurities."""
-    return CzLINT_integrator(seed_impurity_species, seed_impurity_weights, atomic_data, reference_ne_tau, reference_electron_density, rtol_nearest_for_atomic_data)
-
-
-@Algorithm.register_algorithm(return_keys=["CzLINT_for_fixed_impurities"])
-def build_CzLINT_for_fixed_impurities(
-        fixed_impurity_species,
-        fixed_impurity_weights,
-        atomic_data,
-        reference_ne_tau = 0.5 * ureg.ms * ureg.n20,
-        reference_electron_density = 1.0 * ureg.n20,
-        rtol_nearest_for_atomic_data = 1e-6,
-    ) -> CzLINT_integrator:
-    """Build a CzLINT_integrator for the fixed impurities."""
-    return CzLINT_integrator(fixed_impurity_species, fixed_impurity_weights, atomic_data, reference_ne_tau, reference_electron_density, rtol_nearest_for_atomic_data)
-
-
 class Mean_charge_interpolator:
     """Class to hold a mixed-seeding Zeff interpolator."""
 
@@ -224,28 +199,6 @@ class Mean_charge_interpolator:
         """Returns an empty Mean_charge_interpolator which always returns 0.0."""
         return cls(impurity_species_list=[], atomic_data=None)
 
-@Algorithm.register_algorithm(return_keys=["mean_charge_for_seed_impurities"])
-def build_mean_charge_for_seed_impurities(
-        seed_impurity_species,
-        atomic_data,
-        reference_ne_tau = 0.5 * ureg.ms * ureg.n20,
-        reference_electron_density = 1.0 * ureg.n20,
-        rtol_nearest_for_atomic_data = 1e-6,
-    ) -> Mean_charge_interpolator:
-    """Build a Mean_charge_interpolator for the seed impurities."""
-    return Mean_charge_interpolator(seed_impurity_species, atomic_data, reference_ne_tau, reference_electron_density, rtol_nearest_for_atomic_data)
-
-@Algorithm.register_algorithm(return_keys=["mean_charge_for_fixed_impurities"])
-def build_mean_charge_for_fixed_impurities(
-        fixed_impurity_species,
-        atomic_data,
-        reference_ne_tau = 0.5 * ureg.ms * ureg.n20,
-        reference_electron_density = 1.0 * ureg.n20,
-        rtol_nearest_for_atomic_data = 1e-6,
-    ) -> Mean_charge_interpolator:
-    """Build a Mean_charge_interpolator for the fixed impurities."""
-    return Mean_charge_interpolator(fixed_impurity_species, atomic_data, reference_ne_tau, reference_electron_density, rtol_nearest_for_atomic_data)
-
 def calc_z_effective(
         electron_temp,
         c_z,
@@ -281,20 +234,50 @@ def calc_z_effective(
 def set_single_impurity_species(impurity_species):
     """Convert a single edge impurity species into arrays compatible with mixed-impurity seeding routines."""
     seed_impurity_species = [item(impurity_species)]
-    return setup_seed_impurities(seed_impurity_species, seed_impurity_weights=[1.0])
+    return setup_impurities(seed_impurity_species, impurity_weights=[1.0])
 
-@Algorithm.register_algorithm(return_keys=["seed_impurity_species", "seed_impurity_weights"])
-def setup_seed_impurities(seed_impurity_species, seed_impurity_weights) -> tuple[xr.DataArray, xr.DataArray]:
-    """Convert linked lists for seed impurity species into xarrays."""
-    seed_impurity_weights = xr.DataArray(seed_impurity_weights, coords=dict(dim_species = seed_impurity_species))
-    seed_impurity_species = xr.DataArray(seed_impurity_species, coords=dict(dim_species = seed_impurity_species))
+@Algorithm.register_algorithm(return_keys=["CzLINT_for_seed_impurities"])
+def build_CzLINT_for_seed_impurities(
+        seed_impurity_species,
+        seed_impurity_weights,
+        atomic_data,
+        reference_ne_tau = 0.5 * ureg.ms * ureg.n20,
+        reference_electron_density = 1.0 * ureg.n20,
+        rtol_nearest_for_atomic_data = 1e-6,
+    ) -> CzLINT_integrator:
+    """Build a CzLINT_integrator for the seed impurities."""
+    return CzLINT_integrator(seed_impurity_species, seed_impurity_weights, atomic_data, reference_ne_tau, reference_electron_density, rtol_nearest_for_atomic_data)
 
-    return seed_impurity_species, seed_impurity_weights
+@Algorithm.register_algorithm(return_keys=["CzLINT_for_fixed_impurities"])
+def build_CzLINT_for_fixed_impurities(
+        fixed_impurity_species,
+        fixed_impurity_weights,
+        atomic_data,
+        reference_ne_tau = 0.5 * ureg.ms * ureg.n20,
+        reference_electron_density = 1.0 * ureg.n20,
+        rtol_nearest_for_atomic_data = 1e-6,
+    ) -> CzLINT_integrator:
+    """Build a CzLINT_integrator for the fixed impurities."""
+    return CzLINT_integrator(fixed_impurity_species, fixed_impurity_weights, atomic_data, reference_ne_tau, reference_electron_density, rtol_nearest_for_atomic_data)
 
-@Algorithm.register_algorithm(return_keys=["fixed_impurity_species", "fixed_impurity_weights"])
-def setup_fixed_impurities(fixed_impurity_species, fixed_impurity_weights) -> tuple[xr.DataArray, xr.DataArray]:
-    """Convert linked lists for fixed impurity species into xarrays."""
-    fixed_impurity_weights = xr.DataArray(fixed_impurity_weights, coords=dict(dim_species = fixed_impurity_species))
-    fixed_impurity_species = xr.DataArray(fixed_impurity_species, coords=dict(dim_species = fixed_impurity_species))
+@Algorithm.register_algorithm(return_keys=["mean_charge_for_seed_impurities"])
+def build_mean_charge_for_seed_impurities(
+        seed_impurity_species,
+        atomic_data,
+        reference_ne_tau = 0.5 * ureg.ms * ureg.n20,
+        reference_electron_density = 1.0 * ureg.n20,
+        rtol_nearest_for_atomic_data = 1e-6,
+    ) -> Mean_charge_interpolator:
+    """Build a Mean_charge_interpolator for the seed impurities."""
+    return Mean_charge_interpolator(seed_impurity_species, atomic_data, reference_ne_tau, reference_electron_density, rtol_nearest_for_atomic_data)
 
-    return fixed_impurity_species, fixed_impurity_weights
+@Algorithm.register_algorithm(return_keys=["mean_charge_for_fixed_impurities"])
+def build_mean_charge_for_fixed_impurities(
+        fixed_impurity_species,
+        atomic_data,
+        reference_ne_tau = 0.5 * ureg.ms * ureg.n20,
+        reference_electron_density = 1.0 * ureg.n20,
+        rtol_nearest_for_atomic_data = 1e-6,
+    ) -> Mean_charge_interpolator:
+    """Build a Mean_charge_interpolator for the fixed impurities."""
+    return Mean_charge_interpolator(fixed_impurity_species, atomic_data, reference_ne_tau, reference_electron_density, rtol_nearest_for_atomic_data)
