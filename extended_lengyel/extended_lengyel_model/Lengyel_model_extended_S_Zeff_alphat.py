@@ -20,7 +20,8 @@ from ..xr_helpers import item
     return_keys=[
         "impurity_fraction",
         "radiated_fraction_above_xpt",
-        "z_effective",
+        "divertor_z_effective",
+        "separatrix_z_effective",
         "divertor_entrance_electron_temp",
         "separatrix_electron_temp",
         "separatrix_total_pressure",
@@ -93,7 +94,7 @@ def run_extended_lengyel_model_with_S_Zeff_and_alphat_correction(
         (
             c_z,
             radiated_fraction_above_xpt,
-            z_effective,
+            divertor_z_effective,
             divertor_entrance_electron_temp,
             separatrix_electron_temp,
             separatrix_total_pressure,
@@ -122,7 +123,7 @@ def run_extended_lengyel_model_with_S_Zeff_and_alphat_correction(
         )
 
         # Use the separatrix electron temperature to calculate Z-eff for alpha-t
-        z_effective_upstream = calc_z_effective(
+        separatrix_z_effective = calc_z_effective(
             separatrix_electron_temp,
             c_z,
             mean_charge_for_seed_impurities,
@@ -137,7 +138,7 @@ def run_extended_lengyel_model_with_S_Zeff_and_alphat_correction(
             cylindrical_safety_factor=cylindrical_safety_factor,
             major_radius=major_radius,
             average_ion_mass=ion_mass,
-            z_effective=z_effective_upstream,
+            z_effective=separatrix_z_effective,
             mean_ion_charge_state=1.0,
         )
 
@@ -146,12 +147,13 @@ def run_extended_lengyel_model_with_S_Zeff_and_alphat_correction(
     if mask_invalid_results:
         mask = c_z > 0.0
         c_z = xr.where(mask, c_z, np.nan)
-        z_effective = xr.where(mask, z_effective, np.nan)
+        divertor_z_effective = xr.where(mask, divertor_z_effective, np.nan)
 
     return (
         c_z,
         radiated_fraction_above_xpt,
-        z_effective,
+        divertor_z_effective,
+        separatrix_z_effective,
         divertor_entrance_electron_temp,
         separatrix_electron_temp,
         separatrix_total_pressure,
