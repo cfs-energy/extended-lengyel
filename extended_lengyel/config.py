@@ -6,6 +6,8 @@ from cfspopcon.named_options import AtomicSpecies
 from fractions import Fraction
 from typing import Any, Optional, Callable
 import xarray as xr
+import numpy as np
+import warnings
 
 from extended_lengyel.directories import notebook_dir
 
@@ -43,6 +45,7 @@ def read_config(
     overrides: Optional[dict[str, Any]] = None,
     keys: Optional[list[str]] = None,
     allowed_missing: Optional[list[str]] = None,
+    warn_if_unused: bool = False,
 ):
     """Read configuration file and return as a dictionary.
 
@@ -67,16 +70,17 @@ def read_config(
     for k, v in overrides.items():
         flattened_config[k] = v
     
-    if "seed_impurity_species" in flattened_config.keys() and "seed_impurity_weights" in flattened_config.keys():
-        flattened_config["seed_impurity_species"], flattened_config["seed_impurity_weights"] = \
-            setup_impurities(flattened_config["seed_impurity_species"], flattened_config["seed_impurity_weights"])
-    if "fixed_impurity_species" in flattened_config.keys() and "fixed_impurity_weights" in flattened_config.keys():
-        flattened_config["fixed_impurity_species"], flattened_config["fixed_impurity_weights"] = \
-            setup_impurities(flattened_config["fixed_impurity_species"], flattened_config["fixed_impurity_weights"])
+    flattened_config["seed_impurity_species"], flattened_config["seed_impurity_weights"] = \
+        setup_impurities(flattened_config.get("seed_impurity_species", []), flattened_config.get("seed_impurity_weights", []))
+    flattened_config["fixed_impurity_species"], flattened_config["fixed_impurity_weights"] = \
+        setup_impurities(flattened_config.get("fixed_impurity_species", []), flattened_config.get("fixed_impurity_weights", []))
 
     if keys is None:
         return flattened_config
     else:
+        if warn_if_unused:
+            if len(unused_keys:=set(flattened_config.keys()) - set(keys)):
+                warnings.warn(f"Not all keys in config were used. Unused keys were {unused_keys}.")
         selected_config = {}
         for k in keys:
             if k in flattened_config.keys():
@@ -92,8 +96,9 @@ def read_config(
 
 def setup_impurities(impurity_species, impurity_weights) -> tuple[xr.DataArray, xr.DataArray]:
     """Convert linked lists for seed impurity species into xarrays."""
-    impurity_weights = xr.DataArray(impurity_weights, coords=dict(dim_species = impurity_species))
-    impurity_species = xr.DataArray(impurity_species, coords=dict(dim_species = impurity_species))
+    coords = {f"dim_species": np.atleast_1d(impurity_species)}
+    impurity_weights = xr.DataArray(np.atleast_1d(impurity_weights), coords=coords)
+    impurity_species = xr.DataArray(np.atleast_1d(impurity_species), coords=coords)
 
     return impurity_species, impurity_weights
 
