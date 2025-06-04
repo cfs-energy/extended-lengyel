@@ -35,6 +35,8 @@ def convert_elements(element): # noqa:PLR0911
             return val
         elif (val:=test_convert(element, lambda s: AtomicSpecies.__getitem__(str.capitalize(s)))) is not None:
             return val
+        elif element.startswith("PATH:"):
+            return Path(element.lstrip("PATH:")).absolute()
 
     raise NotImplementedError(f"Cannot handle {element} of type {type(element)}")
 
