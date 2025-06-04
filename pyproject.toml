@@ -14,6 +14,8 @@ classifiers = [
 "License :: OSI Approved :: MIT License",
 ]
 
+[tool.poetry.scripts]
+xlengyel = 'extended_lengyel.cli:run_extended_lengyel_cli'
 
 [tool.poetry.dependencies]
 python = ">=3.12,<3.13"
@@ -25,6 +27,7 @@ ipykernel = "^6.29.5"
 pickleshare = "^0.7.5"
 radas = "^2024.7.1"
 jupyter = "^1.0.0"
+click = "^8.2.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.2"
@@ -81,6 +84,7 @@ lint.ignore = [
   "I001", # Ignore unsorted imports (Algorithms must be imported in order).
   "PERF203", # Allow try/except in loops
   "PERF403", # Allow dictionary construction via iteration
+  "B028", # warnings must have stacklevel
 ]
 lint.pyupgrade.keep-runtime-typing=true
 lint.pydocstyle.convention = "google"

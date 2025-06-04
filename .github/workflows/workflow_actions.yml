@@ -45,7 +45,7 @@ jobs:
       
       - name: Make radas data
         if: steps.radas.outputs.cache-hit != 'true'
-        run: poetry run radas -s deuterium -s nitrogen -s neon -s argon
+        run: poetry run radas -s deuterium -s nitrogen -s neon -s argon -s tungsten
       
       - name: Upload radas artifacts
         uses: actions/upload-artifact@v4

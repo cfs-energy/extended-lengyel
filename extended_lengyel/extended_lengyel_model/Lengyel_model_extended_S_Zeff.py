@@ -19,7 +19,7 @@ from ..xr_helpers import item
     return_keys=[
         "impurity_fraction",
         "radiated_fraction_above_xpt",
-        "z_effective",
+        "divertor_z_effective",
         "divertor_entrance_electron_temp",
         "separatrix_electron_temp",
         "separatrix_total_pressure",
@@ -49,14 +49,14 @@ def run_extended_lengyel_model_with_S_and_Zeff_correction(
     mask_invalid_results: bool = True,
 ):
     """Calculate the impurity fraction required to radiate a given fraction of the power in the scrape-off-layer, iterating to find a consistent Zeff."""
-    z_effective = 1.0
+    divertor_z_effective = 1.0
     if CzLINT_for_fixed_impurities is None:
         CzLINT_for_fixed_impurities = CzLINT_integrator.empty()
     if mean_charge_for_fixed_impurities is None:
         mean_charge_for_fixed_impurities = Mean_charge_interpolator.empty()
 
     for _ in range(item(iterations_for_Lengyel_model)):
-        kappa_z = calc_Goldston_kappa_z(z_effective)
+        kappa_z = calc_Goldston_kappa_z(divertor_z_effective)
 
         divertor_entrance_electron_temp, separatrix_electron_temp = calc_separatrix_electron_temp_with_broadening(
             electron_temp_at_cc_interface=electron_temp_at_cc_interface,
@@ -100,7 +100,7 @@ def run_extended_lengyel_model_with_S_and_Zeff_correction(
             mask_invalid_results=False,
         )
 
-        z_effective = calc_z_effective(
+        divertor_z_effective = calc_z_effective(
             divertor_entrance_electron_temp,
             c_z,
             mean_charge_for_seed_impurities,
@@ -112,12 +112,12 @@ def run_extended_lengyel_model_with_S_and_Zeff_correction(
     if mask_invalid_results:
         mask = c_z > 0.0
         c_z = xr.where(mask, c_z, np.nan)
-        z_effective = xr.where(mask, z_effective, np.nan)
+        divertor_z_effective = xr.where(mask, divertor_z_effective, np.nan)
 
     return (
         c_z,
         radiated_fraction_above_xpt,
-        z_effective,
+        divertor_z_effective,
         divertor_entrance_electron_temp,
         separatrix_electron_temp,
         separatrix_total_pressure,

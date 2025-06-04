@@ -79,12 +79,14 @@ algorithm = cfspopcon.CompositeAlgorithm.from_list([
 seed_impurity_species = ["Nitrogen", "Argon"]
 seed_impurity_weights = [1.0, 0.05]
 
+# We need to store our impurity concentrations in xr.DataArray objects.
+# We can do this using helper routines.
+seed_impurity_species, seed_impurity_weights = extended_lengyel.config.setup_impurities(seed_impurity_species, seed_impurity_weights)
+
 # We store all of the input parameters in an xarray Dataset.
 ds = xr.Dataset(data_vars=dict(
-    seed_impurity_weights                       = xr.DataArray(seed_impurity_weights,
-                                                               coords=dict(dim_species = seed_impurity_species)),
-    seed_impurity_species                       = xr.DataArray([AtomicSpecies[k] for k in seed_impurity_species],
-                                                               coords=dict(dim_species = seed_impurity_species)),
+    seed_impurity_weights                       = seed_impurity_weights,
+    seed_impurity_species                       = seed_impurity_species,
     # Declare other input parameters as pint Quantity objects with units.
     separatrix_electron_density                 = Quantity(3.3e19, ureg.m**-3),
     power_crossing_separatrix                   = Quantity(5.5, ureg.MW),
@@ -114,10 +116,11 @@ algorithm.validate_inputs(ds)
 ds = algorithm.update_dataset(ds)
 
 # Finally, we can interact with the dataset to see the outputs.
+impurity_fraction = cfspopcon.unit_handling.magnitude_in_units(ds["impurity_fraction"], "")
+
 for species in ds["seed_impurity_species"]:
-    species = species.item().name
     cz = (ds["impurity_fraction"] * ds["seed_impurity_weights"]).sel(dim_species=species).item()
-    print(f"{species} concentration: {cz:.2}")
+    print(f"{species.item()} concentration: {cz:.2}")
 ```
 
 ## Contributing

@@ -1,0 +1,46 @@
+input:
+  # Length along a magnetic fieldline from divertor target to
+  # divertor entrance.
+  divertor_parallel_length: 5.0 m
+  # Length along a magnetic fieldline from divertor target to
+  # outboard midplane or stagnation point.
+  parallel_connection_length: 20 m
+  # Major radius
+  major_radius: 1.65 m
+  # Minor radius
+  minor_radius: 0.5 m
+  # Elongation at psiN = 0.95
+  elongation_psi95: 1.6
+  # Triangularity at psiN = 0.95
+  triangularity_psi95: 0.3
+  # Magnetic field on axis
+  magnetic_field_on_axis: 2.5 T
+  # Plasma current
+  plasma_current: 1.0 MA
+  # Ratio of Bpol_OMP / Bpol_avg
+  ratio_of_upstream_to_average_poloidal_field: 4/3
+  # Main ion mass (or average mass, i.e. DT = 2.5amu)
+  ion_mass: 2.0 amu
+  # List of impurities used for seeding, and their relative concentrations.
+  seed_impurity_species: ["Nitrogen", "Argon"]
+  seed_impurity_weights: [1.0, 0.05]
+  # List of impurities assumed to have a fixed concentration, and their
+  # absolute concentration relative to the electron density
+  fixed_impurity_species: "Tungsten"
+  fixed_impurity_weights: 1.5e-5
+  # Impurity residence time multiplied by electron density
+  reference_ne_tau: 0.5 ms n20
+  # gamma_sh
+  sheath_heat_transmission_factor: 8.0
+  # Angle of incidence between magnetic fieldline and divertor target
+  target_angle_of_incidence: 3 degree
+  # Ratio between lambda_INT and lambda_q
+  divertor_broadening_factor: 3.0
+  # Power crossing separatrix
+  power_crossing_separatrix: 5.5MW
+  # Fraction of power directed to outer divertor
+  fraction_of_P_SOL_to_divertor: 2/3
+  # Upstream electron density
+  separatrix_electron_density: 3.3e19/m^3
+  # Electron temperature at target
+  target_electron_temp: 2.34eV

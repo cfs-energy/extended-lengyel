@@ -1,7 +1,6 @@
 """Common initialization routines (shared by several models)."""
 
 import numpy as np
-import xarray as xr
 from cfspopcon.algorithm_class import Algorithm
 from cfspopcon.named_options import AtomicSpecies
 from cfspopcon.unit_handling import convert_units, ureg
@@ -230,15 +229,6 @@ def calc_magnetic_field_and_safety_factor(
     cylindrical_safety_factor = magnetic_field_on_axis / separatrix_average_poloidal_field * minor_radius / major_radius * shaping_factor
 
     return upstream_toroidal_field, upstream_poloidal_field, separatrix_average_poloidal_field, cylindrical_safety_factor
-
-
-@Algorithm.register_algorithm(return_keys=["seed_impurity_species", "seed_impurity_weights"])
-def set_single_impurity_species(impurity_species):
-    """Convert a single edge impurity species into arrays compatible with mixed-impurity seeding routines."""
-    seed_impurity_species = [item(impurity_species)]
-    seed_impurity_weights = xr.DataArray([1.0], coords=dict(dim_species = seed_impurity_species))
-
-    return seed_impurity_species, seed_impurity_weights
 
 
 @Algorithm.register_algorithm(return_keys=["kappa_z"])

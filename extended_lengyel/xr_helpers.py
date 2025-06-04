@@ -8,3 +8,10 @@ def item(val):
         return val.item()
     else:
         return val
+
+def values(val):
+    """Extract values from xr.DataArray wrappers."""
+    if isinstance(val, xr.DataArray):
+        return val.values
+    else:
+        return val

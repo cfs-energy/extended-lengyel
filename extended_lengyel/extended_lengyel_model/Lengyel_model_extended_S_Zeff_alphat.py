@@ -20,7 +20,8 @@ from ..xr_helpers import item
     return_keys=[
         "impurity_fraction",
         "radiated_fraction_above_xpt",
-        "z_effective",
+        "divertor_z_effective",
+        "separatrix_z_effective",
         "divertor_entrance_electron_temp",
         "separatrix_electron_temp",
         "separatrix_total_pressure",
@@ -93,7 +94,7 @@ def run_extended_lengyel_model_with_S_Zeff_and_alphat_correction(
         (
             c_z,
             radiated_fraction_above_xpt,
-            z_effective,
+            divertor_z_effective,
             divertor_entrance_electron_temp,
             separatrix_electron_temp,
             separatrix_total_pressure,
@@ -122,7 +123,7 @@ def run_extended_lengyel_model_with_S_Zeff_and_alphat_correction(
         )
 
         # Use the separatrix electron temperature to calculate Z-eff for alpha-t
-        z_effective_upstream = calc_z_effective(
+        separatrix_z_effective = calc_z_effective(
             separatrix_electron_temp,
             c_z,
             mean_charge_for_seed_impurities,
@@ -137,7 +138,7 @@ def run_extended_lengyel_model_with_S_Zeff_and_alphat_correction(
             cylindrical_safety_factor=cylindrical_safety_factor,
             major_radius=major_radius,
             average_ion_mass=ion_mass,
-            z_effective=z_effective_upstream,
+            z_effective=separatrix_z_effective,
             mean_ion_charge_state=1.0,
         )
 
@@ -146,12 +147,13 @@ def run_extended_lengyel_model_with_S_Zeff_and_alphat_correction(
     if mask_invalid_results:
         mask = c_z > 0.0
         c_z = xr.where(mask, c_z, np.nan)
-        z_effective = xr.where(mask, z_effective, np.nan)
+        divertor_z_effective = xr.where(mask, divertor_z_effective, np.nan)
 
     return (
         c_z,
         radiated_fraction_above_xpt,
-        z_effective,
+        divertor_z_effective,
+        separatrix_z_effective,
         divertor_entrance_electron_temp,
         separatrix_electron_temp,
         separatrix_total_pressure,
@@ -199,5 +201,33 @@ CompositeAlgorithm(
         ]
     ],
     name="compare_alphat_lengyel_model_to_kallenbach_scaling",
+    register=True,
+)
+
+CompositeAlgorithm(
+    algorithms=[
+        Algorithm.get_algorithm(alg)
+        for alg in [
+            "calc_magnetic_field_and_safety_factor",
+            "calc_fieldline_pitch_at_omp",
+            "set_radas_dir",
+            "read_atomic_data",
+            "build_CzLINT_for_seed_impurities",
+            "calc_kappa_e0",
+            "build_mean_charge_for_seed_impurities",
+            "calc_momentum_loss_from_cc_fit",
+            "calc_power_loss_from_cc_fit",
+            "calc_electron_temp_from_cc_fit",
+            "run_extended_lengyel_model_with_S_Zeff_and_alphat_correction",
+            "calc_sound_speed_at_target",
+            "calc_target_density",
+            "calc_flux_density_to_pascals_factor",
+            "calc_parallel_to_perp_factor",
+            "calc_ion_flux_to_target",
+            "calc_divertor_neutral_pressure",
+            "calc_heat_flux_perp_to_target"
+        ]
+    ],
+    name="extended_lengyel_for_experiment_inputs",
     register=True,
 )
