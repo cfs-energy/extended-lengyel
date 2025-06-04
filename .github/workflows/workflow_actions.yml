@@ -97,3 +97,39 @@ jobs:
 
       - name: Run ruff
         run: poetry run ruff check --fix extended_lengyel
+
+  build_release:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    needs: build
+    runs-on: ubuntu-24.04
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Poetry
+        run: curl -sSL https://install.python-poetry.org | python - --version 1.8.2
+
+      - name: Poetry build
+        run: poetry build
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pypi-build
+          path: ./dist
+
+  publish:
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    needs: build_release
+    runs-on: ubuntu-24.04
+    environment:
+      name: pypi-publish
+      url: https://pypi.org/project/extended-lengyel/
+    permissions:
+      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+    steps:
+      - uses: actions/download-artifact@v4
+
+      - name: Publish package distributions to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: pypi-build/
