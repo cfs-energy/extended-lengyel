@@ -32,6 +32,7 @@ def build_dataset(
 
     ds = xr.Dataset(
         data_vars=extended_lengyel.read_config(
+            filepath=extended_lengyel.directories.notebook_dir / "config.yml",
             elements=["base", "machine_geometry", "target_constraints", "field_at_omp"],
             keys=algorithm.input_keys,
             allowed_missing=algorithm.default_keys,

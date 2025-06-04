@@ -9,7 +9,7 @@ from scipy.interpolate import interp1d
 from cfspopcon.unit_handling import magnitude as mag
 
 from extended_lengyel.kallenbach_model.reference_data import read_kallenbach_figure_4_reference
-from extended_lengyel import read_config
+from extended_lengyel import read_config, directories
 
 
 @pytest.fixture(scope="session")
@@ -18,6 +18,7 @@ def dataset():
 
     ds = xr.Dataset(
         data_vars=read_config(
+            filepath=directories.notebook_dir / "config.yml",
             elements=["base", "machine_geometry", "target_constraints", "fast_neutrals", "field_at_omp"],
             keys=algorithm.input_keys,
             allowed_missing=algorithm.default_keys,

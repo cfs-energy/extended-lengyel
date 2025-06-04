@@ -1,6 +1,7 @@
 """Read in a config.yml file and convert it into a form that can be used to run raddivmom algorithms."""
 
 import yaml
+from pathlib import Path
 from cfspopcon.unit_handling import Quantity, UndefinedUnitError
 from cfspopcon.named_options import AtomicSpecies
 from fractions import Fraction
@@ -9,13 +10,12 @@ import xarray as xr
 import numpy as np
 import warnings
 
-from extended_lengyel.directories import notebook_dir
 
 def test_convert(element: str, conversion: Callable[[str], Any]) -> Any | None:
     """Use the conversion routine to convert a string to another type. If this fails, return None."""
     try:
         return conversion(element)
-    except (ValueError, UndefinedUnitError):
+    except (ValueError, UndefinedUnitError, KeyError):
         return None
 
 def convert_elements(element): # noqa:PLR0911
@@ -38,20 +38,28 @@ def convert_elements(element): # noqa:PLR0911
 
     raise NotImplementedError(f"Cannot handle {element} of type {type(element)}")
 
+def read_config_from_yaml(filepath: Path):
+    """Read a configuration YAML file."""
+    with open(filepath) as file:
+        return yaml.safe_load(file)
 
 def read_config( # noqa:PLR0912
+    filepath: Path,
     elements: Optional[list[str]] = None,
-    filepath = notebook_dir / "config.yml",
-    overrides: Optional[dict[str, Any]] = None,
     keys: Optional[list[str]] = None,
     allowed_missing: Optional[list[str]] = None,
     warn_if_unused: bool = False,
+    overrides: Optional[dict[str, Any]] = None,
     convert_overrides: bool = False,
 ):
     """Read configuration file and return as a dictionary.
 
     N.b. if multiple elements contain the same config keys, the key from the last element containing the key is used.
     """
+    if overrides is None:
+        overrides = {}
+    if allowed_missing is None:
+        allowed_missing = []
     if elements is None:
         elements = []
     if allowed_missing is None:
@@ -59,14 +67,11 @@ def read_config( # noqa:PLR0912
     if overrides is None:
         overrides = {}
 
-    with open(filepath) as file:
-        config = yaml.safe_load(file)
-
-    config = convert_elements(config)
+    config = read_config_from_yaml(filepath)
 
     flattened_config = {}
     for element in elements:
-        flattened_config.update(config[element])
+        flattened_config.update(convert_elements(config[element]))
 
     for k, v in overrides.items():
         if convert_overrides:
