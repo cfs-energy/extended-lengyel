@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "extended_lengyel"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["Commonwealth Fusion Systems"]
 readme = "README.md"
