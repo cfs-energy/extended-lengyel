@@ -14,7 +14,7 @@ def compare_magnitude(a, b):
     return magnitude_in_units(a, get_units(b)), magnitude_in_units(b, get_units(b))
 
 def test_mixed_seeding_L_int():
-    atomic_data = read_atomic_data(radas_dir)
+    atomic_data, _ = read_atomic_data(radas_dir)
     ne_tau = 0.5 * ureg.ms * ureg.n20
     electron_density = 1.0 * ureg.n20
 
@@ -27,7 +27,7 @@ def test_mixed_seeding_L_int():
 
     for species in species_list:
         single_L_int[species] = CzLINT_integrator.build_L_int_integrator(
-            species_atomic_data=item(atomic_data).get_dataset(item(species)),
+            species_atomic_data=item(atomic_data).datasets[item(species)],
             electron_density=electron_density,
             ne_tau=ne_tau,
         )
@@ -63,7 +63,7 @@ def test_mixed_seeding_L_int():
 
 
 def test_mixed_seeding_mean_charge():
-    atomic_data = read_atomic_data(radas_dir)
+    atomic_data, _ = read_atomic_data(radas_dir)
     ne_tau = 0.5 * ureg.ms * ureg.n20
     electron_density = 1.0 * ureg.n20
 
@@ -75,7 +75,7 @@ def test_mixed_seeding_mean_charge():
 
     for species in species_list:
         single_mean_charge[species] = Mean_charge_interpolator.build_mean_charge_interpolator(
-            species_atomic_data=atomic_data.get_dataset(species),
+            species_atomic_data=atomic_data.datasets[species],
             electron_density=electron_density,
             ne_tau=ne_tau,
         )
@@ -94,7 +94,7 @@ def test_mixed_seeding_mean_charge():
         assert np.allclose(*compare_magnitude(single_mean_charge[AtomicSpecies.Nitrogen](temp), mixed_mean_charge(temp)), atol=0.0)
 
 def test_calc_z_effective():
-    atomic_data = read_atomic_data(radas_dir)
+    atomic_data, _ = read_atomic_data(radas_dir)
 
 
     z_eff_no_impurities = calc_z_effective(

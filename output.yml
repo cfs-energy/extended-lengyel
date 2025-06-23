@@ -1,0 +1,55 @@
+B_pol_out_mid: 0.38008769560627165 tesla
+B_t_out_mid: 1.9186046511627908 tesla
+SOL_momentum_loss_fraction: 0.5364589816050045 dimensionless
+SOL_power_loss_fraction: 0.9587416619893828 dimensionless
+SOL_power_loss_fraction_in_convection_layer: 0.6791680188430478 dimensionless
+alpha_t: 0.35627915501660734 dimensionless
+cylindrical_safety_factor: 3.729030300985294 dimensionless
+divertor_broadening_factor: 3.0 dimensionless
+divertor_entrance_electron_temp: 53.17717363292516 electron_volt
+divertor_parallel_length: 5.0 meter
+divertor_z_effective: 1.7915882441432958 dimensionless
+electron_density_at_target: 3.355339303606272e+20 1 / meter ** 3
+electron_temp_at_cc_interface: 6.167553948360809 electron_volt
+elongation_psi95: 1.6 dimensionless
+fieldline_pitch_at_omp: 5.145894598644929 dimensionless
+flux_density_to_pascals_factor: 1.521189252551778e+23 1 / meter ** 2 / pascal / second
+fraction_of_P_SOL_to_divertor: 0.6666666666666666 dimensionless
+heat_flux_perp_to_target: 791391.575383349 watt / meter ** 2
+impurity_fraction:
+  fixed_impurity:
+    Tungsten: 1.5e-05
+  seed_impurity:
+    Argon: 0.0018409540788926493
+    Nitrogen: 0.036819081577852984
+ion_mass: 2.0 unified_atomic_mass_unit
+kappa_e0: 2390.0 watt / electron_volt ** 3.5 / meter
+lambda_q: 2.408986545757543 millimeter
+magnetic_field_on_axis: 2.5 tesla
+major_radius: 1.65 meter
+minor_radius: 0.5 meter
+neutral_pressure_in_divertor: 1.7345704208919221 pascal
+parallel_connection_length: 20 meter
+parallel_heat_flux_at_cc_interface: 47131754.404908635 watt / meter ** 2
+parallel_heat_flux_at_target: 15121374.141129749 watt / meter ** 2
+parallel_ion_flux_to_target: 5.041677025650515e+24 1 / meter ** 2 / second
+parallel_to_perp_factor: 0.052335956242943835 dimensionless
+perp_ion_flux_to_target: 2.638609882055006e+23 1 / meter ** 2 / second
+plasma_current: 1000000.0 ampere
+power_crossing_separatrix: 5.5 megawatt
+q_parallel: 0.3665046841498682 gigawatt / meter ** 2
+radas_version: 2025.6.2
+radiated_fraction_above_xpt: 0.020369566823184804 dimensionless
+ratio_of_upstream_to_average_poloidal_field: 1.3333333333333333 dimensionless
+reference_ne_tau: 5e+16 second / meter ** 3
+rtol_nearest_for_atomic_data: 1.0
+separatrix_average_poloidal_field: 0.28506577170470376 tesla
+separatrix_electron_density: 3.3 _1e19_per_cubic_metre
+separatrix_electron_temp: 102.65501876579194 electron_volt
+separatrix_total_pressure: 1085.51171803393 pascal
+separatrix_z_effective: 1.8355133794805145 dimensionless
+sheath_heat_transmission_factor: 8.0 dimensionless
+sound_speed_at_target: 15025.833662282057 meter / second
+target_angle_of_incidence: 3 degree
+target_electron_temp: 2.34 electron_volt
+triangularity_psi95: 0.3 dimensionless

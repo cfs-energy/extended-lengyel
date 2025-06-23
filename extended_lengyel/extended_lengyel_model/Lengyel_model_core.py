@@ -38,7 +38,7 @@ class CzLINT_integrator:
         self.integrators = dict()
         for species in self.species:
             self.integrators[species] = self.build_L_int_integrator(
-                species_atomic_data = item(atomic_data).get_dataset(item(species)),
+                species_atomic_data = item(atomic_data).datasets[item(species)],
                 electron_density=electron_density,
                 ne_tau=ne_tau,
                 rtol_nearest=rtol_nearest
@@ -147,7 +147,7 @@ class Mean_charge_interpolator:
         self.interpolators = dict()
         for species in self.species:
             self.interpolators[species] = self.build_mean_charge_interpolator(
-                species_atomic_data = item(atomic_data).get_dataset(item(species)),
+                species_atomic_data = item(atomic_data).datasets[item(species)],
                 electron_density=electron_density,
                 ne_tau=ne_tau,
                 rtol_nearest=rtol_nearest
