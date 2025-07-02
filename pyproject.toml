@@ -19,7 +19,7 @@ xlengyel = 'extended_lengyel.cli:run_extended_lengyel_cli'
 
 [tool.poetry.dependencies]
 python = ">=3.12,<3.13"
-cfspopcon = "^7.0.2"
+cfspopcon = "==7.0.2"
 numpy = "^2.0.1"
 matplotlib = "^3.9.1"
 scipy = "^1.14.0"
