@@ -45,6 +45,9 @@ def run_extended_lengyel_model_with_S_and_Zeff_correction(
     mean_charge_for_seed_impurities,
     CzLINT_for_fixed_impurities: Optional[CzLINT_integrator] = None,
     mean_charge_for_fixed_impurities: Optional[Mean_charge_interpolator] = None,
+    conduction_prefactor_in_divertor: float=7.0/2.0,
+    conduction_prefactor_in_main_chamber: float=7.0/2.0,
+    SOL_conduction_fraction: float=1.0,
     iterations_for_Lengyel_model: int = 5,
     mask_invalid_results: bool = True,
 ):
@@ -66,6 +69,9 @@ def run_extended_lengyel_model_with_S_and_Zeff_correction(
             divertor_parallel_length=divertor_parallel_length,
             kappa_e0=kappa_e0,
             kappa_z=kappa_z,
+            conduction_prefactor_in_divertor=conduction_prefactor_in_divertor,
+            conduction_prefactor_in_main_chamber=conduction_prefactor_in_main_chamber,
+            SOL_conduction_fraction=SOL_conduction_fraction,
         )
 
         separatrix_total_pressure = calc_separatrix_total_pressure_LG(
