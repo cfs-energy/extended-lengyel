@@ -100,7 +100,7 @@ def read_config( # noqa:PLR0912
                 continue
             else:
                 raise KeyError(
-                    f"Need key {k} but this is not in the selected config\nelements = {", ".join(elements)})\nkeys = {", ".join(flattened_config.keys())}"
+                    f"Need key {k} but this is not in the selected config\nelements = {', '.join(elements)})\nkeys = {', '.join(flattened_config.keys())}"
                 )
 
         return selected_config
