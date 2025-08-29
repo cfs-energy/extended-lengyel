@@ -13,6 +13,7 @@ from scipy.interpolate import InterpolatedUnivariateSpline  # type:ignore[import
 from typing import Self, Callable
 from ..xr_helpers import item, values
 from ..config import setup_impurities
+from ..mavrin_data import MavrinData, SpeciesMavrinData
 
 def _species_as_enum(species: str | AtomicSpecies):
     species = item(species)
@@ -28,7 +29,7 @@ class CzLINT_integrator:
         self,
         impurity_species_list: xr.DataArray,
         impurity_weights_list: xr.DataArray,
-        atomic_data: AtomicData,
+        atomic_data: AtomicData | MavrinData,
         ne_tau: Unitfull = 0.5 * ureg.ms * ureg.n20,
         electron_density: Unitfull = 1.0 * ureg.n20,
         rtol_nearest: float=1e-6,
@@ -81,7 +82,7 @@ class CzLINT_integrator:
 
     @staticmethod
     def build_L_int_integrator(
-        species_atomic_data: xr.Dataset,
+        species_atomic_data: xr.Dataset | SpeciesMavrinData,
         electron_density: Unitfull,
         ne_tau: Unitfull,
         rtol_nearest: float=1e-6,
@@ -91,13 +92,17 @@ class CzLINT_integrator:
         $L_int = \\int_a^b L_z(T_e) sqrt(T_e) dT_e$ where $L_z$ is a cooling curve for an impurity species.
         This is used in the calculation of the radiated power associated with a given impurity.
         """
-        electron_density_ref = magnitude_in_units(electron_density, ureg.m**-3)
-        ne_tau_ref = magnitude_in_units(ne_tau, ureg.m**-3 * ureg.s)
+        if isinstance(species_atomic_data, SpeciesMavrinData):
+            Lz_curve = species_atomic_data.get_Lz_curve(ne_tau)
+        else:
+            electron_density_ref = magnitude_in_units(electron_density, ureg.m**-3)
+            ne_tau_ref = magnitude_in_units(ne_tau, ureg.m**-3 * ureg.s)
 
-        # Select an ne_tau value, requiring that the nearest value is close to the requested value
-        Lz_curve_at_ne_tau = species_atomic_data.equilibrium_Lz.sel(dim_ne_tau=ne_tau_ref, method="nearest", tolerance=rtol_nearest * ne_tau_ref)
-        # Use interpolation to find the value at the given electron density
-        Lz_curve = Lz_curve_at_ne_tau.pint.dequantify().interp(dim_electron_density=electron_density_ref).pint.quantify()
+            # Select an ne_tau value, requiring that the nearest value is close to the requested value
+            Lz_curve_at_ne_tau = species_atomic_data.equilibrium_Lz.sel(
+                dim_ne_tau=ne_tau_ref, method="nearest", tolerance=rtol_nearest * ne_tau_ref)
+            # Use interpolation to find the value at the given electron density
+            Lz_curve = Lz_curve_at_ne_tau.pint.dequantify().interp(dim_electron_density=electron_density_ref).pint.quantify()
 
         electron_temp = Lz_curve.dim_electron_temp
         Lz_sqrt_Te = Lz_curve * np.sqrt(electron_temp)
@@ -138,7 +143,7 @@ class Mean_charge_interpolator:
     def __init__(
         self,
         impurity_species_list: xr.DataArray,
-        atomic_data: AtomicData,
+        atomic_data: AtomicData | MavrinData,
         ne_tau: Unitfull = 0.5 * ureg.ms * ureg.n20,
         electron_density: Unitfull = 1.0 * ureg.n20,
         rtol_nearest: float=1e-6,
@@ -180,19 +185,22 @@ class Mean_charge_interpolator:
 
     @staticmethod
     def build_mean_charge_interpolator(
-        species_atomic_data: xr.Dataset,
+        species_atomic_data: xr.Dataset | SpeciesMavrinData,
         electron_density,
         ne_tau,
         rtol_nearest = 1e-6
     ) -> Callable[[Unitfull], Unitfull]:
         """Build an interpolator to calculate the mean charge."""
-        electron_density_ref = magnitude_in_units(electron_density, ureg.m**-3)
-        reference_ne_tau_ref = magnitude_in_units(ne_tau, ureg.m**-3 * ureg.s)
+        if isinstance(species_atomic_data, SpeciesMavrinData):
+            mean_z_curve = species_atomic_data.get_mean_charge_curve(ne_tau)
+        else:
+            electron_density_ref = magnitude_in_units(electron_density, ureg.m**-3)
+            ne_tau_ref = magnitude_in_units(ne_tau, ureg.m**-3 * ureg.s)
 
-        # Select an ne_tau value, requiring that the nearest value is close to the requested value
-        mean_z_curve_at_ne_tau = species_atomic_data.equilibrium_mean_charge_state.sel(dim_ne_tau=reference_ne_tau_ref, method="nearest", tolerance=rtol_nearest * reference_ne_tau_ref)
-        # Use interpolation to find the value at the given electron density
-        mean_z_curve = mean_z_curve_at_ne_tau.pint.dequantify().interp(dim_electron_density=electron_density_ref).pint.quantify()
+            # Select an ne_tau value, requiring that the nearest value is close to the requested value
+            mean_z_curve_at_ne_tau = species_atomic_data.equilibrium_mean_charge_state.sel(dim_ne_tau=ne_tau_ref, method="nearest", tolerance=rtol_nearest * ne_tau_ref)
+            # Use interpolation to find the value at the given electron density
+            mean_z_curve = mean_z_curve_at_ne_tau.pint.dequantify().interp(dim_electron_density=electron_density_ref).pint.quantify()
 
         electron_temp = mean_z_curve.dim_electron_temp
         interpolator = InterpolatedUnivariateSpline(electron_temp, magnitude(mean_z_curve), ext=3)
@@ -214,7 +222,7 @@ class Mean_charge_interpolator:
     @classmethod
     def from_list(cls,
         impurity_species_list: list[str | AtomicSpecies],
-        atomic_data: AtomicData,
+        atomic_data: AtomicData | MavrinData,
         ne_tau: Unitfull = 0.5 * ureg.ms * ureg.n20,
         electron_density: Unitfull = 1.0 * ureg.n20,
         rtol_nearest: float=1e-6,

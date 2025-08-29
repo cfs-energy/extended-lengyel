@@ -12,6 +12,7 @@ from . import initialize, postprocess
 from . import kallenbach_model
 from . import extended_lengyel_model
 from . import spatial_lengyel_model
+from . import mavrin_data
 
 
 def extend_units_dictionary():
@@ -53,6 +54,7 @@ __all__ = [
     "extended_lengyel_model",
     "initialize",
     "kallenbach_model",
+    "mavrin_data",
     "postprocess",
     "promote_to_coordinate",
     "read_config",
