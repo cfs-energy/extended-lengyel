@@ -90,14 +90,14 @@ input:
     c_N = output["impurity_fraction"]["seed_impurity"]["Nitrogen"]
     c_Ar = output["impurity_fraction"]["seed_impurity"]["Argon"]
 
-    assert np.isclose(c_N, 0.03674605763789175)
-    assert np.isclose(c_Ar, 0.0018373028818945876)
+    assert np.isclose(c_N, 3.67e-2, rtol=1e-2)
+    assert np.isclose(c_Ar, 0.184e-2, rtol=1e-2)
     assert np.isclose(c_N / c_Ar, 1 / 0.05)
 
     output_file_2 = tmp_path / "output2.yml"
     run_extended_lengyel(config_file, output_file_2, cli_args=dict(ion_mass="2.5 amu"))
 
     with open(output_file_2, "r") as f:
-        output = yaml.load(f, Loader=yaml.SafeLoader)
+        output_2 = yaml.load(f, Loader=yaml.SafeLoader)
 
-    assert np.isclose(Quantity(output["ion_mass"]), Quantity(2.5, "amu"))
+    assert np.isclose(Quantity(output_2["ion_mass"]), Quantity(2.5, "amu"))

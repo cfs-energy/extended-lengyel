@@ -14,6 +14,12 @@ from typing import Self, Callable
 from ..xr_helpers import item, values
 from ..config import setup_impurities
 
+def _species_as_enum(species: str | AtomicSpecies):
+    species = item(species)
+    if isinstance(species, AtomicSpecies):
+        return species
+    else:
+        return AtomicSpecies[species]
 
 class CzLINT_integrator:
     """Class to hold an L-int integrator."""
@@ -38,7 +44,7 @@ class CzLINT_integrator:
         self.integrators = dict()
         for species in self.species:
             self.integrators[species] = self.build_L_int_integrator(
-                species_atomic_data = item(atomic_data).get_dataset(item(species)),
+                species_atomic_data = item(atomic_data).datasets[_species_as_enum(species)],
                 electron_density=electron_density,
                 ne_tau=ne_tau,
                 rtol_nearest=rtol_nearest
@@ -88,11 +94,10 @@ class CzLINT_integrator:
         electron_density_ref = magnitude_in_units(electron_density, ureg.m**-3)
         ne_tau_ref = magnitude_in_units(ne_tau, ureg.m**-3 * ureg.s)
 
-        Lz_curve = (
-            species_atomic_data.equilibrium_Lz
-            .sel(dim_electron_density=electron_density_ref, method="nearest", tolerance=rtol_nearest * electron_density_ref)
-            .sel(dim_ne_tau=ne_tau_ref, method="nearest", tolerance=rtol_nearest * ne_tau_ref)
-        )
+        # Select an ne_tau value, requiring that the nearest value is close to the requested value
+        Lz_curve_at_ne_tau = species_atomic_data.equilibrium_Lz.sel(dim_ne_tau=ne_tau_ref, method="nearest", tolerance=rtol_nearest * ne_tau_ref)
+        # Use interpolation to find the value at the given electron density
+        Lz_curve = Lz_curve_at_ne_tau.pint.dequantify().interp(dim_electron_density=electron_density_ref).pint.quantify()
 
         electron_temp = Lz_curve.dim_electron_temp
         Lz_sqrt_Te = Lz_curve * np.sqrt(electron_temp)
@@ -147,7 +152,7 @@ class Mean_charge_interpolator:
         self.interpolators = dict()
         for species in self.species:
             self.interpolators[species] = self.build_mean_charge_interpolator(
-                species_atomic_data = item(atomic_data).get_dataset(item(species)),
+                species_atomic_data = item(atomic_data).datasets[_species_as_enum(species)],
                 electron_density=electron_density,
                 ne_tau=ne_tau,
                 rtol_nearest=rtol_nearest
@@ -184,18 +189,17 @@ class Mean_charge_interpolator:
         electron_density_ref = magnitude_in_units(electron_density, ureg.m**-3)
         reference_ne_tau_ref = magnitude_in_units(ne_tau, ureg.m**-3 * ureg.s)
 
-        mean_z_curve = (
-            species_atomic_data.equilibrium_mean_charge_state
-            .sel(dim_electron_density=electron_density_ref, method="nearest", tolerance=rtol_nearest * electron_density_ref)
-            .sel(dim_ne_tau=reference_ne_tau_ref, method="nearest", tolerance=rtol_nearest * reference_ne_tau_ref)
-        )
+        # Select an ne_tau value, requiring that the nearest value is close to the requested value
+        mean_z_curve_at_ne_tau = species_atomic_data.equilibrium_mean_charge_state.sel(dim_ne_tau=reference_ne_tau_ref, method="nearest", tolerance=rtol_nearest * reference_ne_tau_ref)
+        # Use interpolation to find the value at the given electron density
+        mean_z_curve = mean_z_curve_at_ne_tau.pint.dequantify().interp(dim_electron_density=electron_density_ref).pint.quantify()
 
         electron_temp = mean_z_curve.dim_electron_temp
         interpolator = InterpolatedUnivariateSpline(electron_temp, magnitude(mean_z_curve), ext=3)
 
         def mean_charge_state(electron_temp: float) -> float:
-            integrated_mean_z: float = interpolator(electron_temp)
-            return integrated_mean_z
+            interpolated_mean_z: float = interpolator(electron_temp)
+            return interpolated_mean_z
 
         mean_charge_state_integrator = wraps_ufunc(
             input_units=dict(electron_temp=ureg.eV), return_units=dict(mean_charge_state=ureg.dimensionless)

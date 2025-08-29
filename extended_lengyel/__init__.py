@@ -50,11 +50,11 @@ check_extended_units_dictionary()
 
 __all__ = [
     "adas_data",
-    "initialize",
-    "postprocess",
-    "kallenbach_model",
-    "spatial_lengyel_model",
     "extended_lengyel_model",
-    "read_config",
+    "initialize",
+    "kallenbach_model",
+    "postprocess",
     "promote_to_coordinate",
+    "read_config",
+    "spatial_lengyel_model",
 ]

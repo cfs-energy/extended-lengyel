@@ -6,7 +6,7 @@ name: workflow_actions
 # Controls when the workflow will run
 on:
   # Triggers the workflow on push or pull request events but only for the "main" branch
-  pull_request: []
+  pull_request:
   push:
     tags:
       - '*'
@@ -14,7 +14,6 @@ on:
       - 'main'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
-    tag: "Manual run"
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -45,7 +44,7 @@ jobs:
       
       - name: Make radas data
         if: steps.radas.outputs.cache-hit != 'true'
-        run: poetry run radas -s deuterium -s nitrogen -s neon -s argon -s tungsten
+        run: poetry run radas -c radas_config.yml -s deuterium -s nitrogen -s neon -s argon -s tungsten
       
       - name: Upload radas artifacts
         uses: actions/upload-artifact@v4
