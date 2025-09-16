@@ -2,7 +2,7 @@
 
 Avoids the use of non-standard libraries, except for the "test_against_reference_values" method of MavrinData.
 
-To run in testing mode, run run_extended_lengyel_model(testing=True) and leave everything else as defaults.
+To run in testing mode, run run_inverse_extended_lengyel_model(testing=True) and leave everything else as defaults.
 This will make sure that this version (which is not unit-aware) matches the unit-aware version of
 the extended Lengyel model.
 """
@@ -10,7 +10,7 @@ the extended Lengyel model.
 import numpy as np
 from typing import Literal
 
-def run_extended_lengyel_model(
+def run_inverse_extended_lengyel_model(
     target_electron_temp: float = 2.34,
     power_crossing_separatrix: float = 5.5,
     separatrix_electron_density: float = 3.3e19,
@@ -428,7 +428,11 @@ class MavrinData:
         from pathlib import Path
         import yaml
 
-        with open(Path("mavrin_data.yaml")) as file:
+        filepath = Path(__file__).parent / "mavrin_data.yaml"
+        if not filepath.exists():
+            raise FileNotFoundError(f"{filepath.absolute()} doesn't exist.")
+
+        with open(filepath) as file:
             mavrin_data = yaml.load(file, Loader=yaml.FullLoader)
 
         self.species = species.lower() # type:ignore
@@ -503,9 +507,9 @@ class MavrinData:
         Tmin = np.min(self.Lz_coeffs["Tmin_eV"])
         Tmax = np.max(self.Lz_coeffs["Tmax_eV"])
 
-        assert start_temp_eV < stop_temp_eV, "Stop temp must be larger than start temp."
-        assert start_temp_eV > Tmin, "Temperature out of range (too low)."
-        assert stop_temp_eV < Tmax, "Temperature out of range (too high)."
+        assert start_temp_eV < stop_temp_eV, f"Stop temp must be larger than start temp. {start_temp_eV}<{stop_temp_eV}"
+        assert start_temp_eV > Tmin, f"Temperature out of range (too low). {start_temp_eV} > {Tmin}"
+        assert stop_temp_eV < Tmax, f"Temperature out of range (too high). {stop_temp_eV} < {Tmax}"
 
         Lz_values = np.zeros(resolution)
         electron_temp = np.logspace(np.log10(start_temp_eV), np.log10(stop_temp_eV), num = resolution)
@@ -564,7 +568,7 @@ class MavrinData:
 
 if __name__=="__main__":
 
-    result = run_extended_lengyel_model(
+    result = run_inverse_extended_lengyel_model(
         testing = True
     )
 
