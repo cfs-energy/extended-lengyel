@@ -77,8 +77,7 @@ def run_inverse_extended_lengyel_model(
     target_ratio_of_electron_to_ion_density: floattype = defaults["target_ratio_of_electron_to_ion_density"],
     target_mach_number: floattype = defaults["target_mach_number"],
     toroidal_flux_expansion: floattype = defaults["toroidal_flux_expansion"],
-    inner_loop_iterations: int = 5,
-    outer_loop_iterations: int = 5,
+    iterations: int = 5,
     testing: bool = False,
     return_iterations: bool = False
 ):
@@ -201,16 +200,16 @@ def run_inverse_extended_lengyel_model(
     alpha_t = 0.0
     result_valid = True
 
-    separatrix_electron_temp_its = np.zeros(outer_loop_iterations * inner_loop_iterations)
-    alpha_t_its = np.zeros(outer_loop_iterations * inner_loop_iterations)
-    c_z_its = np.zeros(outer_loop_iterations * inner_loop_iterations)
+    separatrix_electron_temp_its = np.zeros(iterations)
+    alpha_t_its = np.zeros(iterations)
+    c_z_its = np.zeros(iterations)
 
     prev_separatrix_electron_temp = np.nan
     prev_alpha_t = np.nan
     prev_c_z = np.nan
 
-    for _outer_it in range(outer_loop_iterations):
-        first_loop = _outer_it == 0
+    for _it in range(iterations):
+        first_loop = _it == 0
         separatrix_average_rho_s_pol = \
             np.sqrt(separatrix_electron_temp * average_ion_mass) / (separatrix_average_poloidal_field) \
                 * np.sqrt(amu_to_kg / elementary_charge)# in metres, for Te in eV, mi in amu and B0 in T
@@ -233,159 +232,149 @@ def run_inverse_extended_lengyel_model(
 
         if first_loop: divertor_z_effective = 1.0
 
-        for _inner_loop_it in range(inner_loop_iterations):
-            first_loop = (_outer_it == 0) and (_inner_loop_it == 0)
+        # Calculate the impact of impurities on electron heat conductivity, using
+        # equation 10 from Brown and Goldston, 2021, NME 27 101002
+        kappa_z = 0.672 + 0.076 * np.sqrt(divertor_z_effective) + 0.252 * divertor_z_effective
+        kappa_e = kappa_e0 / kappa_z
 
-            # Calculate the impact of impurities on electron heat conductivity, using
-            # equation 10 from Brown and Goldston, 2021, NME 27 101002
-            kappa_z = 0.672 + 0.076 * np.sqrt(divertor_z_effective) + 0.252 * divertor_z_effective
-            kappa_e = kappa_e0 / kappa_z
+        divertor_entrance_electron_temp = (
+            electron_temp_at_cc_interface**3.5
+            + 3.5 * SOL_conduction_fraction * q_parallel / divertor_broadening_factor * divertor_parallel_length / kappa_e
+        ) ** (2. / 7.) # in electron-volts
+        if testing and first_loop: assert np.isclose(divertor_entrance_electron_temp, 55.02789988290978), divertor_entrance_electron_temp
 
-            divertor_entrance_electron_temp = (
-                electron_temp_at_cc_interface**3.5
-                + 3.5 * SOL_conduction_fraction * q_parallel / divertor_broadening_factor * divertor_parallel_length / kappa_e
-            ) ** (2. / 7.) # in electron-volts
-            if testing and first_loop: assert np.isclose(divertor_entrance_electron_temp, 55.02789988290978), divertor_entrance_electron_temp
+        separatrix_electron_temp = (
+            divertor_entrance_electron_temp**3.5
+            + 3.5 * SOL_conduction_fraction * q_parallel * (parallel_connection_length - divertor_parallel_length) / kappa_e
+        ) ** (2. / 7.) # in electron-volts
+        if testing and first_loop: assert np.isclose(separatrix_electron_temp, 106.22936183730023), separatrix_electron_temp
 
-            separatrix_electron_temp = (
-                divertor_entrance_electron_temp**3.5
-                + 3.5 * SOL_conduction_fraction * q_parallel * (parallel_connection_length - divertor_parallel_length) / kappa_e
-            ) ** (2. / 7.) # in electron-volts
-            if testing and first_loop: assert np.isclose(separatrix_electron_temp, 106.22936183730023), separatrix_electron_temp
+        separatrix_total_pressure = (
+            (1.0 + separatrix_mach_number**2) * separatrix_electron_density * separatrix_electron_temp \
+                * (n20_to_m3 * elementary_charge)
+                * (1.0 + separatrix_ratio_of_ion_to_electron_temp / separatrix_ratio_of_electron_to_ion_density)
+        ) # in Pascals
+        if testing and first_loop: assert np.isclose(separatrix_total_pressure, 1123.3081291109947), separatrix_total_pressure
 
-            separatrix_total_pressure = (
-                (1.0 + separatrix_mach_number**2) * separatrix_electron_density * separatrix_electron_temp \
-                    * (n20_to_m3 * elementary_charge)
-                    * (1.0 + separatrix_ratio_of_ion_to_electron_temp / separatrix_ratio_of_electron_to_ion_density)
-            ) # in Pascals
-            if testing and first_loop: assert np.isclose(separatrix_total_pressure, 1123.3081291109947), separatrix_total_pressure
+        # Run the two-point-model to calculate the required power loss fraction to achieve
+        # a desired target electron temperature
+        target_electron_temp_basic = (
+            (8.0 * average_ion_mass / sheath_heat_transmission_factor**2)
+            * ((q_parallel / GW_to_W)**2 / separatrix_total_pressure**2)
+        ) * (amu_to_kg / elementary_charge * GW_to_W**2)
 
-            # Run the two-point-model to calculate the required power loss fraction to achieve
-            # a desired target electron temperature
-            target_electron_temp_basic = (
-                (8.0 * average_ion_mass / sheath_heat_transmission_factor**2)
-                * ((q_parallel / GW_to_W)**2 / separatrix_total_pressure**2)
-            ) * (amu_to_kg / elementary_charge * GW_to_W**2)
+        f_other_target_electron_temp = (
+            ((1.0 + target_ratio_of_ion_to_electron_temp / target_ratio_of_electron_to_ion_density) / 2.0)
+            * ((1.0 + target_mach_number**2) ** 2 / (4.0 * target_mach_number**2))
+            * toroidal_flux_expansion**-2
+        )
 
-            f_other_target_electron_temp = (
-                ((1.0 + target_ratio_of_ion_to_electron_temp / target_ratio_of_electron_to_ion_density) / 2.0)
-                * ((1.0 + target_mach_number**2) ** 2 / (4.0 * target_mach_number**2))
-                * toroidal_flux_expansion**-2
+        required_power_loss = (
+            1.0
+            - np.sqrt(
+                target_electron_temp
+                / target_electron_temp_basic
+                * (1.0 - momentum_loss_in_convection_layer) ** 2
+                / f_other_target_electron_temp
             )
+        )
+        if testing and first_loop: assert np.isclose(required_power_loss, 0.9690871393189479), required_power_loss
 
-            required_power_loss = (
-                1.0
-                - np.sqrt(
-                    target_electron_temp
-                    / target_electron_temp_basic
-                    * (1.0 - momentum_loss_in_convection_layer) ** 2
-                    / f_other_target_electron_temp
-                )
-            )
-            if testing and first_loop: assert np.isclose(required_power_loss, 0.9690871393189479), required_power_loss
+        parallel_heat_flux_at_target = q_parallel * (1.0 - required_power_loss) # W/m^2
+        if testing and first_loop: assert np.isclose(parallel_heat_flux_at_target, 15647891.526830431), parallel_heat_flux_at_target
 
-            parallel_heat_flux_at_target = q_parallel * (1.0 - required_power_loss) # W/m^2
-            if testing and first_loop: assert np.isclose(parallel_heat_flux_at_target, 15647891.526830431), parallel_heat_flux_at_target
+        parallel_heat_flux_at_cc_interface = parallel_heat_flux_at_target / (1.0 - power_loss_in_convection_layer)
+        if testing and first_loop: assert np.isclose(parallel_heat_flux_at_cc_interface, 48774521.41779204), parallel_heat_flux_at_cc_interface
 
-            parallel_heat_flux_at_cc_interface = parallel_heat_flux_at_target / (1.0 - power_loss_in_convection_layer)
-            if testing and first_loop: assert np.isclose(parallel_heat_flux_at_cc_interface, 48774521.41779204), parallel_heat_flux_at_cc_interface
+        # Seed impurities
+        Ls_cc_div = calc_weighted_seed_LINT(electron_temp_at_cc_interface, divertor_entrance_electron_temp)
+        Ls_div_u = calc_weighted_seed_LINT(divertor_entrance_electron_temp, separatrix_electron_temp)
+        Ls_cc_u = calc_weighted_seed_LINT(electron_temp_at_cc_interface, separatrix_electron_temp)
 
-            # Seed impurities
-            Ls_cc_div = calc_weighted_seed_LINT(electron_temp_at_cc_interface, divertor_entrance_electron_temp)
-            Ls_div_u = calc_weighted_seed_LINT(divertor_entrance_electron_temp, separatrix_electron_temp)
-            Ls_cc_u = calc_weighted_seed_LINT(electron_temp_at_cc_interface, separatrix_electron_temp)
+        # Fixed impurities
+        Lf_cc_div = calc_fixed_cz_LINT(electron_temp_at_cc_interface, divertor_entrance_electron_temp)
+        Lf_div_u = calc_fixed_cz_LINT(divertor_entrance_electron_temp, separatrix_electron_temp)
+        Lf_cc_u = calc_fixed_cz_LINT(electron_temp_at_cc_interface, separatrix_electron_temp)
 
-            # Fixed impurities
-            Lf_cc_div = calc_fixed_cz_LINT(electron_temp_at_cc_interface, divertor_entrance_electron_temp)
-            Lf_div_u = calc_fixed_cz_LINT(divertor_entrance_electron_temp, separatrix_electron_temp)
-            Lf_cc_u = calc_fixed_cz_LINT(electron_temp_at_cc_interface, separatrix_electron_temp)
+        qu = q_parallel
+        qcc = parallel_heat_flux_at_cc_interface
+        b = divertor_broadening_factor
+        k = 2.0 * kappa_e * separatrix_electron_density**2 * separatrix_electron_temp**2
 
-            qu = q_parallel
-            qcc = parallel_heat_flux_at_cc_interface
-            b = divertor_broadening_factor
-            k = 2.0 * kappa_e * separatrix_electron_density**2 * separatrix_electron_temp**2
+        q_div_squared = (
+            (Ls_div_u * (qcc**2 + k * Lf_cc_div) + Ls_cc_div * (qu**2 - k * Lf_div_u))
+            / (Ls_div_u / b**2  + Ls_cc_div)
+        )
+        if q_div_squared < 0:
+            q_div_squared = 0.0
+            result_valid = False
+        else:
+            result_valid = True
 
-            q_div_squared = (
-                (Ls_div_u * (qcc**2 + k * Lf_cc_div) + Ls_cc_div * (qu**2 - k * Lf_div_u))
-                / (Ls_div_u / b**2  + Ls_cc_div)
-            )
-            if q_div_squared < 0:
-                q_div_squared = 0.0
-                result_valid = False
-            else:
-                result_valid = True
+        c_z = (
+            (qu**2 + (1 / b**2 - 1) * q_div_squared - qcc**2) / (k * Ls_cc_u)
+            - Lf_cc_u / Ls_cc_u
+        )
 
-            c_z = (
-                (qu**2 + (1 / b**2 - 1) * q_div_squared - qcc**2) / (k * Ls_cc_u)
-                - Lf_cc_u / Ls_cc_u
-            )
+        if testing and first_loop:
+            assert result_valid
+            assert np.isclose(c_z * seed_impurities["Nitrogen"][1], 0.05910794282125309, rtol=1e-2), c_z * seed_impurities["Nitrogen"][1]
+            assert np.isclose(c_z * seed_impurities["Argon"][1], 0.002955397141062655, rtol=1e-2), c_z * seed_impurities["Argon"][1]
 
-            if testing and first_loop:
-                assert result_valid
-                assert np.isclose(c_z * seed_impurities["Nitrogen"][1], 0.05910794282125309, rtol=1e-2), c_z * seed_impurities["Nitrogen"][1]
-                assert np.isclose(c_z * seed_impurities["Argon"][1], 0.002955397141062655, rtol=1e-2), c_z * seed_impurities["Argon"][1]
+        # Use the divertor entrance temperature to calculate the divertor Zeff, which is used for
+        # calculating the corrected electron heat conductivity
+        divertor_z_effective = 1.0
+        for (mavrin_data, weight) in seed_impurities.values():
+            mean_z = mavrin_data.get_mean_charge(divertor_entrance_electron_temp, ne_tau)
+            divertor_z_effective = divertor_z_effective + (mean_z * (mean_z - 1.0) * c_z * weight)
+        for (mavrin_data, concentration) in fixed_impurities.values():
+            mean_z = mavrin_data.get_mean_charge(divertor_entrance_electron_temp, ne_tau)
+            divertor_z_effective = divertor_z_effective + (mean_z * (mean_z - 1.0) * concentration)
 
-            # Use the divertor entrance temperature to calculate the divertor Zeff, which is used for
-            # calculating the corrected electron heat conductivity
-            divertor_z_effective = 1.0
-            for (mavrin_data, weight) in seed_impurities.values():
-                mean_z = mavrin_data.get_mean_charge(divertor_entrance_electron_temp, ne_tau)
-                divertor_z_effective = divertor_z_effective + (mean_z * (mean_z - 1.0) * c_z * weight)
-            for (mavrin_data, concentration) in fixed_impurities.values():
-                mean_z = mavrin_data.get_mean_charge(divertor_entrance_electron_temp, ne_tau)
-                divertor_z_effective = divertor_z_effective + (mean_z * (mean_z - 1.0) * concentration)
+        if testing and first_loop: assert np.isclose(divertor_z_effective, 2.2869460512648954, rtol=1e-2)
 
-            if testing and first_loop: assert np.isclose(divertor_z_effective, 2.2869460512648954, rtol=1e-2)
+        # Use the separatrix electron temperature to calculate Z-eff for alpha-t
+        separatrix_z_effective = 1.0
+        for (mavrin_data, weight) in seed_impurities.values():
+            mean_z = mavrin_data.get_mean_charge(separatrix_electron_temp, ne_tau)
+            separatrix_z_effective = separatrix_z_effective + (mean_z * (mean_z - 1.0) * c_z * weight)
+        for (mavrin_data, concentration) in fixed_impurities.values():
+            mean_z = mavrin_data.get_mean_charge(separatrix_electron_temp, ne_tau)
+            separatrix_z_effective = separatrix_z_effective + (mean_z * (mean_z - 1.0) * concentration)
 
-            # Use the separatrix electron temperature to calculate Z-eff for alpha-t
-            separatrix_z_effective = 1.0
-            for (mavrin_data, weight) in seed_impurities.values():
-                mean_z = mavrin_data.get_mean_charge(separatrix_electron_temp, ne_tau)
-                separatrix_z_effective = separatrix_z_effective + (mean_z * (mean_z - 1.0) * c_z * weight)
-            for (mavrin_data, concentration) in fixed_impurities.values():
-                mean_z = mavrin_data.get_mean_charge(separatrix_electron_temp, ne_tau)
-                separatrix_z_effective = separatrix_z_effective + (mean_z * (mean_z - 1.0) * concentration)
+        if testing and first_loop: assert np.isclose(separatrix_z_effective, 2.323717048605388, rtol=1e-2)
 
-            if testing and first_loop: assert np.isclose(separatrix_z_effective, 2.323717048605388, rtol=1e-2)
+        alpha_t = calc_alpha_t(
+            separatrix_electron_density=separatrix_electron_density * n20_to_m3,
+            separatrix_electron_temp=separatrix_electron_temp,
+            cylindrical_safety_factor=cylindrical_safety_factor,
+            major_radius=major_radius,
+            average_ion_mass=average_ion_mass * amu_to_kg,
+            z_effective=separatrix_z_effective,
+            mean_ion_charge_state=1.0,
+        )
 
-            alpha_t = calc_alpha_t(
-                separatrix_electron_density=separatrix_electron_density * n20_to_m3,
-                separatrix_electron_temp=separatrix_electron_temp,
-                cylindrical_safety_factor=cylindrical_safety_factor,
-                major_radius=major_radius,
-                average_ion_mass=average_ion_mass * amu_to_kg,
-                z_effective=separatrix_z_effective,
-                mean_ion_charge_state=1.0,
-            )
+        if testing and first_loop: assert np.isclose(alpha_t, 0.4012528188077832, rtol=1e-2), alpha_t
 
-            if testing and first_loop: assert np.isclose(alpha_t, 0.4012528188077832, rtol=1e-2), alpha_t
+        converged = np.allclose(
+            [alpha_t, c_z, separatrix_electron_temp],
+            [prev_alpha_t, prev_c_z, prev_separatrix_electron_temp],
+            equal_nan=False,
+            atol=0.0, rtol=1e-6
+        )
 
-            converged = np.allclose(
-                [alpha_t, c_z, separatrix_electron_temp],
-                [prev_alpha_t, prev_c_z, prev_separatrix_electron_temp],
-                equal_nan=False,
-                atol=0.0, rtol=1e-6
-            )
-
-            if converged:
-                separatrix_electron_temp_its[_outer_it * inner_loop_iterations + _inner_loop_it:] = separatrix_electron_temp
-                alpha_t_its[_outer_it * inner_loop_iterations + _inner_loop_it:] = alpha_t
-                c_z_its[_outer_it * inner_loop_iterations + _inner_loop_it:] = c_z
-                break
-            else:
-                separatrix_electron_temp_its[_outer_it * inner_loop_iterations + _inner_loop_it] = separatrix_electron_temp
-                alpha_t_its[_outer_it * inner_loop_iterations + _inner_loop_it] = alpha_t
-                c_z_its[_outer_it * inner_loop_iterations + _inner_loop_it] = c_z
-
-            prev_alpha_t = alpha_t
-            prev_c_z = c_z
-            prev_separatrix_electron_temp = separatrix_electron_temp
-
-        if converged and (_inner_loop_it == 0):
-            separatrix_electron_temp_its = separatrix_electron_temp_its[:(_outer_it + 1) * inner_loop_iterations]
-            alpha_t_its = alpha_t_its[:(_outer_it + 1) * inner_loop_iterations]
-            c_z_its = c_z_its[:(_outer_it + 1) * inner_loop_iterations]
+        separatrix_electron_temp_its[_it] = separatrix_electron_temp
+        alpha_t_its[_it] = alpha_t
+        c_z_its[_it] = c_z
+        if converged:
+            separatrix_electron_temp_its = separatrix_electron_temp_its[:(_it + 1)]
+            alpha_t_its = alpha_t_its[:(_it + 1)]
+            c_z_its = c_z_its[:(_it + 1)]
             break
+
+        prev_alpha_t = alpha_t
+        prev_c_z = c_z
+        prev_separatrix_electron_temp = separatrix_electron_temp
 
     # Make sure that the iterative solver converges to the same values
     if testing:
@@ -651,26 +640,23 @@ class MavrinData:
 
 if __name__=="__main__":
 
-    # result = run_inverse_extended_lengyel_model(
-    #     testing = True
-    # )
-
-    # print(result)
-
-    result = run_inverse_extended_lengyel_model(
-        # testing = True,
-        return_iterations = True,
-        # target_electron_temp = 25.0,
-        outer_loop_iterations = 100,
-        inner_loop_iterations = 1
+    # Run the first time to make sure that we match the reference
+    run_inverse_extended_lengyel_model(
+        testing = True
     )
 
-    print(result["Nitrogen_concentration"])
+    # Run the second time to check convergence
+    result = run_inverse_extended_lengyel_model(
+        return_iterations = True,
+        iterations = 100,
+    )
 
     import matplotlib.pyplot as plt
     plt.plot(result["c_z_its"] / result["c_z_its"][-1], label="c_z")
     plt.plot(result["alpha_t_its"] / result["alpha_t_its"][-1], label="alpha_t")
     plt.plot(result["separatrix_electron_temp_its"] / result["separatrix_electron_temp_its"][-1], label="separatrix_electron_temp")
-    plt.title(f"Converged = {result["converged"]} in {len(result["alpha_t_its"])} steps")
+    plt.title(f"Inverse model, {'converged' if result["converged"] else 'did not converge'} in {len(result["alpha_t_its"])} steps")
     plt.legend()
+    plt.xlabel("Iterative solver step")
+    plt.ylabel("Value normalized to converged value")
     plt.show()

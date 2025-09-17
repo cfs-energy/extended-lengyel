@@ -11,8 +11,7 @@ if __name__ == "__main__":
     for i, Tetar in enumerate(Tetar_1):
         res = run_inverse_extended_lengyel_model(
             target_electron_temp=Tetar, fixed_impurity_concentrations=dict(), seed_impurity_weights=dict(Nitrogen= 1.0),
-            outer_loop_iterations = 50,
-            inner_loop_iterations = 10,
+            iterations = 50,
         )
 
         if res["converged"]:
@@ -24,8 +23,7 @@ if __name__ == "__main__":
     for i, conc in enumerate(conc_2):
         try:
             res = run_forward_extended_lengyel_model(impurity_concentrations=dict(Nitrogen=conc),
-                outer_loop_iterations = 50,
-                inner_loop_iterations = 10,
+                iterations = 50,
             )
 
             if res["converged"]:

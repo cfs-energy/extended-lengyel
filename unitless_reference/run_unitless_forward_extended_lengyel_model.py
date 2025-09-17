@@ -81,8 +81,7 @@ def run_forward_extended_lengyel_model(
     target_ratio_of_electron_to_ion_density: np.floating = defaults["target_ratio_of_electron_to_ion_density"],
     target_mach_number: np.floating = defaults["target_mach_number"],
     toroidal_flux_expansion: np.floating = defaults["toroidal_flux_expansion"],
-    inner_loop_iterations: int = 5,
-    outer_loop_iterations: int = 5,
+    iterations: int = 5,
     testing: bool = False,
     return_iterations: bool = False
 ):
@@ -185,87 +184,65 @@ def run_forward_extended_lengyel_model(
     prev_separatrix_electron_temp = np.nan
     prev_alpha_t = np.nan
 
-    target_electron_temp_its = np.zeros(outer_loop_iterations * inner_loop_iterations)
-    parallel_heat_flux_at_cc_interface_its = np.zeros(outer_loop_iterations * inner_loop_iterations)
-    separatrix_electron_temp_its = np.zeros(outer_loop_iterations * inner_loop_iterations)
-    alpha_t_its = np.zeros(outer_loop_iterations * inner_loop_iterations)
+    target_electron_temp_its = np.zeros(iterations)
+    parallel_heat_flux_at_cc_interface_its = np.zeros(iterations)
+    separatrix_electron_temp_its = np.zeros(iterations)
+    alpha_t_its = np.zeros(iterations)
 
-    for _outer_it in range(outer_loop_iterations):
+    for _it in range(iterations):
 
-        for _inner_loop_1_it in range(inner_loop_iterations):
-            # Calculate q_parallel consistent with alpha-t and the separatrix electron temperature
-            first_loop = (_outer_it == 0) and (_inner_loop_1_it == 0)
+        # Calculate q_parallel consistent with alpha-t and the separatrix electron temperature
+        first_loop = (_it == 0)
 
-            separatrix_average_rho_s_pol = \
-                np.sqrt(separatrix_electron_temp * average_ion_mass) \
-                    / (separatrix_average_poloidal_field) \
-                    * np.sqrt(amu_to_kg / elementary_charge)# in metres, for Te in eV, mi in amu and B0 in T
-            if testing and first_loop: assert np.isclose(separatrix_average_rho_s_pol, 0.005050556986156449), separatrix_average_rho_s_pol
+        separatrix_average_rho_s_pol = \
+            np.sqrt(separatrix_electron_temp * average_ion_mass) \
+                / (separatrix_average_poloidal_field) \
+                * np.sqrt(amu_to_kg / elementary_charge)# in metres, for Te in eV, mi in amu and B0 in T
+        if testing and first_loop: assert np.isclose(separatrix_average_rho_s_pol, 0.005050556986156449), separatrix_average_rho_s_pol
 
-            separatrix_average_lambda_Te = 2.1 * (1 + 2.1 * alpha_t**1.7) * separatrix_average_rho_s_pol
-            separatrix_average_lambda_q = 2.0 / 7.0 * separatrix_average_lambda_Te
+        separatrix_average_lambda_Te = 2.1 * (1 + 2.1 * alpha_t**1.7) * separatrix_average_rho_s_pol
+        separatrix_average_lambda_q = 2.0 / 7.0 * separatrix_average_lambda_Te
 
-            ratio_of_upstream_to_average_lambda_q = ratio_of_upstream_to_average_poloidal_field * (major_radius + minor_radius) / major_radius
-            lambda_q_outboard_midplane = separatrix_average_lambda_q / ratio_of_upstream_to_average_lambda_q # in metres
-            if testing and first_loop: assert np.isclose(lambda_q_outboard_midplane, 1.7442039824284483e-3), lambda_q_outboard_midplane
+        ratio_of_upstream_to_average_lambda_q = ratio_of_upstream_to_average_poloidal_field * (major_radius + minor_radius) / major_radius
+        lambda_q_outboard_midplane = separatrix_average_lambda_q / ratio_of_upstream_to_average_lambda_q # in metres
+        if testing and first_loop: assert np.isclose(lambda_q_outboard_midplane, 1.7442039824284483e-3), lambda_q_outboard_midplane
 
-            q_parallel = (
-                power_crossing_separatrix
-                * fraction_of_power_entering_flux_tube
-                / (2.0 * np.pi * (major_radius + minor_radius) * lambda_q_outboard_midplane)
-                * fieldline_pitch_at_omp
-            ) # in watts per metres-squared
-            if testing and first_loop: assert np.isclose(q_parallel, 0.5061935771095335 * 1e9), q_parallel
+        q_parallel = (
+            power_crossing_separatrix
+            * fraction_of_power_entering_flux_tube
+            / (2.0 * np.pi * (major_radius + minor_radius) * lambda_q_outboard_midplane)
+            * fieldline_pitch_at_omp
+        ) # in watts per metres-squared
+        if testing and first_loop: assert np.isclose(q_parallel, 0.5061935771095335 * 1e9), q_parallel
 
-            # Calculate the impact of impurities on electron heat conductivity, using
-            # equation 10 from Brown and Goldston, 2021, NME 27 101002
-            divertor_z_effective = calc_z_effective(divertor_entrance_electron_temp)
-            kappa_z = 0.672 + 0.076 * np.sqrt(divertor_z_effective) + 0.252 * divertor_z_effective
-            kappa_e = kappa_e0 / kappa_z
+        # Calculate the impact of impurities on electron heat conductivity, using
+        # equation 10 from Brown and Goldston, 2021, NME 27 101002
+        divertor_z_effective = calc_z_effective(divertor_entrance_electron_temp)
+        kappa_z = 0.672 + 0.076 * np.sqrt(divertor_z_effective) + 0.252 * divertor_z_effective
+        kappa_e = kappa_e0 / kappa_z
 
-            divertor_entrance_electron_temp = (
-                electron_temp_at_cc_interface**3.5
-                + 3.5 * SOL_conduction_fraction * q_parallel / divertor_broadening_factor * divertor_parallel_length / kappa_e
-            ) ** (2. / 7.) # in electron-volts
+        divertor_entrance_electron_temp = (
+            electron_temp_at_cc_interface**3.5
+            + 3.5 * SOL_conduction_fraction * q_parallel / divertor_broadening_factor * divertor_parallel_length / kappa_e
+        ) ** (2. / 7.) # in electron-volts
 
-            separatrix_electron_temp = (
-                divertor_entrance_electron_temp**3.5
-                + 3.5 * SOL_conduction_fraction * q_parallel * (parallel_connection_length - divertor_parallel_length) / kappa_e
-            ) ** (2. / 7.) # in electron-volts
+        separatrix_electron_temp = (
+            divertor_entrance_electron_temp**3.5
+            + 3.5 * SOL_conduction_fraction * q_parallel * (parallel_connection_length - divertor_parallel_length) / kappa_e
+        ) ** (2. / 7.) # in electron-volts
 
-            separatrix_z_effective = calc_z_effective(separatrix_electron_temp)
-            alpha_t = calc_alpha_t(
-                separatrix_electron_density=separatrix_electron_density * n20_to_m3,
-                separatrix_electron_temp=separatrix_electron_temp,
-                cylindrical_safety_factor=cylindrical_safety_factor,
-                major_radius=major_radius,
-                average_ion_mass=average_ion_mass * amu_to_kg,
-                z_effective=separatrix_z_effective,
-                mean_ion_charge_state=1.0,
-            )
-
-            converged_1 = np.allclose(
-                [alpha_t, divertor_entrance_electron_temp, separatrix_electron_temp],
-                [prev_alpha_t, prev_divertor_entrance_electron_temp, prev_separatrix_electron_temp],
-                **convergence
-            )
-
-            if converged_1:
-                alpha_t_its[_outer_it * inner_loop_iterations:] = alpha_t
-                separatrix_electron_temp_its[_outer_it * inner_loop_iterations:] = separatrix_electron_temp
-                break
-            else:
-                alpha_t_its[_outer_it * inner_loop_iterations + _inner_loop_1_it] = alpha_t
-                separatrix_electron_temp_its[_outer_it * inner_loop_iterations + _inner_loop_1_it] = separatrix_electron_temp
-
-            prev_divertor_entrance_electron_temp = divertor_entrance_electron_temp
-            prev_separatrix_electron_temp = separatrix_electron_temp
-            prev_alpha_t = alpha_t
-
+        separatrix_z_effective = calc_z_effective(separatrix_electron_temp)
+        alpha_t = calc_alpha_t(
+            separatrix_electron_density=separatrix_electron_density * n20_to_m3,
+            separatrix_electron_temp=separatrix_electron_temp,
+            cylindrical_safety_factor=cylindrical_safety_factor,
+            major_radius=major_radius,
+            average_ion_mass=average_ion_mass * amu_to_kg,
+            z_effective=separatrix_z_effective,
+            mean_ion_charge_state=1.0,
+        )
 
         # Calculate the power loss due to impurities
-
-        # Seed impurities
         Lint_cc_div = calc_cz_LINT(electron_temp_at_cc_interface, divertor_entrance_electron_temp)
         Lint_div_u = calc_cz_LINT(divertor_entrance_electron_temp, separatrix_electron_temp)
 
@@ -273,8 +250,7 @@ def run_forward_extended_lengyel_model(
         b = divertor_broadening_factor
         k = 2.0 * kappa_e * separatrix_electron_density**2 * separatrix_electron_temp**2
 
-        qcc = np.sqrt(qu**2 / b**2 - k * (Lint_div_u / b**2 + Lint_cc_div))
-        parallel_heat_flux_at_cc_interface = qcc
+        parallel_heat_flux_at_cc_interface = np.sqrt(qu**2 / b**2 - k * (Lint_div_u / b**2 + Lint_cc_div))
 
         separatrix_total_pressure = (
             (1.0 + separatrix_mach_number**2) * separatrix_electron_density * separatrix_electron_temp
@@ -293,70 +269,84 @@ def run_forward_extended_lengyel_model(
         )
 
         # Calculate Te_tar consistent with parallel_heat_flux_at_cc_interface
+        momentum_loss_in_convection_layer = temperature_fit_function(
+            target_electron_temp,
+            amplitude=0.8858679172531956,
+            width=3.8263045353064467,
+            shape=0.8282347762381935,
+        )
 
-        for _inner_loop_2_it in range(inner_loop_iterations):
-            momentum_loss_in_convection_layer = temperature_fit_function(
+        power_loss_in_convection_layer = temperature_fit_function(
+            target_electron_temp,
+            amplitude=0.8532115334413933,
+            width=5.195481324376164,
+            shape=0.9642427916765323,
+        )
+
+        density_loss_in_convection_layer = temperature_fit_function(
+            target_electron_temp,
+            amplitude=0.5587910467003282,
+            width=2.020427078509838,
+            shape=0.9600157520406738,
+        )
+
+        parallel_heat_flux_at_target = (1.0 - power_loss_in_convection_layer) * parallel_heat_flux_at_cc_interface
+        SOL_power_loss_fraction = 1.0 - parallel_heat_flux_at_target / q_parallel
+        f_vol_loss = (1.0 - SOL_power_loss_fraction) ** 2 / (1.0 - momentum_loss_in_convection_layer) ** 2
+
+        target_electron_temp = target_electron_temp_basic * f_vol_loss * f_other
+
+        electron_temp_at_cc_interface = target_electron_temp \
+            / ((1.0 - momentum_loss_in_convection_layer) / (2.0 * density_loss_in_convection_layer))
+
+        converged = np.allclose(
+            [
+                alpha_t,
                 target_electron_temp,
-                amplitude=0.8858679172531956,
-                width=3.8263045353064467,
-                shape=0.8282347762381935,
-            )
+                divertor_entrance_electron_temp,
+                separatrix_electron_temp,
+                parallel_heat_flux_at_cc_interface
+            ],
+            [
+                prev_alpha_t,
+                prev_target_electron_temp,
+                prev_divertor_entrance_electron_temp,
+                prev_separatrix_electron_temp,
+                prev_parallel_heat_flux_at_cc_interface
+            ],
+            **convergence
+        )
+        print("alpha_t", np.isclose(alpha_t, prev_alpha_t), alpha_t, prev_alpha_t)
+        print("target_electron_temp", np.isclose(target_electron_temp, prev_target_electron_temp), target_electron_temp, prev_target_electron_temp)
+        print("divertor_entrance_electron_temp", np.isclose(divertor_entrance_electron_temp, prev_divertor_entrance_electron_temp), divertor_entrance_electron_temp, prev_divertor_entrance_electron_temp)
+        print("separatrix_electron_temp", np.isclose(separatrix_electron_temp, prev_separatrix_electron_temp), separatrix_electron_temp, prev_separatrix_electron_temp)
+        print("parallel_heat_flux_at_cc_interface", np.isclose(parallel_heat_flux_at_cc_interface, prev_parallel_heat_flux_at_cc_interface), parallel_heat_flux_at_cc_interface, prev_parallel_heat_flux_at_cc_interface)
 
-            power_loss_in_convection_layer = temperature_fit_function(
-                target_electron_temp,
-                amplitude=0.8532115334413933,
-                width=5.195481324376164,
-                shape=0.9642427916765323,
-            )
-
-            density_loss_in_convection_layer = temperature_fit_function(
-                target_electron_temp,
-                amplitude=0.5587910467003282,
-                width=2.020427078509838,
-                shape=0.9600157520406738,
-            )
-
-            parallel_heat_flux_at_target = (1.0 - power_loss_in_convection_layer) * parallel_heat_flux_at_cc_interface
-            SOL_power_loss_fraction = 1.0 - parallel_heat_flux_at_target / q_parallel
-            f_vol_loss = (1.0 - SOL_power_loss_fraction) ** 2 / (1.0 - momentum_loss_in_convection_layer) ** 2
-
-            target_electron_temp = target_electron_temp_basic * f_vol_loss * f_other
-
-            electron_temp_at_cc_interface = target_electron_temp \
-                / ((1.0 - momentum_loss_in_convection_layer) / (2.0 * density_loss_in_convection_layer))
-
-            converged_2 = np.isclose(target_electron_temp, prev_target_electron_temp, **convergence)
-
-            if converged_2:
-                target_electron_temp_its[_outer_it * inner_loop_iterations + _inner_loop_2_it:] = target_electron_temp
-                break
-            else:
-                target_electron_temp_its[_outer_it * inner_loop_iterations + _inner_loop_2_it] = target_electron_temp
-
-            prev_target_electron_temp = target_electron_temp
-
-
-        converged = np.isclose(parallel_heat_flux_at_cc_interface, prev_parallel_heat_flux_at_cc_interface, **convergence)\
-            & converged_1 & (_inner_loop_1_it == 0) & converged_2 & (_inner_loop_2_it == 0)
-
+        alpha_t_its[_it] = alpha_t
+        target_electron_temp_its[_it] = target_electron_temp
+        separatrix_electron_temp_its[_it] = separatrix_electron_temp
+        parallel_heat_flux_at_cc_interface_its[_it] = parallel_heat_flux_at_cc_interface
         if converged:
-            parallel_heat_flux_at_cc_interface_its[_outer_it * inner_loop_iterations:] = parallel_heat_flux_at_cc_interface
-            parallel_heat_flux_at_cc_interface_its = parallel_heat_flux_at_cc_interface_its[:(_outer_it + 1) * inner_loop_iterations]
-            alpha_t_its = alpha_t_its[:(_outer_it + 1) * inner_loop_iterations]
-            target_electron_temp_its = target_electron_temp_its[:(_outer_it + 1) * inner_loop_iterations]
-            separatrix_electron_temp_its = separatrix_electron_temp_its[:(_outer_it + 1) * inner_loop_iterations]
+            alpha_t_its = alpha_t_its[:_it+1]
+            target_electron_temp_its = target_electron_temp_its[:_it+1]
+            separatrix_electron_temp_its = separatrix_electron_temp_its[:_it+1]
+            parallel_heat_flux_at_cc_interface_its = parallel_heat_flux_at_cc_interface_its[:_it+1]
             break
-        else:
-            parallel_heat_flux_at_cc_interface_its[_outer_it * inner_loop_iterations:(_outer_it+1) * inner_loop_iterations] = parallel_heat_flux_at_cc_interface
 
         prev_parallel_heat_flux_at_cc_interface = parallel_heat_flux_at_cc_interface
+        prev_target_electron_temp = target_electron_temp
+        prev_divertor_entrance_electron_temp = divertor_entrance_electron_temp
+        prev_separatrix_electron_temp = separatrix_electron_temp
+        prev_alpha_t = alpha_t
+
+    if testing: assert converged
 
     # Post-processing
-    sound_speed_at_target = np.sqrt(2.0 * target_electron_temp * eV_to_J / average_ion_mass) # m / s
-    # if testing: assert np.isclose(sound_speed_at_target, 15025.833662282057), sound_speed_at_target
+    sound_speed_at_target = np.sqrt(2.0 * target_electron_temp * (eV_to_J / amu_to_kg) / average_ion_mass) # m / s
+    if testing: assert np.isclose(sound_speed_at_target, 15025.833662282057), sound_speed_at_target
 
     electron_density_at_target = parallel_heat_flux_at_target / (sheath_heat_transmission_factor * target_electron_temp * eV_to_J * sound_speed_at_target) # m^-3
-    # if testing: assert np.isclose(electron_density_at_target, 3.359214345710722e+20, rtol=1e-2), electron_density_at_target
+    if testing: assert np.isclose(electron_density_at_target, 3.359214345710722e+20, rtol=1e-2), electron_density_at_target
 
     # From equation 57 of Body, Kallenbach and Eich, NF 2025
     flux_density_to_pascals_factor = np.sqrt(2.0 / (np.pi * ratio_of_molecular_to_ion_mass * average_ion_mass * wall_temperature)) / np.sqrt(amu_to_kg * boltzmann_constant)# (m**-2 / s) / Pa
@@ -398,20 +388,27 @@ def run_forward_extended_lengyel_model(
 
 if __name__=="__main__":
 
+    # Run the first time to make sure that we match the reference
+    # run_forward_extended_lengyel_model(
+    #     testing = True,
+    #     iterations = 1000,
+    # )
+
+    # Run the second time to check convergence (for case which is slow to converge)
     result = run_forward_extended_lengyel_model(
-        impurity_concentrations = {"Nitrogen": 0.0396},
-        inner_loop_iterations = 1,
-        outer_loop_iterations = 1000,
+        # impurity_concentrations = {"Nitrogen": 0.0396},
+        iterations = 120,
         return_iterations = True
     )
 
-    print(result["converged"])
-
     import matplotlib.pyplot as plt
-    plt.plot(result["parallel_heat_flux_at_cc_interface_its"] / result["parallel_heat_flux_at_cc_interface_its"][-1], label="parallel_heat_flux_at_cc_interface")
-    plt.plot(result["alpha_t_its"] / result["alpha_t_its"][-1], label="alpha_t")
-    plt.plot(result["target_electron_temp_its"] / result["target_electron_temp_its"][-1], label="target_electron_temp")
-    plt.plot(result["separatrix_electron_temp_its"] / result["separatrix_electron_temp_its"][-1], label="separatrix_electron_temp")
-    plt.title(f"Converged = {result["converged"]} in {len(result["alpha_t_its"])} steps")
+    start = 0
+    plt.plot(result["parallel_heat_flux_at_cc_interface_its"][start:] / result["parallel_heat_flux_at_cc_interface_its"][-1], label="parallel_heat_flux_at_cc_interface")
+    plt.plot(result["alpha_t_its"][start:] / result["alpha_t_its"][-1], label="alpha_t")
+    plt.plot(result["target_electron_temp_its"][start:] / result["target_electron_temp_its"][-1], label="target_electron_temp")
+    plt.plot(result["separatrix_electron_temp_its"][start:] / result["separatrix_electron_temp_its"][-1], label="separatrix_electron_temp")
+    plt.title(f"Forward model, {'converged' if result["converged"] else 'did not converge'} in {len(result["alpha_t_its"])} steps")
     plt.legend()
+    plt.xlabel("Iterative solver step")
+    plt.ylabel("Value normalized to converged value")
     plt.show()
