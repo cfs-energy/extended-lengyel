@@ -8,18 +8,18 @@ the extended Lengyel model.
 """
 
 import numpy as np
-from typing import Literal
+from typing import Literal, Any
 
 np.seterr(over="raise",under="raise")
-floattype = np.float32
+floattype = np.float64
 
 defaults = dict(
     target_electron_temp = floattype(2.34),
     power_crossing_separatrix = floattype(5.5),
     separatrix_electron_density = floattype(3.3e19),
     divertor_broadening_factor = floattype(3.0),
-    seed_impurity_weights = ({"Nitrogen": floattype(1.0), "Argon": floattype(0.05)}),
-    fixed_impurity_concentrations = ({"Helium": floattype(1.0e-2)}),
+    seed_impurity_weights = {"Nitrogen": floattype(1.0), "Argon": floattype(0.05)},
+    fixed_impurity_concentrations = {"Helium": floattype(1.0e-2)},
     magnetic_field_on_axis = floattype(2.5),
     plasma_current = floattype(1.0),
     parallel_connection_length = floattype(20.0),
@@ -77,7 +77,7 @@ def run_inverse_extended_lengyel_model(
     target_ratio_of_electron_to_ion_density: floattype = defaults["target_ratio_of_electron_to_ion_density"],
     target_mach_number: floattype = defaults["target_mach_number"],
     toroidal_flux_expansion: floattype = defaults["toroidal_flux_expansion"],
-    iterations: int = 5,
+    iterations: int = 100,
     testing: bool = False,
     return_iterations: bool = False
 ):
@@ -108,6 +108,8 @@ def run_inverse_extended_lengyel_model(
 
     If testing = True, the function checks against values calculated with the default input values.
     """
+    convergence: dict[str, Any] = dict(equal_nan=False, atol=0.0, rtol=1e-6)
+
     mu_0 = 1.2566370621250601e-6 # meter * tesla / ampere
     elementary_charge = 1.602176634e-19 # coulomb
     MA_to_A = 1.0e6 # MA / A
@@ -210,12 +212,13 @@ def run_inverse_extended_lengyel_model(
 
     for _it in range(iterations):
         first_loop = _it == 0
+
         separatrix_average_rho_s_pol = \
             np.sqrt(separatrix_electron_temp * average_ion_mass) / (separatrix_average_poloidal_field) \
                 * np.sqrt(amu_to_kg / elementary_charge)# in metres, for Te in eV, mi in amu and B0 in T
         if testing and first_loop: assert np.isclose(separatrix_average_rho_s_pol, 0.005050556986156449), separatrix_average_rho_s_pol
 
-        separatrix_average_lambda_Te = 2.1 * (1 + 2.1 * alpha_t**1.7) * separatrix_average_rho_s_pol
+        separatrix_average_lambda_Te = 2.1 * (1 + 2.1 * np.pow(alpha_t, 1.7)) * separatrix_average_rho_s_pol
         separatrix_average_lambda_q = 2.0 / 7.0 * separatrix_average_lambda_Te
 
         ratio_of_upstream_to_average_lambda_q = ratio_of_upstream_to_average_poloidal_field * (major_radius + minor_radius) / major_radius
@@ -237,16 +240,16 @@ def run_inverse_extended_lengyel_model(
         kappa_z = 0.672 + 0.076 * np.sqrt(divertor_z_effective) + 0.252 * divertor_z_effective
         kappa_e = kappa_e0 / kappa_z
 
-        divertor_entrance_electron_temp = (
+        divertor_entrance_electron_temp = np.pow((
             electron_temp_at_cc_interface**3.5
             + 3.5 * SOL_conduction_fraction * q_parallel / divertor_broadening_factor * divertor_parallel_length / kappa_e
-        ) ** (2. / 7.) # in electron-volts
+        ), 2. / 7.) # in electron-volts
         if testing and first_loop: assert np.isclose(divertor_entrance_electron_temp, 55.02789988290978), divertor_entrance_electron_temp
 
-        separatrix_electron_temp = (
+        separatrix_electron_temp = np.pow((
             divertor_entrance_electron_temp**3.5
             + 3.5 * SOL_conduction_fraction * q_parallel * (parallel_connection_length - divertor_parallel_length) / kappa_e
-        ) ** (2. / 7.) # in electron-volts
+        ), 2. / 7.) # in electron-volts
         if testing and first_loop: assert np.isclose(separatrix_electron_temp, 106.22936183730023), separatrix_electron_temp
 
         separatrix_total_pressure = (
@@ -359,8 +362,7 @@ def run_inverse_extended_lengyel_model(
         converged = np.allclose(
             [alpha_t, c_z, separatrix_electron_temp],
             [prev_alpha_t, prev_c_z, prev_separatrix_electron_temp],
-            equal_nan=False,
-            atol=0.0, rtol=1e-6
+            **convergence
         )
 
         separatrix_electron_temp_its[_it] = separatrix_electron_temp
@@ -464,7 +466,7 @@ def calc_alpha_t(
     coulomb_log = 30.9 - np.log(separatrix_electron_density**0.5 * separatrix_electron_temp**-1.0)
     ion_sound_speed = np.sqrt(mean_ion_charge_state * separatrix_electron_temp * eV_to_J / average_ion_mass)
 
-    z_effective_correction = (1.0 - 0.569) * np.exp(-(((z_effective - 1.0) / 3.25) ** 0.85)) + 0.569
+    z_effective_correction = (1.0 - 0.569) * np.exp(-(np.pow((z_effective - 1.0) / 3.25, 0.85))) + 0.569
 
     # Calculate the electron-electron collision frequency, using equation B1 from from :cite:`Eich_2020`.
     nu_ee = (
@@ -579,6 +581,8 @@ class MavrinData:
         Tmin = np.min(self.Lz_coeffs["Tmin_eV"])
         Tmax = np.max(self.Lz_coeffs["Tmax_eV"])
 
+        if np.isnan(start_temp_eV) or np.isnan(stop_temp_eV):
+            return np.nan
         assert start_temp_eV < stop_temp_eV, f"Stop temp must be larger than start temp. {start_temp_eV}<{stop_temp_eV}"
         assert start_temp_eV > Tmin, f"Temperature out of range (too low). {start_temp_eV} > {Tmin}"
         assert stop_temp_eV < Tmax, f"Temperature out of range (too high). {stop_temp_eV} < {Tmax}"
@@ -648,7 +652,6 @@ if __name__=="__main__":
     # Run the second time to check convergence
     result = run_inverse_extended_lengyel_model(
         return_iterations = True,
-        iterations = 100,
     )
 
     import matplotlib.pyplot as plt

@@ -9,48 +9,27 @@ the extended Lengyel model.
 
 import numpy as np
 np.seterr(over="raise",under="raise")
-floattype = np.float32
+floattype = np.float64
 from typing import Any
 
 try:
-    from .run_unitless_extended_lengyel_model import MavrinData, temperature_fit_function, calc_alpha_t, run_inverse_extended_lengyel_model
+    from .run_unitless_extended_lengyel_model import MavrinData, temperature_fit_function, calc_alpha_t, defaults, run_inverse_extended_lengyel_model
 except ImportError:
-    from run_unitless_extended_lengyel_model import MavrinData, temperature_fit_function, calc_alpha_t
+    from run_unitless_extended_lengyel_model import MavrinData, temperature_fit_function, calc_alpha_t, defaults, run_inverse_extended_lengyel_model
 
-defaults = dict(
-    power_crossing_separatrix = floattype(5.5),
-    separatrix_electron_density = floattype(3.3e19),
-    divertor_broadening_factor = floattype(3.0),
-    impurity_concentrations = {
-        "Nitrogen": floattype(0.038183522427857504),
-        "Argon": floattype(0.0019091761213928752),
-        "Helium": floattype(1.0e-2),
-    },
-    magnetic_field_on_axis = floattype(2.5),
-    plasma_current = floattype(1.0),
-    parallel_connection_length = floattype(20.0),
-    divertor_parallel_length = floattype(5.0),
-    major_radius = floattype(1.65),
-    minor_radius = floattype(0.5),
-    elongation_psi95 = floattype(1.6),
-    triangularity_psi95 = floattype(0.3),
-    average_ion_mass = floattype(2.0),
-    ratio_of_upstream_to_average_poloidal_field = floattype(4./3.),
-    ne_tau = floattype(0.5e+17),
-    sheath_heat_transmission_factor = floattype(8.),
-    target_angle_of_incidence = floattype(3.),
-    fraction_of_P_SOL_to_divertor = floattype(2./3.),
-    SOL_conduction_fraction = floattype(1.0),
-    ratio_of_molecular_to_ion_mass = floattype(2.0),
-    wall_temperature = floattype(300.0),
-    separatrix_mach_number = floattype(0.0),
-    separatrix_ratio_of_ion_to_electron_temp = floattype(1.0),
-    separatrix_ratio_of_electron_to_ion_density = floattype(1.0),
-    target_ratio_of_ion_to_electron_temp = floattype(1.0),
-    target_ratio_of_electron_to_ion_density = floattype(1.0),
-    target_mach_number = floattype(1.0),
-    toroidal_flux_expansion = floattype(1.0),
+inverse_reference = run_inverse_extended_lengyel_model(
+    **defaults
 )
+assert inverse_reference["converged"]
+
+defaults = {
+    **defaults,
+    "impurity_concentrations": {
+        "Nitrogen": inverse_reference["Nitrogen_concentration"],
+        "Argon": inverse_reference["Argon_concentration"],
+        "Helium": defaults["fixed_impurity_concentrations"]["Helium"],
+    }
+}
 
 def run_forward_extended_lengyel_model(
     power_crossing_separatrix: np.floating = defaults["power_crossing_separatrix"],
@@ -81,7 +60,7 @@ def run_forward_extended_lengyel_model(
     target_ratio_of_electron_to_ion_density: np.floating = defaults["target_ratio_of_electron_to_ion_density"],
     target_mach_number: np.floating = defaults["target_mach_number"],
     toroidal_flux_expansion: np.floating = defaults["toroidal_flux_expansion"],
-    iterations: int = 5,
+    iterations: int = 100,
     testing: bool = False,
     return_iterations: bool = False
 ):
@@ -113,6 +92,9 @@ def run_forward_extended_lengyel_model(
     If testing = True, the function checks against values calculated with the default input values.
     """
     convergence: dict[str, Any] = dict(equal_nan=False, atol=0.0, rtol=1e-6)
+
+    def relax(new_value, prev_value, relaxation_factor=0.4):
+        return relaxation_factor * new_value + (1 - relaxation_factor) * prev_value
 
     mu_0 = 1.2566370621250601e-6 # meter * tesla / ampere
     elementary_charge = 1.602176634e-19 # coulomb
@@ -316,11 +298,6 @@ def run_forward_extended_lengyel_model(
             ],
             **convergence
         )
-        print("alpha_t", np.isclose(alpha_t, prev_alpha_t), alpha_t, prev_alpha_t)
-        print("target_electron_temp", np.isclose(target_electron_temp, prev_target_electron_temp), target_electron_temp, prev_target_electron_temp)
-        print("divertor_entrance_electron_temp", np.isclose(divertor_entrance_electron_temp, prev_divertor_entrance_electron_temp), divertor_entrance_electron_temp, prev_divertor_entrance_electron_temp)
-        print("separatrix_electron_temp", np.isclose(separatrix_electron_temp, prev_separatrix_electron_temp), separatrix_electron_temp, prev_separatrix_electron_temp)
-        print("parallel_heat_flux_at_cc_interface", np.isclose(parallel_heat_flux_at_cc_interface, prev_parallel_heat_flux_at_cc_interface), parallel_heat_flux_at_cc_interface, prev_parallel_heat_flux_at_cc_interface)
 
         alpha_t_its[_it] = alpha_t
         target_electron_temp_its[_it] = target_electron_temp
@@ -333,17 +310,26 @@ def run_forward_extended_lengyel_model(
             parallel_heat_flux_at_cc_interface_its = parallel_heat_flux_at_cc_interface_its[:_it+1]
             break
 
+        if _it > 0:
+            parallel_heat_flux_at_cc_interface = relax(parallel_heat_flux_at_cc_interface, prev_parallel_heat_flux_at_cc_interface)
+            target_electron_temp = relax(target_electron_temp, prev_target_electron_temp)
+            divertor_entrance_electron_temp = relax(divertor_entrance_electron_temp, prev_divertor_entrance_electron_temp)
+            separatrix_electron_temp = relax(separatrix_electron_temp, prev_separatrix_electron_temp)
+            alpha_t = relax(alpha_t, prev_alpha_t)
+
         prev_parallel_heat_flux_at_cc_interface = parallel_heat_flux_at_cc_interface
         prev_target_electron_temp = target_electron_temp
         prev_divertor_entrance_electron_temp = divertor_entrance_electron_temp
         prev_separatrix_electron_temp = separatrix_electron_temp
         prev_alpha_t = alpha_t
 
-    if testing: assert converged
+    if testing:
+        assert converged
+        assert np.isclose(target_electron_temp, 2.34, rtol=1e-2), target_electron_temp
 
     # Post-processing
     sound_speed_at_target = np.sqrt(2.0 * target_electron_temp * (eV_to_J / amu_to_kg) / average_ion_mass) # m / s
-    if testing: assert np.isclose(sound_speed_at_target, 15025.833662282057), sound_speed_at_target
+    if testing: assert np.isclose(sound_speed_at_target, 15025.833662282057, rtol=1e-2), sound_speed_at_target
 
     electron_density_at_target = parallel_heat_flux_at_target / (sheath_heat_transmission_factor * target_electron_temp * eV_to_J * sound_speed_at_target) # m^-3
     if testing: assert np.isclose(electron_density_at_target, 3.359214345710722e+20, rtol=1e-2), electron_density_at_target
@@ -353,20 +339,20 @@ def run_forward_extended_lengyel_model(
     if testing: assert np.isclose(flux_density_to_pascals_factor, 1.521189252551778e+23, rtol=1e-2), flux_density_to_pascals_factor
 
     parallel_to_perp_factor = np.sin(target_angle_of_incidence)
-    # if testing: assert np.isclose(parallel_to_perp_factor, 0.052335956242943835, rtol=1e-2)
+    if testing: assert np.isclose(parallel_to_perp_factor, 0.052335956242943835, rtol=1e-2)
 
     parallel_ion_flux_to_target = electron_density_at_target * sound_speed_at_target # m**-2 / s
     perp_ion_flux_to_target = parallel_ion_flux_to_target * parallel_to_perp_factor # m**-2 / s
 
-    # if testing:
-    #     assert np.isclose(parallel_ion_flux_to_target, 5.047499599460096e+24, rtol=1e-2)
-    #     assert np.isclose(perp_ion_flux_to_target, 2.641657181736201e+23, rtol=1e-2)
+    if testing:
+        assert np.isclose(parallel_ion_flux_to_target, 5.047499599460096e+24, rtol=1e-2)
+        assert np.isclose(perp_ion_flux_to_target, 2.641657181736201e+23, rtol=1e-2)
 
     neutral_pressure_in_divertor = parallel_ion_flux_to_target * parallel_to_perp_factor / flux_density_to_pascals_factor # Pa
-    # if testing: assert np.isclose(neutral_pressure_in_divertor, 1.736573655976632, rtol=1e-2)
+    if testing: assert np.isclose(neutral_pressure_in_divertor, 1.736573655976632, rtol=1e-2)
 
     heat_flux_perp_to_target = parallel_heat_flux_at_target * parallel_to_perp_factor # W/m^2
-    # if testing: assert np.isclose(heat_flux_perp_to_target, 792305.5442545213, rtol=1e-2)
+    if testing: assert np.isclose(heat_flux_perp_to_target, 792305.5442545213, rtol=1e-2)
 
     return_values = dict(
         neutral_pressure_in_divertor = neutral_pressure_in_divertor,
@@ -389,15 +375,12 @@ def run_forward_extended_lengyel_model(
 if __name__=="__main__":
 
     # Run the first time to make sure that we match the reference
-    # run_forward_extended_lengyel_model(
-    #     testing = True,
-    #     iterations = 1000,
-    # )
+    run_forward_extended_lengyel_model(
+        testing = True,
+    )
 
     # Run the second time to check convergence (for case which is slow to converge)
     result = run_forward_extended_lengyel_model(
-        # impurity_concentrations = {"Nitrogen": 0.0396},
-        iterations = 120,
         return_iterations = True
     )
 
