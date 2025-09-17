@@ -8,45 +8,83 @@ the extended Lengyel model.
 """
 
 import numpy as np
+np.seterr(over="raise",under="raise")
+floattype = np.float32
+from typing import Any
 
 try:
     from .run_unitless_extended_lengyel_model import MavrinData, temperature_fit_function, calc_alpha_t, run_inverse_extended_lengyel_model
 except ImportError:
-    from run_unitless_extended_lengyel_model import MavrinData, temperature_fit_function, calc_alpha_t, run_inverse_extended_lengyel_model
+    from run_unitless_extended_lengyel_model import MavrinData, temperature_fit_function, calc_alpha_t
+
+defaults = dict(
+    power_crossing_separatrix = floattype(5.5),
+    separatrix_electron_density = floattype(3.3e19),
+    divertor_broadening_factor = floattype(3.0),
+    impurity_concentrations = {
+        "Nitrogen": floattype(0.038183522427857504),
+        "Argon": floattype(0.0019091761213928752),
+        "Helium": floattype(1.0e-2),
+    },
+    magnetic_field_on_axis = floattype(2.5),
+    plasma_current = floattype(1.0),
+    parallel_connection_length = floattype(20.0),
+    divertor_parallel_length = floattype(5.0),
+    major_radius = floattype(1.65),
+    minor_radius = floattype(0.5),
+    elongation_psi95 = floattype(1.6),
+    triangularity_psi95 = floattype(0.3),
+    average_ion_mass = floattype(2.0),
+    ratio_of_upstream_to_average_poloidal_field = floattype(4./3.),
+    ne_tau = floattype(0.5e+17),
+    sheath_heat_transmission_factor = floattype(8.),
+    target_angle_of_incidence = floattype(3.),
+    fraction_of_P_SOL_to_divertor = floattype(2./3.),
+    SOL_conduction_fraction = floattype(1.0),
+    ratio_of_molecular_to_ion_mass = floattype(2.0),
+    wall_temperature = floattype(300.0),
+    separatrix_mach_number = floattype(0.0),
+    separatrix_ratio_of_ion_to_electron_temp = floattype(1.0),
+    separatrix_ratio_of_electron_to_ion_density = floattype(1.0),
+    target_ratio_of_ion_to_electron_temp = floattype(1.0),
+    target_ratio_of_electron_to_ion_density = floattype(1.0),
+    target_mach_number = floattype(1.0),
+    toroidal_flux_expansion = floattype(1.0),
+)
 
 def run_forward_extended_lengyel_model(
-    power_crossing_separatrix: float = 5.5,
-    separatrix_electron_density: float = 3.3e19,
-    divertor_broadening_factor: float = 3.0,
-    impurity_concentrations: dict[str, float] = {"Nitrogen": 0.038183522427857504, "Argon": 0.0019091761213928752, "Helium": 1.0e-2},  # noqa: B006
-    magnetic_field_on_axis: float = 2.5,
-    plasma_current: float = 1.0,
-    parallel_connection_length: float = 20.0,
-    divertor_parallel_length: float = 5.0,
-    major_radius: float = 1.65,
-    minor_radius: float = 0.5,
-    elongation_psi95: float = 1.6,
-    triangularity_psi95: float = 0.3,
-    average_ion_mass: float = 2.0,
-    ratio_of_upstream_to_average_poloidal_field: float = 4./3.,
-    ne_tau: float = 0.5e+17,
-    sheath_heat_transmission_factor: float = 8.,
-    target_angle_of_incidence: float = 3.,
-    fraction_of_P_SOL_to_divertor = 2./3.,
-    SOL_conduction_fraction: float = 1.0,
-    ratio_of_molecular_to_ion_mass = 2.0,
-    wall_temperature = 300.0,
-    separatrix_mach_number: float = 0.0,
-    separatrix_ratio_of_ion_to_electron_temp: float = 1.0,
-    separatrix_ratio_of_electron_to_ion_density: float = 1.0,
-    target_ratio_of_ion_to_electron_temp: float = 1.0,
-    target_ratio_of_electron_to_ion_density: float = 1.0,
-    target_mach_number: float = 1.0,
-    toroidal_flux_expansion: float = 1.0,
-    inner_loop_1_iterations: int = 5,
-    inner_loop_2_iterations: int = 5,
+    power_crossing_separatrix: np.floating = defaults["power_crossing_separatrix"],
+    separatrix_electron_density: np.floating = defaults["separatrix_electron_density"],
+    divertor_broadening_factor: np.floating = defaults["divertor_broadening_factor"],
+    impurity_concentrations: dict[str, np.floating] = defaults["impurity_concentrations"],
+    magnetic_field_on_axis: np.floating = defaults["magnetic_field_on_axis"],
+    plasma_current: np.floating = defaults["plasma_current"],
+    parallel_connection_length: np.floating = defaults["parallel_connection_length"],
+    divertor_parallel_length: np.floating = defaults["divertor_parallel_length"],
+    major_radius: np.floating = defaults["major_radius"],
+    minor_radius: np.floating = defaults["minor_radius"],
+    elongation_psi95: np.floating = defaults["elongation_psi95"],
+    triangularity_psi95: np.floating = defaults["triangularity_psi95"],
+    average_ion_mass: np.floating = defaults["average_ion_mass"],
+    ratio_of_upstream_to_average_poloidal_field: np.floating = defaults["ratio_of_upstream_to_average_poloidal_field"],
+    ne_tau: np.floating = defaults["ne_tau"],
+    sheath_heat_transmission_factor: np.floating = defaults["sheath_heat_transmission_factor"],
+    target_angle_of_incidence: np.floating = defaults["target_angle_of_incidence"],
+    fraction_of_P_SOL_to_divertor = defaults["fraction_of_P_SOL_to_divertor"],
+    SOL_conduction_fraction: np.floating = defaults["SOL_conduction_fraction"],
+    ratio_of_molecular_to_ion_mass = defaults["ratio_of_molecular_to_ion_mass"],
+    wall_temperature = defaults["wall_temperature"],
+    separatrix_mach_number: np.floating = defaults["separatrix_mach_number"],
+    separatrix_ratio_of_ion_to_electron_temp: np.floating = defaults["separatrix_ratio_of_ion_to_electron_temp"],
+    separatrix_ratio_of_electron_to_ion_density: np.floating = defaults["separatrix_ratio_of_electron_to_ion_density"],
+    target_ratio_of_ion_to_electron_temp: np.floating = defaults["target_ratio_of_ion_to_electron_temp"],
+    target_ratio_of_electron_to_ion_density: np.floating = defaults["target_ratio_of_electron_to_ion_density"],
+    target_mach_number: np.floating = defaults["target_mach_number"],
+    toroidal_flux_expansion: np.floating = defaults["toroidal_flux_expansion"],
+    inner_loop_iterations: int = 5,
     outer_loop_iterations: int = 5,
-    testing: bool = False
+    testing: bool = False,
+    return_iterations: bool = False
 ):
     """Calculate the impurity concentration required to reach a given target electron temperature.
 
@@ -75,6 +113,8 @@ def run_forward_extended_lengyel_model(
 
     If testing = True, the function checks against values calculated with the default input values.
     """
+    convergence: dict[str, Any] = dict(equal_nan=False, atol=0.0, rtol=1e-6)
+
     mu_0 = 1.2566370621250601e-6 # meter * tesla / ampere
     elementary_charge = 1.602176634e-19 # coulomb
     MA_to_A = 1.0e6 # MA / A
@@ -82,6 +122,7 @@ def run_forward_extended_lengyel_model(
     MW_to_W = 1.0e6 # MW / W
     eV_to_J = elementary_charge
     boltzmann_constant = 1.380649e-23 # joule/kelvin
+    n20_to_m3 = 1.0e20 # 10^20 / m^3 to 1 / m^3
 
     impurities: dict[str, tuple[MavrinData, float]] = {}
     for species, concentration in impurity_concentrations.items():
@@ -92,7 +133,7 @@ def run_forward_extended_lengyel_model(
     def calc_cz_LINT(start_temp_eV: float, stop_temp_eV: float) -> float:
         """Calculate the sum of cz * LINT for all impurities, between the start and stop temperatures."""
         weighted_LINT = [
-            concentration * mavrin_data.get_Lint(start_temp_eV, stop_temp_eV, ne_tau)
+            concentration * mavrin_data.get_Lint(start_temp_eV, stop_temp_eV, ne_tau) * n20_to_m3**2
             for (mavrin_data, concentration) in impurities.values()
         ]
         return np.sum(weighted_LINT)
@@ -109,9 +150,9 @@ def run_forward_extended_lengyel_model(
 
     # Convert all inputs to SI units, except for electron-volts
     plasma_current = plasma_current * MA_to_A
-    average_ion_mass = average_ion_mass * amu_to_kg
     target_angle_of_incidence = np.deg2rad(target_angle_of_incidence)
     power_crossing_separatrix = power_crossing_separatrix * MW_to_W
+    separatrix_electron_density = separatrix_electron_density / n20_to_m3
 
     shaping_factor = np.sqrt((1.0 + elongation_psi95**2 * (1.0 + 2.0 * triangularity_psi95**2 - 1.2 * triangularity_psi95**3)) / 2.0)
     poloidal_circumference = 2.0 * np.pi * minor_radius * shaping_factor
@@ -138,15 +179,27 @@ def run_forward_extended_lengyel_model(
     separatrix_electron_temp = 100.0 # eV
     alpha_t = 0.0
 
+    prev_target_electron_temp = np.nan
+    prev_parallel_heat_flux_at_cc_interface = np.nan
+    prev_divertor_entrance_electron_temp = np.nan
+    prev_separatrix_electron_temp = np.nan
+    prev_alpha_t = np.nan
+
+    target_electron_temp_its = np.zeros(outer_loop_iterations * inner_loop_iterations)
+    parallel_heat_flux_at_cc_interface_its = np.zeros(outer_loop_iterations * inner_loop_iterations)
+    separatrix_electron_temp_its = np.zeros(outer_loop_iterations * inner_loop_iterations)
+    alpha_t_its = np.zeros(outer_loop_iterations * inner_loop_iterations)
+
     for _outer_it in range(outer_loop_iterations):
 
-        for _inner_loop_it in range(inner_loop_1_iterations):
+        for _inner_loop_1_it in range(inner_loop_iterations):
             # Calculate q_parallel consistent with alpha-t and the separatrix electron temperature
-            first_loop = (_outer_it == 0) and (_inner_loop_it == 0)
+            first_loop = (_outer_it == 0) and (_inner_loop_1_it == 0)
 
             separatrix_average_rho_s_pol = \
-                np.sqrt(separatrix_electron_temp * elementary_charge * average_ion_mass) \
-                    / (elementary_charge * separatrix_average_poloidal_field) # in metres, for Te in eV, mi in amu and B0 in T
+                np.sqrt(separatrix_electron_temp * average_ion_mass) \
+                    / (separatrix_average_poloidal_field) \
+                    * np.sqrt(amu_to_kg / elementary_charge)# in metres, for Te in eV, mi in amu and B0 in T
             if testing and first_loop: assert np.isclose(separatrix_average_rho_s_pol, 0.005050556986156449), separatrix_average_rho_s_pol
 
             separatrix_average_lambda_Te = 2.1 * (1 + 2.1 * alpha_t**1.7) * separatrix_average_rho_s_pol
@@ -182,14 +235,33 @@ def run_forward_extended_lengyel_model(
 
             separatrix_z_effective = calc_z_effective(separatrix_electron_temp)
             alpha_t = calc_alpha_t(
-                separatrix_electron_density=separatrix_electron_density,
+                separatrix_electron_density=separatrix_electron_density * n20_to_m3,
                 separatrix_electron_temp=separatrix_electron_temp,
                 cylindrical_safety_factor=cylindrical_safety_factor,
                 major_radius=major_radius,
-                average_ion_mass=average_ion_mass,
+                average_ion_mass=average_ion_mass * amu_to_kg,
                 z_effective=separatrix_z_effective,
                 mean_ion_charge_state=1.0,
             )
+
+            converged_1 = np.allclose(
+                [alpha_t, divertor_entrance_electron_temp, separatrix_electron_temp],
+                [prev_alpha_t, prev_divertor_entrance_electron_temp, prev_separatrix_electron_temp],
+                **convergence
+            )
+
+            if converged_1:
+                alpha_t_its[_outer_it * inner_loop_iterations:] = alpha_t
+                separatrix_electron_temp_its[_outer_it * inner_loop_iterations:] = separatrix_electron_temp
+                break
+            else:
+                alpha_t_its[_outer_it * inner_loop_iterations + _inner_loop_1_it] = alpha_t
+                separatrix_electron_temp_its[_outer_it * inner_loop_iterations + _inner_loop_1_it] = separatrix_electron_temp
+
+            prev_divertor_entrance_electron_temp = divertor_entrance_electron_temp
+            prev_separatrix_electron_temp = separatrix_electron_temp
+            prev_alpha_t = alpha_t
+
 
         # Calculate the power loss due to impurities
 
@@ -205,14 +277,14 @@ def run_forward_extended_lengyel_model(
         parallel_heat_flux_at_cc_interface = qcc
 
         separatrix_total_pressure = (
-            (1.0 + separatrix_mach_number**2) * separatrix_electron_density * separatrix_electron_temp * elementary_charge
+            (1.0 + separatrix_mach_number**2) * separatrix_electron_density * separatrix_electron_temp
                 * (1.0 + separatrix_ratio_of_ion_to_electron_temp / separatrix_ratio_of_electron_to_ion_density)
-        ) # in Pascals
+        ) * (n20_to_m3 * elementary_charge) # in Pascals
 
         target_electron_temp_basic = (
             (8.0 * average_ion_mass / sheath_heat_transmission_factor**2)
             * (q_parallel**2 / separatrix_total_pressure**2)
-        ) / elementary_charge
+        ) * amu_to_kg / elementary_charge
 
         f_other = (
             ((1.0 + target_ratio_of_ion_to_electron_temp / target_ratio_of_electron_to_ion_density) / 2.0)
@@ -222,7 +294,7 @@ def run_forward_extended_lengyel_model(
 
         # Calculate Te_tar consistent with parallel_heat_flux_at_cc_interface
 
-        for _inner_loop_it in range(inner_loop_2_iterations):
+        for _inner_loop_2_it in range(inner_loop_iterations):
             momentum_loss_in_convection_layer = temperature_fit_function(
                 target_electron_temp,
                 amplitude=0.8858679172531956,
@@ -253,6 +325,32 @@ def run_forward_extended_lengyel_model(
             electron_temp_at_cc_interface = target_electron_temp \
                 / ((1.0 - momentum_loss_in_convection_layer) / (2.0 * density_loss_in_convection_layer))
 
+            converged_2 = np.isclose(target_electron_temp, prev_target_electron_temp, **convergence)
+
+            if converged_2:
+                target_electron_temp_its[_outer_it * inner_loop_iterations + _inner_loop_2_it:] = target_electron_temp
+                break
+            else:
+                target_electron_temp_its[_outer_it * inner_loop_iterations + _inner_loop_2_it] = target_electron_temp
+
+            prev_target_electron_temp = target_electron_temp
+
+
+        converged = np.isclose(parallel_heat_flux_at_cc_interface, prev_parallel_heat_flux_at_cc_interface, **convergence)\
+            & converged_1 & (_inner_loop_1_it == 0) & converged_2 & (_inner_loop_2_it == 0)
+
+        if converged:
+            parallel_heat_flux_at_cc_interface_its[_outer_it * inner_loop_iterations:] = parallel_heat_flux_at_cc_interface
+            parallel_heat_flux_at_cc_interface_its = parallel_heat_flux_at_cc_interface_its[:(_outer_it + 1) * inner_loop_iterations]
+            alpha_t_its = alpha_t_its[:(_outer_it + 1) * inner_loop_iterations]
+            target_electron_temp_its = target_electron_temp_its[:(_outer_it + 1) * inner_loop_iterations]
+            separatrix_electron_temp_its = separatrix_electron_temp_its[:(_outer_it + 1) * inner_loop_iterations]
+            break
+        else:
+            parallel_heat_flux_at_cc_interface_its[_outer_it * inner_loop_iterations:(_outer_it+1) * inner_loop_iterations] = parallel_heat_flux_at_cc_interface
+
+        prev_parallel_heat_flux_at_cc_interface = parallel_heat_flux_at_cc_interface
+
     # Post-processing
     sound_speed_at_target = np.sqrt(2.0 * target_electron_temp * eV_to_J / average_ion_mass) # m / s
     # if testing: assert np.isclose(sound_speed_at_target, 15025.833662282057), sound_speed_at_target
@@ -261,8 +359,8 @@ def run_forward_extended_lengyel_model(
     # if testing: assert np.isclose(electron_density_at_target, 3.359214345710722e+20, rtol=1e-2), electron_density_at_target
 
     # From equation 57 of Body, Kallenbach and Eich, NF 2025
-    flux_density_to_pascals_factor = np.sqrt(2.0 / (np.pi * ratio_of_molecular_to_ion_mass * average_ion_mass * boltzmann_constant * wall_temperature)) # (m**-2 / s) / Pa
-    if testing: assert np.isclose(flux_density_to_pascals_factor, 1.521189252551778e+23, rtol=1e-2)
+    flux_density_to_pascals_factor = np.sqrt(2.0 / (np.pi * ratio_of_molecular_to_ion_mass * average_ion_mass * wall_temperature)) / np.sqrt(amu_to_kg * boltzmann_constant)# (m**-2 / s) / Pa
+    if testing: assert np.isclose(flux_density_to_pascals_factor, 1.521189252551778e+23, rtol=1e-2), flux_density_to_pascals_factor
 
     parallel_to_perp_factor = np.sin(target_angle_of_incidence)
     # if testing: assert np.isclose(parallel_to_perp_factor, 0.052335956242943835, rtol=1e-2)
@@ -286,15 +384,34 @@ def run_forward_extended_lengyel_model(
         q_parallel = q_parallel,
         heat_flux_perp_to_target = heat_flux_perp_to_target,
         separatrix_z_effective = separatrix_z_effective,
-        target_electron_temp = target_electron_temp
+        target_electron_temp = target_electron_temp,
+        converged = converged
     )
+
+    if return_iterations:
+        return_values["parallel_heat_flux_at_cc_interface_its"] = parallel_heat_flux_at_cc_interface_its
+        return_values["alpha_t_its"] = alpha_t_its
+        return_values["target_electron_temp_its"] = target_electron_temp_its
+        return_values["separatrix_electron_temp_its"] = separatrix_electron_temp_its
 
     return return_values
 
 if __name__=="__main__":
 
     result = run_forward_extended_lengyel_model(
-        testing = True
+        impurity_concentrations = {"Nitrogen": 0.0396},
+        inner_loop_iterations = 1,
+        outer_loop_iterations = 1000,
+        return_iterations = True
     )
 
-    print(result)
+    print(result["converged"])
+
+    import matplotlib.pyplot as plt
+    plt.plot(result["parallel_heat_flux_at_cc_interface_its"] / result["parallel_heat_flux_at_cc_interface_its"][-1], label="parallel_heat_flux_at_cc_interface")
+    plt.plot(result["alpha_t_its"] / result["alpha_t_its"][-1], label="alpha_t")
+    plt.plot(result["target_electron_temp_its"] / result["target_electron_temp_its"][-1], label="target_electron_temp")
+    plt.plot(result["separatrix_electron_temp_its"] / result["separatrix_electron_temp_its"][-1], label="separatrix_electron_temp")
+    plt.title(f"Converged = {result["converged"]} in {len(result["alpha_t_its"])} steps")
+    plt.legend()
+    plt.show()
