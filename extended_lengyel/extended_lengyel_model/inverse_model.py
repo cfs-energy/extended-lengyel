@@ -1,115 +1,11 @@
 """Uses the extended Lengyel model to calculate the impurity concentration required to reach a fixed target electron temperature."""
 
 import numpy as np
-from typing import Literal, Any
+from typing import Any, Optional
 from cfspopcon.unit_handling import wraps_ufunc, ureg, Unitfull
+from .Lengyel_model_core import CzLINT_integrator, Mean_charge_interpolator
 
 np.seterr(over="raise",under="raise")
-
-class MavrinData:
-
-    def __init__(self,
-                 species: Literal["helium", "lithium", "beryllium", "carbon", "nitrogen", "oxygen", "neon", "argon"],
-    ) -> None:
-        from pathlib import Path
-        import yaml
-
-        filepath = Path(__file__).parent / "mavrin_data.yaml"
-        if not filepath.exists():
-            raise FileNotFoundError(f"{filepath.absolute()} doesn't exist.")
-
-        with open(filepath) as file:
-            mavrin_data = yaml.load(file, Loader=yaml.FullLoader)
-
-        self.species = species.lower() # type:ignore
-        species_available = {key.removesuffix("_Lz").removesuffix("_mean_charge").lower() for key in mavrin_data.keys()}
-
-        if self.species not in species_available:
-            raise NotImplementedError(f"Species {self.species} not in {', '.join(species_available)}")
-
-        self.Lz_coeffs = mavrin_data[f"{self.species}_Lz"]
-        self.mean_charge_coeffs = mavrin_data[f"{self.species}_mean_charge"]
-
-    @staticmethod
-    def compute_polynomial_fit(
-        Te_eV: float, ne_tau_s_per_m3: float, coeff: dict[str, list[float | int]], info: bool = False
-    ) -> float:
-        """Inner loop for computing the Lz or mean_charge polynomial fit from Mavrin, J. Fus. Eng., 2017."""
-        Tmin_eV = coeff["Tmin_eV"]
-        Tmax_eV = coeff["Tmax_eV"]
-
-        if not Tmin_eV[0] <= Te_eV <= Tmax_eV[-1]:
-            if info:
-                print(f"{Te_eV}eV outside fitted range {Tmin_eV[0]}eV to {Tmax_eV[-1]}eV")
-            return np.nan
-        if ne_tau_s_per_m3 < 1e15:
-            if info:
-                print(f"{ne_tau_s_per_m3} outside fitted range above 1e16 m^-3 s")
-            return np.nan
-
-        X = np.log10(Te_eV)
-        Y = np.log10(ne_tau_s_per_m3 / 1e19)
-        if Y > 0.0:
-            print("Warning: treating points with ne_tau_s_per_m3 > 1e19 m^-3 s as coronal.")
-        Y = np.minimum(Y, 0.0)
-
-        N_bins = len(Tmin_eV)
-        assert len(Tmax_eV) == N_bins
-
-        for i in range(N_bins):
-            if Tmin_eV[i] <= Te_eV <= Tmax_eV[i]:
-                T_bin = i
-
-        A = np.zeros(10)
-        for i in range(10):
-            A[i] = coeff[f"A{i}"][T_bin]
-
-        F = (
-            A[0]
-            + A[1] * X
-            + A[2] * Y
-            + A[3] * X**2
-            + A[4] * X * Y
-            + A[5] * Y**2
-            + A[6] * X**3
-            + A[7] * X**2 * Y
-            + A[8] * X * Y**2
-            + A[9] * Y**3
-        )
-
-        return np.power(10, F)
-
-    def get_Lz(self, electron_temp_eV: float, ne_tau_s_per_m3: float) -> float:
-        """Calculate the species Lz factor in watt metre-cubed, using the Mavrin polynomials."""
-        return self.compute_polynomial_fit(electron_temp_eV, ne_tau_s_per_m3, self.Lz_coeffs)
-
-    def get_mean_charge(self, electron_temp_eV: float, ne_tau_s_per_m3: float) -> float:
-        """Calculate the species mean charge, using the Mavrin polynomials."""
-        return self.compute_polynomial_fit(electron_temp_eV, ne_tau_s_per_m3, self.mean_charge_coeffs)
-
-    def get_Lint(self, start_temp_eV: float, stop_temp_eV: float, ne_tau_s_per_m3: float, resolution: int=100) -> float:
-        """Calculate the integral from the start temp to the stop temp of Lz * sqrt(Te).
-
-        Returns in electron-volt^1.5 * metre^3 * watt.
-        """
-        Tmin = np.min(self.Lz_coeffs["Tmin_eV"])
-        Tmax = np.max(self.Lz_coeffs["Tmax_eV"])
-
-        if np.isnan(start_temp_eV) or np.isnan(stop_temp_eV):
-            return np.nan
-        assert start_temp_eV < stop_temp_eV, f"Stop temp must be larger than start temp. {start_temp_eV}<{stop_temp_eV}"
-        assert start_temp_eV > Tmin, f"Temperature out of range (too low). {start_temp_eV} > {Tmin}"
-        assert stop_temp_eV < Tmax, f"Temperature out of range (too high). {stop_temp_eV} < {Tmax}"
-
-        Lz_values = np.zeros(resolution)
-        electron_temp = np.logspace(np.log10(start_temp_eV), np.log10(stop_temp_eV), num = resolution)
-
-        for i in range(resolution):
-            Lz_values[i] = self.compute_polynomial_fit(electron_temp[i], ne_tau_s_per_m3, self.Lz_coeffs)
-
-        Lz_sqrt_Te = Lz_values * np.sqrt(electron_temp)
-
-        return np.trapezoid(x = electron_temp, y = Lz_sqrt_Te)
 
 def temperature_fit_function(target_electron_temp: float, amplitude: float, width: float, shape: float) -> float:
     """A general form for functions in terms of the electron temperature at the target.
@@ -176,8 +72,8 @@ def calc_alpha_t(
         power_crossing_separatrix = ureg.MW,
         separatrix_electron_density = ureg.m**-3,
         divertor_broadening_factor = ureg.dimensionless,
-        seed_impurity_weights = None,
-        fixed_impurity_concentrations = None,
+        CzLINT_for_seed_impurities = None,
+        mean_charge_for_seed_impurities = None,
         magnetic_field_on_axis = ureg.T,
         plasma_current = ureg.MA,
         parallel_connection_length = ureg.m,
@@ -188,7 +84,8 @@ def calc_alpha_t(
         triangularity_psi95 = ureg.dimensionless,
         target_angle_of_incidence = ureg.degree,
         fraction_of_P_SOL_to_divertor = ureg.dimensionless,
-        ne_tau = ureg.m**-3 * ureg.s,
+        CzLINT_for_fixed_impurities = None,
+        mean_charge_for_fixed_impurities = None,
         average_ion_mass = ureg.amu,
         sheath_heat_transmission_factor = ureg.dimensionless,
         ratio_of_upstream_to_average_poloidal_field = ureg.dimensionless,
@@ -221,8 +118,8 @@ def run_inverse_extended_lengyel_model(
     power_crossing_separatrix: Unitfull,
     separatrix_electron_density: Unitfull,
     divertor_broadening_factor: Unitfull,
-    seed_impurity_weights: dict[str, float],
-    fixed_impurity_concentrations: dict[str, float],
+    CzLINT_for_seed_impurities: CzLINT_integrator,
+    mean_charge_for_seed_impurities: Mean_charge_interpolator,
     magnetic_field_on_axis: Unitfull,
     plasma_current: Unitfull,
     parallel_connection_length: Unitfull,
@@ -233,7 +130,8 @@ def run_inverse_extended_lengyel_model(
     triangularity_psi95: Unitfull,
     target_angle_of_incidence: Unitfull,
     fraction_of_P_SOL_to_divertor: Unitfull,
-    ne_tau: Unitfull = 0.5e17 * ureg.m**-3 * ureg.s,
+    CzLINT_for_fixed_impurities: Optional[CzLINT_integrator] = None,
+    mean_charge_for_fixed_impurities: Optional[Mean_charge_interpolator] = None,
     average_ion_mass: Unitfull = 2.0 * ureg.amu,
     sheath_heat_transmission_factor: Unitfull = 7.5 * ureg.dimensionless,
     ratio_of_upstream_to_average_poloidal_field: Unitfull = 4./3. * ureg.dimensionless,
@@ -249,31 +147,24 @@ def run_inverse_extended_lengyel_model(
     toroidal_flux_expansion: float = 1.0,
     iterations: int = 1000,
 ):
-    """Calculate the impurity concentration required to reach a given target electron temperature.
+    """Calculate the impurity concentration required to reach a given target electron temperature."""
+    if CzLINT_for_fixed_impurities is None:
+        CzLINT_for_fixed_impurities = CzLINT_integrator.empty()
+    if mean_charge_for_fixed_impurities is None:
+        mean_charge_for_fixed_impurities = Mean_charge_interpolator.empty()
 
-    Inputs:
-        divertor_parallel_length: length along a magnetic fieldline from the divertor target to X-point, in metres
-        parallel_connection_length: length along a magnetic fieldline from the divertor target to the outboard midplane, in metres
-        major_radius: major radius of the magnetic axis, in metres
-        minor_radius: minor radius from the magnetic axis to the outboard midplane, in metres
-        elongation_psi95: elongation at the psiN=0.95 surface
-        triangularity_psi95: triangularity at the psiN=0.95 surface
-        magnetic_field_on_axis: magnetic field strength at the magnetic axis, in tesla
-        plasma_current: plasma current, in mega-amperes
-        ratio_of_upstream_to_average_poloidal_field: Bpol at the outboard midplane divided by Bpol averaged over the separatrix
-        average_ion_mass: average main-ion mass, in atomic mass units
-        ne_tau: product of electron density and ion residence time, in seconds per cubic metre
-        sheath_heat_transmission_factor: gamma factor used to calculate heat flux through the sheath from convective heat flux to sheath-entrance
-        target_angle_of_incidence: angle of incidence between magnetic fieldline and divertor target, in degrees
-        divertor_broadening_factor: divertor heat flux width (lambda_INT) divided by upstream heat flux width (lambda_q)
-        power_crossing_separatrix: total power crossing the separatrix, in megawatts
-        fraction_of_P_SOL_to_divertor: fraction of power directed to the outer divertor
-        separatrix_electron_density: electron density at the outboard midplane, in per cubic metre
-        target_electron_temp: desired electron temperature at the sheath entrance, in electron-volts
-        SOL_conduction_fraction: fraction of power carried by electron heat conduction
-        ratio_of_molecular_to_ion_mass: ratio of molecular mass to ion mass (typically 2 for hydrogenic species)
-        wall_temperature: temperature of divertor walls, in kelvin
-    """
+    def calc_z_effective(c_z, electron_temp_eV, starting_z_effective = 1.0) -> float:
+        seed_mean_z = mean_charge_for_seed_impurities.unitless_eval(electron_temp_eV)
+        fixed_mean_z = mean_charge_for_fixed_impurities.unitless_eval(electron_temp_eV)
+        seed_c_z = c_z * CzLINT_for_seed_impurities.weights
+        fixed_c_z = CzLINT_for_fixed_impurities.weights
+        z_effective = (
+            starting_z_effective
+            + (seed_mean_z * (seed_mean_z - 1.0) * seed_c_z).sum(dim="dim_species")
+            + (fixed_mean_z * (fixed_mean_z - 1.0) * fixed_c_z).sum(dim="dim_species")
+        )
+        return z_effective.values
+
     convergence: dict[str, Any] = dict(equal_nan=False, atol=0.0, rtol=1e-6)
 
     mu_0 = 1.2566370621250601e-6 # meter * tesla / ampere
@@ -285,30 +176,6 @@ def run_inverse_extended_lengyel_model(
     boltzmann_constant = 1.380649e-23 # joule/kelvin
     n20_to_m3 = 1.0e20 # 10^20 / m^3 to 1 / m^3
     GW_to_W = 1e9
-
-    seed_impurities: dict[str, tuple[MavrinData, float]] = {}
-    for species, weight in seed_impurity_weights.items():
-        seed_impurities[species] = (MavrinData(species), weight)
-
-    fixed_impurities: dict[str, tuple[MavrinData, float]] = {}
-    for species, concentration in fixed_impurity_concentrations.items():
-        fixed_impurities[species] = (MavrinData(species), concentration)
-
-    def calc_weighted_seed_LINT(start_temp_eV: float, stop_temp_eV: float) -> float:
-        """Calculate the sum of wz * LINT for seed impurities, between the start and stop temperatures."""
-        weighted_LINT = [
-            weight * mavrin_data.get_Lint(start_temp_eV, stop_temp_eV, ne_tau) * n20_to_m3**2
-            for (mavrin_data, weight) in seed_impurities.values()
-        ]
-        return np.sum(weighted_LINT)
-
-    def calc_fixed_cz_LINT(start_temp_eV: float, stop_temp_eV: float) -> float:
-        """Calculate the sum of cz * LINT for fixed background impurities, between the start and stop temperatures."""
-        weighted_LINT = [
-            concentration * mavrin_data.get_Lint(start_temp_eV, stop_temp_eV, ne_tau) * n20_to_m3**2
-            for (mavrin_data, concentration) in fixed_impurities.values()
-        ]
-        return np.sum(weighted_LINT)
 
     # Convert all inputs to SI units, except for electron-volts
     plasma_current = plasma_current * MA_to_A
@@ -434,14 +301,14 @@ def run_inverse_extended_lengyel_model(
         parallel_heat_flux_at_cc_interface = parallel_heat_flux_at_target / (1.0 - power_loss_in_convection_layer)
 
         # Seed impurities
-        Ls_cc_div = calc_weighted_seed_LINT(electron_temp_at_cc_interface, divertor_entrance_electron_temp)
-        Ls_div_u = calc_weighted_seed_LINT(divertor_entrance_electron_temp, separatrix_electron_temp)
-        Ls_cc_u = calc_weighted_seed_LINT(electron_temp_at_cc_interface, separatrix_electron_temp)
+        Ls_cc_div = CzLINT_for_seed_impurities.unitless_eval(electron_temp_at_cc_interface, divertor_entrance_electron_temp) * n20_to_m3**2
+        Ls_div_u = CzLINT_for_seed_impurities.unitless_eval(divertor_entrance_electron_temp, separatrix_electron_temp) * n20_to_m3**2
+        Ls_cc_u = CzLINT_for_seed_impurities.unitless_eval(electron_temp_at_cc_interface, separatrix_electron_temp) * n20_to_m3**2
 
         # Fixed impurities
-        Lf_cc_div = calc_fixed_cz_LINT(electron_temp_at_cc_interface, divertor_entrance_electron_temp)
-        Lf_div_u = calc_fixed_cz_LINT(divertor_entrance_electron_temp, separatrix_electron_temp)
-        Lf_cc_u = calc_fixed_cz_LINT(electron_temp_at_cc_interface, separatrix_electron_temp)
+        Lf_cc_div = CzLINT_for_fixed_impurities.unitless_eval(electron_temp_at_cc_interface, divertor_entrance_electron_temp) * n20_to_m3**2
+        Lf_div_u = CzLINT_for_fixed_impurities.unitless_eval(divertor_entrance_electron_temp, separatrix_electron_temp) * n20_to_m3**2
+        Lf_cc_u = CzLINT_for_fixed_impurities.unitless_eval(electron_temp_at_cc_interface, separatrix_electron_temp) * n20_to_m3**2
 
         qu = q_parallel
         qcc = parallel_heat_flux_at_cc_interface
@@ -462,22 +329,10 @@ def run_inverse_extended_lengyel_model(
 
         # Use the divertor entrance temperature to calculate the divertor Zeff, which is used for
         # calculating the corrected electron heat conductivity
-        divertor_z_effective = 1.0
-        for (mavrin_data, weight) in seed_impurities.values():
-            mean_z = mavrin_data.get_mean_charge(divertor_entrance_electron_temp, ne_tau)
-            divertor_z_effective = divertor_z_effective + (mean_z * (mean_z - 1.0) * c_z * weight)
-        for (mavrin_data, concentration) in fixed_impurities.values():
-            mean_z = mavrin_data.get_mean_charge(divertor_entrance_electron_temp, ne_tau)
-            divertor_z_effective = divertor_z_effective + (mean_z * (mean_z - 1.0) * concentration)
+        divertor_z_effective = calc_z_effective(c_z, divertor_entrance_electron_temp)
 
         # Use the separatrix electron temperature to calculate Z-eff for alpha-t
-        separatrix_z_effective = 1.0
-        for (mavrin_data, weight) in seed_impurities.values():
-            mean_z = mavrin_data.get_mean_charge(separatrix_electron_temp, ne_tau)
-            separatrix_z_effective = separatrix_z_effective + (mean_z * (mean_z - 1.0) * c_z * weight)
-        for (mavrin_data, concentration) in fixed_impurities.values():
-            mean_z = mavrin_data.get_mean_charge(separatrix_electron_temp, ne_tau)
-            separatrix_z_effective = separatrix_z_effective + (mean_z * (mean_z - 1.0) * concentration)
+        separatrix_z_effective = calc_z_effective(c_z, separatrix_electron_temp)
 
         alpha_t = calc_alpha_t(
             separatrix_electron_density=separatrix_electron_density * n20_to_m3,
@@ -498,7 +353,7 @@ def run_inverse_extended_lengyel_model(
         prev_alpha_t = alpha_t
         prev_c_z = c_z
         prev_separatrix_electron_temp = separatrix_electron_temp
-    
+
     # Post-processing
     sound_speed_at_target = np.sqrt(2.0 * target_electron_temp * (eV_to_J / amu_to_kg) / average_ion_mass) # m / s
 
@@ -523,38 +378,4 @@ def run_inverse_extended_lengyel_model(
         heat_flux_perp_to_target,
         separatrix_z_effective,
         converged,
-    )
-
-
-if __name__=="__main__":
-    import xarray as xr
-
-    (
-        c_z,
-        parallel_ion_flux_to_target,
-        neutral_pressure_in_divertor,
-        alpha_t,
-        q_parallel,
-        heat_flux_perp_to_target,
-        separatrix_z_effective,
-        converged,
-    ) = run_inverse_extended_lengyel_model(
-        target_electron_temp = xr.DataArray([2.34, 3.0], dims="dim_0") * ureg.eV,
-        power_crossing_separatrix = 5.5 * ureg.MW,
-        separatrix_electron_density = 3.3 * ureg.n19,
-        divertor_broadening_factor = 3.0,
-        seed_impurity_weights = {"Nitrogen": 1.0, "Argon": 0.05},
-        fixed_impurity_concentrations = {"Helium": 1.0e-2},
-        magnetic_field_on_axis = 2.5 * ureg.T,
-        plasma_current = 1.0 * ureg.MA,
-        parallel_connection_length = 20.0 * ureg.m,
-        divertor_parallel_length = 5.0 * ureg.m,
-        major_radius = 1.65 * ureg.m,
-        minor_radius = 0.5 * ureg.m,
-        elongation_psi95 = 1.6,
-        triangularity_psi95 = 0.3,
-        target_angle_of_incidence = 3.0,
-        fraction_of_P_SOL_to_divertor = 2./3.,
-        sheath_heat_transmission_factor = 8.,
-        iterations = 100,
     )
