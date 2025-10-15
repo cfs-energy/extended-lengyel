@@ -4,8 +4,6 @@ import numpy as np
 from typing import Any, Optional
 from cfspopcon.unit_handling import wraps_ufunc, ureg, Unitfull
 
-np.seterr(over="raise",under="raise")
-
 try:
     from .inverse_model import temperature_fit_function, calc_alpha_t
     from .Lengyel_model_core import CzLINT_integrator, Mean_charge_interpolator

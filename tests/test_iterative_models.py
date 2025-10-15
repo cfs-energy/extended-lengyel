@@ -15,6 +15,8 @@ from extended_lengyel.extended_lengyel_model.Lengyel_model_core import (
 from extended_lengyel.mavrin_data import MavrinData
 from cfspopcon.formulas.atomic_data import read_atomic_data
 
+np.seterr(over="raise",under="raise")
+
 def test_iterative_models():
 
     for i, atomic_data in enumerate([MavrinData(), read_atomic_data(Path(__file__).parents[1] / "radas_dir")[0]]):

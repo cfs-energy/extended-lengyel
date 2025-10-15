@@ -5,8 +5,6 @@ from typing import Any, Optional
 from cfspopcon.unit_handling import wraps_ufunc, ureg, Unitfull
 from .Lengyel_model_core import CzLINT_integrator, Mean_charge_interpolator
 
-np.seterr(over="raise",under="raise")
-
 def temperature_fit_function(target_electron_temp: float, amplitude: float, width: float, shape: float) -> float:
     """A general form for functions in terms of the electron temperature at the target.
 
