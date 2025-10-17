@@ -8,6 +8,7 @@ charge_exchange_power_loss: "eV / s / meter ** 3"
 conducted_fraction_at_cc_interface: ""
 conductive_heat_flux_at_target: "W / m**2"
 convective_heat_flux_at_target: "W / m**2"
+converged: null
 CzLINT_for_fixed_impurities: null
 CzLINT_for_seed_impurities: null
 deuterium_adas_data: null
@@ -16,6 +17,7 @@ divertor_entrance_electron_density: "m**-3"
 divertor_entrance_electron_temp: "eV"
 divertor_entrance_parallel_heat_flux: "W / m**2"
 divertor_parallel_length: "m"
+divertor_z_effective: ""
 dynamic_pressure: "Pa"
 electron_density_at_cc_interface: "m**-3"
 electron_density_at_target: "m**-3"
@@ -54,6 +56,7 @@ ionization_integral: "1 / meter ** 2 / second"
 ionization_power_loss: "eV / s / meter ** 3"
 iterations_for_alphat: null
 iterations_for_Lengyel_model: null
+iterations: null
 kappa_z: ""
 lambda_int: "m"
 mach_number_at_target: ""
@@ -92,6 +95,7 @@ separatrix_mach_number: ""
 separatrix_ratio_of_electron_to_ion_density: ""
 separatrix_ratio_of_ion_to_electron_temp: ""
 separatrix_total_pressure: "Pa"
+separatrix_z_effective: ""
 SOL_momentum_loss_fraction_in_convection_layer: ""
 SOL_momentum_loss_fraction: ""
 SOL_power_loss_fraction_in_convection_layer: ""
@@ -102,5 +106,3 @@ target_mach_number: ""
 target_ratio_of_electron_to_ion_density: ""
 target_ratio_of_ion_to_electron_temp: ""
 total_pressure: "Pa"
-divertor_z_effective: ""
-separatrix_z_effective: ""

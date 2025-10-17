@@ -3,17 +3,24 @@
 import numpy as np
 from typing import Any, Optional
 from cfspopcon.unit_handling import wraps_ufunc, ureg, Unitfull
+from cfspopcon.algorithm_class import Algorithm
 
-try:
-    from .inverse_model import temperature_fit_function, calc_alpha_t
-    from .Lengyel_model_core import CzLINT_integrator, Mean_charge_interpolator
-except ImportError:
-    from inverse_model import temperature_fit_function, calc_alpha_t
-    from Lengyel_model_core import CzLINT_integrator, Mean_charge_interpolator
+from .inverse_model import temperature_fit_function, calc_alpha_t
+from .Lengyel_model_core import CzLINT_integrator, Mean_charge_interpolator
 
+@Algorithm.register_algorithm(return_keys = [
+    "target_electron_temp",
+    "parallel_ion_flux_to_target",
+    "neutral_pressure_in_divertor",
+    "alpha_t",
+    "q_parallel",
+    "heat_flux_perp_to_target",
+    "separatrix_z_effective",
+    "converged",
+])
 @wraps_ufunc(
     input_units=dict(
-        c_z = ureg.dimensionless,
+        impurity_fraction = ureg.dimensionless,
         power_crossing_separatrix = ureg.MW,
         separatrix_electron_density = ureg.m**-3,
         divertor_broadening_factor = ureg.dimensionless,
@@ -59,7 +66,7 @@ except ImportError:
     output_core_dims = ((), (), (), (), (), (), (), ()),
 )
 def run_forward_extended_lengyel_model(
-    c_z: Unitfull,
+    impurity_fraction: Unitfull,
     power_crossing_separatrix: Unitfull,
     separatrix_electron_density: Unitfull,
     divertor_broadening_factor: Unitfull,
@@ -98,10 +105,10 @@ def run_forward_extended_lengyel_model(
     if mean_charge_for_fixed_impurities is None:
         mean_charge_for_fixed_impurities = Mean_charge_interpolator.empty()
 
-    def calc_z_effective(c_z, electron_temp_eV, starting_z_effective = 1.0) -> float:
+    def calc_z_effective(impurity_fraction, electron_temp_eV, starting_z_effective = 1.0) -> float:
         seed_mean_z = mean_charge_for_seed_impurities.unitless_eval(electron_temp_eV)
         fixed_mean_z = mean_charge_for_fixed_impurities.unitless_eval(electron_temp_eV)
-        seed_c_z = c_z * CzLINT_for_seed_impurities.weights
+        seed_c_z = impurity_fraction * CzLINT_for_seed_impurities.weights
         fixed_c_z = CzLINT_for_fixed_impurities.weights
         z_effective = (
             starting_z_effective
@@ -187,7 +194,7 @@ def run_forward_extended_lengyel_model(
 
         # Calculate the impact of impurities on electron heat conductivity, using
         # equation 10 from Brown and Goldston, 2021, NME 27 101002
-        divertor_z_effective = calc_z_effective(c_z, divertor_entrance_electron_temp)
+        divertor_z_effective = calc_z_effective(impurity_fraction, divertor_entrance_electron_temp)
         kappa_z = 0.672 + 0.076 * np.sqrt(divertor_z_effective) + 0.252 * divertor_z_effective
         kappa_e = kappa_e0 / kappa_z
 
@@ -201,7 +208,7 @@ def run_forward_extended_lengyel_model(
             + 3.5 * SOL_conduction_fraction * q_parallel * (parallel_connection_length - divertor_parallel_length) / kappa_e
         ) ** (2. / 7.) # in electron-volts
 
-        separatrix_z_effective = calc_z_effective(c_z, separatrix_electron_temp)
+        separatrix_z_effective = calc_z_effective(impurity_fraction, separatrix_electron_temp)
         alpha_t = calc_alpha_t(
             separatrix_electron_density=separatrix_electron_density * n20_to_m3,
             separatrix_electron_temp=separatrix_electron_temp,
@@ -221,8 +228,8 @@ def run_forward_extended_lengyel_model(
         Lf_cc_div = CzLINT_for_fixed_impurities.unitless_eval(electron_temp_at_cc_interface, divertor_entrance_electron_temp) * n20_to_m3**2
         Lf_div_u = CzLINT_for_fixed_impurities.unitless_eval(divertor_entrance_electron_temp, separatrix_electron_temp) * n20_to_m3**2
 
-        Lint_cc_div = c_z * Ls_cc_div + Lf_cc_div
-        Lint_div_u = c_z * Ls_div_u + Lf_div_u
+        Lint_cc_div = impurity_fraction * Ls_cc_div + Lf_cc_div
+        Lint_div_u = impurity_fraction * Ls_div_u + Lf_div_u
 
         qu = q_parallel
         b = divertor_broadening_factor

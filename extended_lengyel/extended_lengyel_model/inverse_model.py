@@ -3,6 +3,7 @@
 import numpy as np
 from typing import Any, Optional
 from cfspopcon.unit_handling import wraps_ufunc, ureg, Unitfull
+from cfspopcon.algorithm_class import Algorithm
 from .Lengyel_model_core import CzLINT_integrator, Mean_charge_interpolator
 
 def temperature_fit_function(target_electron_temp: float, amplitude: float, width: float, shape: float) -> float:
@@ -64,6 +65,16 @@ def calc_alpha_t(
 
     return alpha_t
 
+@Algorithm.register_algorithm(return_keys = [
+    "impurity_fraction",
+    "parallel_ion_flux_to_target",
+    "neutral_pressure_in_divertor",
+    "alpha_t",
+    "q_parallel",
+    "heat_flux_perp_to_target",
+    "separatrix_z_effective",
+    "converged",
+])
 @wraps_ufunc(
     input_units=dict(
         target_electron_temp = ureg.eV,
@@ -100,7 +111,7 @@ def calc_alpha_t(
         iterations = None,
     ),
     return_units=dict(
-        c_z = ureg.dimensionless,
+        impurity_fraction = ureg.dimensionless,
         parallel_ion_flux_to_target = ureg.m**-2 * ureg.s**-1,
         neutral_pressure_in_divertor = ureg.Pa,
         alpha_t = ureg.dimensionless,
@@ -151,10 +162,10 @@ def run_inverse_extended_lengyel_model(
     if mean_charge_for_fixed_impurities is None:
         mean_charge_for_fixed_impurities = Mean_charge_interpolator.empty()
 
-    def calc_z_effective(c_z, electron_temp_eV, starting_z_effective = 1.0) -> float:
+    def calc_z_effective(impurity_fraction, electron_temp_eV, starting_z_effective = 1.0) -> float:
         seed_mean_z = mean_charge_for_seed_impurities.unitless_eval(electron_temp_eV)
         fixed_mean_z = mean_charge_for_fixed_impurities.unitless_eval(electron_temp_eV)
-        seed_c_z = c_z * CzLINT_for_seed_impurities.weights
+        seed_c_z = impurity_fraction * CzLINT_for_seed_impurities.weights
         fixed_c_z = CzLINT_for_fixed_impurities.weights
         z_effective = (
             starting_z_effective
@@ -320,17 +331,17 @@ def run_inverse_extended_lengyel_model(
         if q_div_squared < 0:
             q_div_squared = 0.0
 
-        c_z = (
+        impurity_fraction = (
             (qu**2 + (1 / b**2 - 1) * q_div_squared - qcc**2) / (k * Ls_cc_u)
             - Lf_cc_u / Ls_cc_u
         )
 
         # Use the divertor entrance temperature to calculate the divertor Zeff, which is used for
         # calculating the corrected electron heat conductivity
-        divertor_z_effective = calc_z_effective(c_z, divertor_entrance_electron_temp)
+        divertor_z_effective = calc_z_effective(impurity_fraction, divertor_entrance_electron_temp)
 
         # Use the separatrix electron temperature to calculate Z-eff for alpha-t
-        separatrix_z_effective = calc_z_effective(c_z, separatrix_electron_temp)
+        separatrix_z_effective = calc_z_effective(impurity_fraction, separatrix_electron_temp)
 
         alpha_t = calc_alpha_t(
             separatrix_electron_density=separatrix_electron_density * n20_to_m3,
@@ -343,13 +354,13 @@ def run_inverse_extended_lengyel_model(
         )
 
         converged = np.allclose(
-            [alpha_t, c_z, separatrix_electron_temp],
+            [alpha_t, impurity_fraction, separatrix_electron_temp],
             [prev_alpha_t, prev_c_z, prev_separatrix_electron_temp],
             **convergence
         )
 
         prev_alpha_t = alpha_t
-        prev_c_z = c_z
+        prev_c_z = impurity_fraction
         prev_separatrix_electron_temp = separatrix_electron_temp
 
     # Post-processing
@@ -368,7 +379,7 @@ def run_inverse_extended_lengyel_model(
     heat_flux_perp_to_target = parallel_heat_flux_at_target * parallel_to_perp_factor # W/m^ureg.W / ureg.m**22
 
     return (
-        c_z,
+        impurity_fraction,
         parallel_ion_flux_to_target,
         neutral_pressure_in_divertor,
         alpha_t,
