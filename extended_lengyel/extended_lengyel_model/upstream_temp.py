@@ -35,6 +35,8 @@ def calc_separatrix_electron_temp_with_broadening(
     divertor_parallel_length,
     kappa_e0,
     kappa_z,
+    conduction_prefactor_in_divertor = 7.0/2.0,
+    conduction_prefactor_in_main_chamber = 7.0/2.0,
     SOL_conduction_fraction=1.0,
 ):
     """Calculate the electron temperature at the divertor entrance and separatrix."""
@@ -42,12 +44,12 @@ def calc_separatrix_electron_temp_with_broadening(
 
     divertor_entrance_electron_temp = (
         electron_temp_at_cc_interface**3.5
-        + 3.5 * SOL_conduction_fraction * q_parallel / divertor_broadening_factor * divertor_parallel_length / kappa
+        + conduction_prefactor_in_divertor * SOL_conduction_fraction * q_parallel / divertor_broadening_factor * divertor_parallel_length / kappa
     ) ** (2 / 7)
 
     separatrix_electron_temp = (
         divertor_entrance_electron_temp**3.5
-        + 3.5 * SOL_conduction_fraction * q_parallel * (parallel_connection_length - divertor_parallel_length) / kappa
+        + conduction_prefactor_in_main_chamber * SOL_conduction_fraction * q_parallel * (parallel_connection_length - divertor_parallel_length) / kappa
     ) ** (2 / 7)
 
     return divertor_entrance_electron_temp, separatrix_electron_temp

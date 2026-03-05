@@ -6,6 +6,8 @@ change_in_parallel_convective_heat_flux: "eV / s / meter ** 2"
 charge_exchange_integral: "eV / meter ** 3"
 charge_exchange_power_loss: "eV / s / meter ** 3"
 conducted_fraction_at_cc_interface: ""
+conduction_prefactor_in_divertor: ""
+conduction_prefactor_in_main_chamber: ""
 conductive_heat_flux_at_target: "W / m**2"
 convective_heat_flux_at_target: "W / m**2"
 CzLINT_for_fixed_impurities: null
