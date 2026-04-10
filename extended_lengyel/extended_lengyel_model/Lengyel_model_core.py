@@ -10,7 +10,8 @@ from cfspopcon.named_options import AtomicSpecies
 from cfspopcon.formulas.atomic_data import AtomicData
 from cfspopcon.unit_handling import magnitude, ureg, wraps_ufunc, Unitfull, magnitude_in_units
 from scipy.interpolate import InterpolatedUnivariateSpline  # type:ignore[import-untyped]
-from typing import Self, Callable
+from typing import Self
+from collections.abc import Callable
 from ..xr_helpers import item, values
 from ..config import setup_impurities
 from ..mavrin_data import MavrinData, SpeciesMavrinData

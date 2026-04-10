@@ -28,7 +28,7 @@ def run_extended_lengyel_cli(config_file: str, output_file: str, kwargs: tuple[t
             warnings.simplefilter("error", category=UnitStrippedWarning)
             try:
                 # if ipdb is installed we use it to catch exceptions during development
-                from ipdb import launch_ipdb_on_exception  # noqa:PLC0415 type:ignore[import-untyped]
+                from ipdb import launch_ipdb_on_exception
 
                 with launch_ipdb_on_exception():
                     run_extended_lengyel(config_file, output_file, cli_args)
@@ -74,7 +74,7 @@ def run_extended_lengyel(config_file, output_file, cli_args=None) -> None:
 
 def write_output_file(filepath: Path, ds: xr.Dataset):
     """Write the results from the extended Lengyel model to a YAML file."""
-    from cfspopcon.file_io import sanitize_variable, ignored_keys # noqa:PLC0415
+    from cfspopcon.file_io import sanitize_variable, ignored_keys
     ignored_keys += [
         "seed_impurity_species",
         "seed_impurity_weights",

@@ -5,7 +5,8 @@ from pathlib import Path
 from cfspopcon.unit_handling import Quantity, UndefinedUnitError
 from cfspopcon.named_options import AtomicSpecies
 from fractions import Fraction
-from typing import Any, Optional, Callable
+from typing import Any
+from collections.abc import Callable
 import xarray as xr
 import numpy as np
 import warnings
@@ -24,7 +25,7 @@ def convert_elements(element): # noqa:PLR0911
         return {k: convert_elements(v) for k, v in element.items()}
     elif isinstance(element, list):
         return [convert_elements(v) for v in element]
-    elif isinstance(element, (float, int)):
+    elif isinstance(element, float | int):
         return element
     elif isinstance(element, str):
         if (val:=test_convert(element, float)) is not None:
@@ -47,11 +48,11 @@ def read_config_from_yaml(filepath: Path):
 
 def read_config( # noqa:PLR0912
     filepath: Path,
-    elements: Optional[list[str]] = None,
-    keys: Optional[list[str]] = None,
-    allowed_missing: Optional[list[str]] = None,
+    elements: list[str] | None = None,
+    keys: list[str] | None = None,
+    allowed_missing: list[str] | None = None,
     warn_if_unused: bool = False,
-    overrides: Optional[dict[str, Any]] = None,
+    overrides: dict[str, Any] | None = None,
     convert_overrides: bool = False,
 ):
     """Read configuration file and return as a dictionary.

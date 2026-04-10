@@ -1,7 +1,6 @@
 """Classes to access atomic data from ADAS, reading in the data files from radas."""
 
 from pathlib import Path
-from typing import Optional
 
 import cfspopcon  # type:ignore[import-untyped]
 import numpy as np
@@ -86,7 +85,7 @@ class AtomicSpeciesAdasData:
         * cfspopcon.unit_handling.ureg.m**-3
         * 0.5
         * cfspopcon.unit_handling.ureg.ms,
-        radas_dir: Optional[Path] = None,
+        radas_dir: Path | None = None,
     ) -> None:
         """Read in ADAS data for an atomic species."""
         ds = self.get_dataset(species_name, radas_dir)
@@ -115,7 +114,7 @@ class AtomicSpeciesAdasData:
     @staticmethod
     def get_dataset(
         species_name: str | cfspopcon.named_options.AtomicSpecies,
-        radas_dir: Optional[Path] = None,
+        radas_dir: Path | None = None,
     ) -> xr.Dataset:
         """Open a NetCDF dataset from radas_dir."""
         if radas_dir is None:
