@@ -37,15 +37,13 @@ pint-xarray = "^0.6.1"
 pyyaml = "^6.0.3"
 click = "^8.3.2"
 
-# Development/Notebook Support
-ipykernel = "^6.29.5"
-jupyter = "^1.1.1"
-
 [tool.poetry.group.dev.dependencies]
+ipykernel = "^7.2.0"
+jupyter = "^1.1.1"
 pytest = "^9.0.3"
 pytest-cov = "^7.1.0"
 coverage = "^7.13.5"
-ruff = "^0.11"
+ruff = "^0.15.10"
 nbmake = "^1.5"
 ipdb = "^0.13.13"
 
@@ -80,6 +78,7 @@ ignore = [
     "ISC001",  # Recommended ignore for ruff formatter
     "I001",    # Explicitly ignored: algorithms must be imported in order
     "B028",    # Warnings do not require stacklevel for this research code
+    "PLC0415", # Allow imports not at the top of the file
 ]
 
 [tool.ruff.lint.pyupgrade]
