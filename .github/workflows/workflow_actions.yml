@@ -1,91 +1,96 @@
-# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
-# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+name: CI/CD Pipeline
 
-name: workflow_actions
-
-# Controls when the workflow will run
 on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  pull_request:
   push:
-    tags:
-      - '*'
-    branches:
-      - 'main'
-  # Allows you to run this workflow manually from the Actions tab
+    branches: [main]
+    tags: ['*']
+  pull_request:
+    branches: [main]
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+# Opt-in to Node 24 for all actions and cancel redundant runs
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
+  # --- JOB 1: GENERATE RADAS DATA ---
   radas:
-    runs-on: ubuntu-24.04
+    name: Generate Radas Data
+    runs-on: ubuntu-latest
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install Poetry
-        run: curl -sSL https://install.python-poetry.org | python - --version 1.8.2
+        run: pipx install poetry
 
       - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
           cache: 'poetry'
       
-      - name: Setup
+      - name: Install dependencies
         run: poetry install
 
       - name: Cache radas results
-        id: radas
-        uses: actions/cache@v4
+        id: radas-cache
+        uses: actions/cache@v5
         with:
           path: ./radas_dir
-          key: radas-${{ hashFiles('poetry.lock')}}
+          key: radas-${{ hashFiles('poetry.lock') }}
       
       - name: Make radas data
-        if: steps.radas.outputs.cache-hit != 'true'
-        run: poetry run radas -c radas_config.yml -s deuterium -s nitrogen -s neon -s argon -s tungsten
+        if: steps.radas-cache.outputs.cache-hit != 'true'
+        run: |
+          poetry run radas -c radas_config.yml \
+          -s deuterium -s nitrogen -s neon -s argon -s tungsten
       
       - name: Upload radas artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: radas_dir
           path: ./radas_dir
+          retention-days: 180 # Set to 6 months
 
+  # --- JOB 2: TEST & LINT ---
   build:
+    name: Test (Python ${{ matrix.python-version }})
     needs: radas
-    # The type of runner that the job will run on
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.12', '3.13']  # should test the versions we allow for in pyproject.toml
+        # Consistent with Python >= 3.12 constraint
+        python-version: ['3.12', '3.13', '3.14']
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install Poetry
-        run: curl -sSL https://install.python-poetry.org | python - --version 1.8.2
+        run: pipx install poetry
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'poetry'
 
-      - name: Setup
+      - name: Install dependencies
         run: poetry install
 
-      - uses: actions/cache/restore@v4
-        id: radas
+      - name: Restore radas data
+        uses: actions/cache/restore@v5
+        id: radas-restore
         with:
           path: ./radas_dir
-          key: radas-${{ hashFiles('poetry.lock')}}
+          key: radas-${{ hashFiles('poetry.lock') }}
 
-      - name: Check cache hit
-        if: steps.radas.outputs.cache-hit != 'true'
+      - name: Verify Cache
+        if: steps.radas-restore.outputs.cache-hit != 'true'
         run: exit 1
 
       - name: Test repository
@@ -97,38 +102,47 @@ jobs:
       - name: Run ruff
         run: poetry run ruff check --fix extended_lengyel
 
+  # --- JOB 3: PREPARE RELEASE ---
   build_release:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    name: Build Release
+    if: startsWith(github.ref, 'refs/tags')
     needs: build
-    runs-on: ubuntu-24.04
-
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Install Poetry
-        run: curl -sSL https://install.python-poetry.org | python - --version 1.8.2
+        run: pipx install poetry
 
-      - name: Poetry build
+      - name: Build distributions
         run: poetry build
 
-      - uses: actions/upload-artifact@v4
+      - name: Upload PyPI artifacts
+        uses: actions/upload-artifact@v5
         with:
           name: pypi-build
           path: ./dist
+          retention-days: 180 # Set to 6 months
 
+  # --- JOB 4: PUBLISH ---
   publish:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags')
+    name: Publish to PyPI
+    if: startsWith(github.ref, 'refs/tags')
     needs: build_release
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-latest
     environment:
       name: pypi-publish
       url: https://pypi.org/project/extended-lengyel/
     permissions:
-      id-token: write  # IMPORTANT: this permission is mandatory for trusted publishing
+      id-token: write
     steps:
-      - uses: actions/download-artifact@v4
+      - name: Download artifacts
+        uses: actions/download-artifact@v5
+        with:
+          name: pypi-build
+          path: dist/
 
-      - name: Publish package distributions to PyPI
+      - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: pypi-build/
+          packages-dir: dist/
