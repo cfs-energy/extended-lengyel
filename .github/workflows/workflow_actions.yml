@@ -1,9 +1,10 @@
 name: CI/CD Pipeline
 
 on:
+  release:
+    types: [published]
   push:
     branches: [main]
-    tags: ['*']
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -21,10 +22,10 @@ jobs:
     name: Generate Radas Data
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Install Poetry
-        run: pipx install poetry
+        run: pipx install "poetry>=2,<3"
 
       - name: Set up Python 3.12
         uses: actions/setup-python@v6
@@ -49,7 +50,7 @@ jobs:
           -s deuterium -s nitrogen -s neon -s argon -s tungsten
       
       - name: Upload radas artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: radas_dir
           path: ./radas_dir
@@ -66,10 +67,10 @@ jobs:
         python-version: ['3.12', '3.13', '3.14']
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Install Poetry
-        run: pipx install poetry
+        run: pipx install "poetry>=2,<3"
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v6
@@ -107,20 +108,20 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Install Poetry
-        run: pipx install poetry
+        run: pipx install "poetry>=2,<3"
 
       - name: Build distributions
         run: poetry build
 
       - name: Upload PyPI artifacts
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: pypi-build
           path: ./dist
-          retention-days: 180 # Set to 6 months
+          retention-days: 1
 
   # --- JOB 4: PUBLISH ---
   publish:
@@ -135,7 +136,7 @@ jobs:
       id-token: write
     steps:
       - name: Download artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: pypi-build
           path: dist/
