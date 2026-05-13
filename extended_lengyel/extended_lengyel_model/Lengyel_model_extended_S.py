@@ -4,7 +4,6 @@ import numpy as np
 import xarray as xr
 from cfspopcon import Algorithm, CompositeAlgorithm
 from cfspopcon.unit_handling import ureg
-from typing import Optional
 
 from .Lengyel_model_core import CzLINT_integrator
 from ..xr_helpers import item
@@ -21,7 +20,7 @@ def run_extended_lengyel_model_with_S_correction(
     electron_temp_at_cc_interface,
     divertor_entrance_electron_temp,
     CzLINT_for_seed_impurities: CzLINT_integrator,
-    CzLINT_for_fixed_impurities: Optional[CzLINT_integrator] = None,
+    CzLINT_for_fixed_impurities: CzLINT_integrator | None = None,
     mask_invalid_results: bool = True,
 ):
     """Calculate the impurity fraction required to radiate a given fraction of the power in the scrape-off-layer."""

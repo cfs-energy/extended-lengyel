@@ -3,7 +3,6 @@
 import numpy as np
 import xarray as xr
 from cfspopcon import Algorithm, CompositeAlgorithm
-from typing import Optional
 
 from ..initialize import calc_Goldston_kappa_z
 from .convective_loss_fits import calc_parallel_heat_flux_from_conv_loss
@@ -43,8 +42,8 @@ def run_extended_lengyel_model_with_S_and_Zeff_correction(
     sheath_heat_transmission_factor,
     CzLINT_for_seed_impurities,
     mean_charge_for_seed_impurities,
-    CzLINT_for_fixed_impurities: Optional[CzLINT_integrator] = None,
-    mean_charge_for_fixed_impurities: Optional[Mean_charge_interpolator] = None,
+    CzLINT_for_fixed_impurities: CzLINT_integrator | None = None,
+    mean_charge_for_fixed_impurities: Mean_charge_interpolator | None = None,
     conduction_prefactor_in_divertor: float=7.0/2.0,
     conduction_prefactor_in_main_chamber: float=7.0/2.0,
     SOL_conduction_fraction: float=1.0,

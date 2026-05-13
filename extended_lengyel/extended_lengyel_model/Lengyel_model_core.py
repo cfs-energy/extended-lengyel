@@ -10,7 +10,8 @@ from cfspopcon.named_options import AtomicSpecies
 from cfspopcon.formulas.atomic_data import AtomicData
 from cfspopcon.unit_handling import magnitude, ureg, wraps_ufunc, Unitfull, magnitude_in_units
 from scipy.interpolate import InterpolatedUnivariateSpline  # type:ignore[import-untyped]
-from typing import Self, Callable
+from typing import Self
+from collections.abc import Callable
 from ..xr_helpers import item, values
 from ..config import setup_impurities
 from ..mavrin_data import MavrinData, SpeciesMavrinData
@@ -63,17 +64,20 @@ class CzLINT_integrator:
 
         N.b. this is equivalent to sum_z (c_z L_INT).
         """
-        return self._inner(start_temp, stop_temp, integrator_method="unitless_eval", **kwargs)
+        return self._inner(start_temp, stop_temp, integrator_method="unitless_func", **kwargs)
 
     def _inner(self, start_temp: Unitfull, stop_temp: Unitfull, integrator_method: str, allow_negative: bool=False) -> Unitfull:
         """Common function for unitless and unit-aware eval."""
         if not(allow_negative):
             stop_temp = np.maximum(stop_temp, start_temp)
 
-        weighted_L_INT = 0.0 * ureg.W * ureg.m**3 * ureg.eV**1.5
+        if integrator_method == "unitless_func":
+            weighted_L_INT = 0.0
+        else:
+            weighted_L_INT = 0.0 * ureg.W * ureg.m**3 * ureg.eV**1.5
 
         for species in self.species:
-            weight = self.weights.sel(dim_species = species)
+            weight = self.weights.sel(dim_species = species).values
             integrator = self.integrators[species].__getattribute__(integrator_method)
 
             weighted_L_INT += weight * integrator(start_temp, stop_temp)
@@ -169,7 +173,7 @@ class Mean_charge_interpolator:
 
     def unitless_eval(self, electron_temp: Unitfull) -> Unitfull:
         """Return the mean charge of each impurity species, without handling input and output units."""
-        return self._inner(electron_temp, interpolator_method="unitless_eval")
+        return self._inner(electron_temp, interpolator_method="unitless_func")
 
     def _inner(self, electron_temp: Unitfull, interpolator_method: str) -> Unitfull:
         """Common function for unitless and unit-aware eval."""

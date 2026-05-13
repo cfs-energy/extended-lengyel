@@ -3,7 +3,6 @@
 import numpy as np
 import xarray as xr
 from cfspopcon import Algorithm, CompositeAlgorithm
-from typing import Optional
 
 from cfspopcon.unit_handling import ureg
 from cfspopcon.formulas.metrics import calc_alpha_t
@@ -55,8 +54,8 @@ def run_extended_lengyel_model_with_S_Zeff_and_alphat_correction(
     cylindrical_safety_factor,
     separatrix_average_poloidal_field,
     ratio_of_upstream_to_average_poloidal_field,
-    CzLINT_for_fixed_impurities: Optional[CzLINT_integrator] = None,
-    mean_charge_for_fixed_impurities: Optional[Mean_charge_interpolator] = None,
+    CzLINT_for_fixed_impurities: CzLINT_integrator | None = None,
+    mean_charge_for_fixed_impurities: Mean_charge_interpolator | None = None,
     conduction_prefactor_in_divertor: float = 7.0/2.0,
     conduction_prefactor_in_main_chamber: float = 7.0/2.0,
     SOL_conduction_fraction: float = 1.0,
