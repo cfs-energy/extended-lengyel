@@ -29,6 +29,9 @@ from .Lengyel_model_extended_S import run_extended_lengyel_model_with_S_correcti
 from .Lengyel_model_extended_S_Zeff import run_extended_lengyel_model_with_S_and_Zeff_correction
 from .Lengyel_model_extended_S_Zeff_alphat import run_extended_lengyel_model_with_S_Zeff_and_alphat_correction
 
+from .forward_model import run_forward_extended_lengyel_model
+from .inverse_model import run_inverse_extended_lengyel_model
+
 from enum import Enum
 
 
@@ -62,4 +65,6 @@ __all__ = [
     "run_extended_lengyel_model_with_S_and_Zeff_correction",
     "run_extended_lengyel_model_with_S_correction",
     "temperature_fit_function",
+    "run_forward_extended_lengyel_model",
+    "run_inverse_extended_lengyel_model",
 ]

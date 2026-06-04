@@ -14,6 +14,8 @@ from . import extended_lengyel_model
 from . import spatial_lengyel_model
 from . import mavrin_data
 
+from .extended_lengyel_model import run_inverse_extended_lengyel_model, run_forward_extended_lengyel_model
+
 
 def extend_units_dictionary():
     with open(Path(__file__).parent / "extended_units.yaml") as filepath:
@@ -59,4 +61,6 @@ __all__ = [
     "promote_to_coordinate",
     "read_config",
     "spatial_lengyel_model",
+    "run_inverse_extended_lengyel_model",
+    "run_forward_extended_lengyel_model",
 ]
