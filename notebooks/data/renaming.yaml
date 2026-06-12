@@ -1,0 +1,203 @@
+# JET NME21 ['cn_mean_jet', 'cn_mean_err_jet', 'cn_ratio_jet', 'ratio_err_jet', 'intrins_jet', 'psep_jet', 'psep_err_jet', 'nsep_jet', 'bt_jet', 'nsep_err_jet', 'ip_jet', 'am_jet', 'kp_jet', 'shots_jet', 'twn1', 'twn2', 'q95_jet', 'tu_jet']
+# AUG NME21 ['regress', 'cn_mean', 'regress_err', 'shots', 'cn_flux', 'cn_flux_err', 'intrins', 'intrins_ext', 'diff', 'diff_ext', 'diff_err', 'diff_err_ext', 'cn_err', 'psep', 'dens', 'pcur', 'bt', 'k', 'aminor', 'pdiv', 'pdiv_err', 'psep_err', 'dens_err', 'q95_val', 'tesep']
+
+
+NME21:
+  JET_ignored: [
+    "twn1",
+    "twn2",
+    "cn_ratio_jet", # wrong size
+    "ratio_err_jet", # wrong size
+    "intrins_jet" # wrong size
+  ]
+  AUG_ignored: [
+    "diff",
+    "diff_err_ext",
+    "intrins",
+    "intrins_ext",
+    "diff_err",
+    "diff_ext",
+    "cn_flux",
+    "cn_flux_err",
+    'regress',
+    'regress_err',
+    "tesep", # single value
+  ]
+
+  nitrogen_concentration:
+    JET_name: cn_mean_jet
+    JET_err: cn_mean_err_jet
+    JET_units: percent
+    AUG_name: cn_mean
+    AUG_err: cn_err
+    AUG_units: percent
+
+  power_crossing_separatrix:
+    JET_name: psep_jet
+    JET_err: psep_err_jet
+    JET_units: MW
+    AUG_name: psep
+    AUG_err: psep_err
+    AUG_units: W
+
+  separatrix_electron_density:
+    JET_name: nsep_jet
+    JET_err: nsep_err_jet
+    JET_units: n19
+    AUG_name: dens
+    AUG_err: dens_err
+    AUG_units: "m**-3"
+
+  separatrix_electron_temp:
+    JET_name: tu_jet
+    JET_units: eV
+
+  magnetic_field_on_axis:
+    JET_name: bt_jet
+    JET_units: T
+    AUG_name: bt
+    AUG_units: T
+
+  plasma_current:
+    JET_name: ip_jet
+    JET_units: MA
+    AUG_name: pcur
+    AUG_units: A
+
+  minor_radius:
+    JET_name: am_jet
+    JET_units: m
+    AUG_name: aminor
+    AUG_units: m
+
+  elongation:
+    JET_name: kp_jet
+    JET_units: ""
+    AUG_name: k
+    AUG_units: ""
+
+  safety_factor_q95:
+    JET_name: q95_jet
+    JET_units: ""
+    AUG_name: q95_val
+    AUG_units: ""
+
+  outer_divertor_power:
+    AUG_name: pdiv
+    AUG_err: pdiv_err
+    AUG_units: MW
+
+  shot_identifier:
+    JET_name: shots_jet
+    JET_units: null
+    AUG_name: shots
+    AUG_units: null
+
+NF23:
+  ignored: []
+
+  shot_identifier:
+    name: SHOTS
+    units: null
+
+  analysis_time_window:
+    name: TIMES
+    units: seconds
+
+  seeding_type:
+    name: IMP
+    units: null
+    # 1 = N + Ne, 2 = Ar, 3 = N + Ar, 4 = N, 5 = no seeding
+
+  target_electron_temp:
+    name: TDIV
+    err: TDIV_ERR
+    units: eV
+
+  target_electron_density:
+    name: NDIV
+    err: NDIV_ERR
+    units: n19
+
+  target_parallel_heat_flux:
+    name: QPAR
+    err: QPAR_ERR
+    units: MW/m^2
+
+  power_crossing_separatrix:
+    name: PSEP
+    err: PSEP_ERR
+    units: MW
+
+  divertor_neutral_pressure:
+    name: PDIV
+    err: PDIV_ERR
+    units: Pa
+
+  separatrix_electron_temp:
+    name: TSEP
+    units: eV
+
+  separatrix_electron_density:
+    name: NSEP
+    err: NSEP_ERR
+    units: m^-3
+
+  momentum_loss_factor:
+    name: FM
+    err: FM_ERR
+    units: null
+
+  neon_concentration:
+    name: CNE
+    err: CNE_ERR
+    units: dimensionless
+
+  nitrogen_concentration:
+    name: CN
+    err: CN_ERR
+    units: dimensionless
+
+  argon_concentration:
+    name: CAR
+    err: CAR_ERR
+    units: dimensionless
+
+  neon_concentration_flux:
+    name: CNEF
+    err: CNEF_ERR
+    units: percent
+
+  nitrogen_concentration_flux:
+    name: CNF
+    err: CNF_ERR
+    units: percent
+
+  argon_concentration_flux:
+    name: CARF
+    err: CARF_ERR
+    units: percent
+
+  real_time_target_temp:
+    name: SHUNT
+    err: SHUNT_ERR
+    units: eV
+
+  secondary_real_time_target_temp:
+    name: SHUNT1
+    err: SHUNT1_ERR
+    units: eV
+
+  lambda_INT:
+    name: LINT
+    units: mm
+
+  real_time_power_crossing_separatrix:
+    name: PSEPRT
+    err: PSEPRT_ERR
+    units: MW
+
+  confinement_factor:
+    name: HFAC
+    err: HFAC_ERR
+    units: null
