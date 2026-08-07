@@ -12,6 +12,7 @@ from . import initialize, postprocess
 from . import kallenbach_model
 from . import extended_lengyel_model
 from . import spatial_lengyel_model
+from . import iterative_solver
 from . import mavrin_data
 
 
@@ -53,6 +54,7 @@ __all__ = [
     "adas_data",
     "extended_lengyel_model",
     "initialize",
+    "iterative_solver",
     "kallenbach_model",
     "mavrin_data",
     "postprocess",

@@ -10,6 +10,7 @@ conduction_prefactor_in_divertor: ""
 conduction_prefactor_in_main_chamber: ""
 conductive_heat_flux_at_target: "W / m**2"
 convective_heat_flux_at_target: "W / m**2"
+converged: null
 CzLINT_for_fixed_impurities: null
 CzLINT_for_seed_impurities: null
 deuterium_adas_data: null
@@ -54,6 +55,7 @@ ion_velocity_epsilon: null
 ion_velocity: "m / s"
 ionization_integral: "1 / meter ** 2 / second"
 ionization_power_loss: "eV / s / meter ** 3"
+iterations: null
 iterations_for_alphat: null
 iterations_for_Lengyel_model: null
 kappa_z: ""

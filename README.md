@@ -12,6 +12,7 @@ The software can be found in the `extended_lengyel` folder. This contains the fo
 * `kallenbach_model`: the model introduced in Kallenbach et al., 2016, "Analytical calculations for impurity seeded  partially detached divertor conditions".
 * `spatial_lengyel_model`: a version of the Lengyel model which does not switch to the temperature-integral form.
 * `extended_lengyel_model`: the main extended Lengyel model discussed in the paper.
+* `iterative_solver`: forward and inverse solves of the same model, sharing a single iteration loop. The *forward* solve is the new capability — given an impurity concentration, iterate to find the target electron temperature.
 
 In addition to this, the software also has shared initialization and post-processing modules, as well as a module for interacting with data from OpenADAS using the [radas](https://github.com/cfs-energy/radas) library. The library is built as an extension of [cfspopcon](https://github.com/cfs-energy/cfspopcon), which allows for straightforward unit-handling and scanning of input parameters.
 
@@ -122,6 +123,62 @@ for species in ds["seed_impurity_species"]:
     cz = (ds["impurity_fraction"] * ds["seed_impurity_weights"]).sel(dim_species=species).item()
     print(f"{species.item()} concentration: {cz:.2}")
 ```
+
+## Running the model forwards
+
+The example above is an *inverse* solve: you give it the target electron temperature you want, and it tells you the impurity concentration needed to reach it. The `iterative_solver` subproject runs the same model in the opposite direction — you give it the impurity concentration, and it iterates to find the resulting target electron temperature.
+
+The forward model computes its own magnetic geometry and parallel heat flux, so the algorithm list is shorter than the inverse one. Note that it also returns a `converged` flag: the fixed-point iteration does not always converge (high impurity concentrations in particular can diverge), and **a non-converged solve returns `NaN` for every physics output**, so always check the flag.
+
+```python
+import cfspopcon
+import extended_lengyel
+import xarray as xr
+from cfspopcon.unit_handling import Quantity, ureg
+
+algorithm = cfspopcon.CompositeAlgorithm.from_list([
+    "set_radas_dir",
+    "read_atomic_data",
+    "build_CzLINT_for_seed_impurities",
+    "build_mean_charge_for_seed_impurities",
+    "run_forward_extended_lengyel_model",
+])
+
+seed_impurity_species, seed_impurity_weights = extended_lengyel.config.setup_impurities(["Nitrogen", "Argon"], [1.0, 0.05])
+
+ds = xr.Dataset(data_vars=dict(
+    seed_impurity_weights                       = seed_impurity_weights,
+    seed_impurity_species                       = seed_impurity_species,
+    # The impurity concentration is now an input, instead of the target electron temperature.
+    impurity_fraction                           = Quantity(3.8, ureg.percent),
+    separatrix_electron_density                 = Quantity(3.3e19, ureg.m**-3),
+    power_crossing_separatrix                   = Quantity(5.5, ureg.MW),
+    fraction_of_P_SOL_to_divertor               = 2/3,
+    divertor_broadening_factor                  = 3.0,
+    plasma_current                              = Quantity(1.0, ureg.MA),
+    magnetic_field_on_axis                      = Quantity(2.5, ureg.T),
+    major_radius                                = Quantity(1.65, ureg.m),
+    minor_radius                                = Quantity(0.5, ureg.m),
+    parallel_connection_length                  = Quantity(20, ureg.m),
+    divertor_parallel_length                    = Quantity(5.0, ureg.m),
+    elongation_psi95                            = 1.6,
+    triangularity_psi95                         = 0.3,
+    target_angle_of_incidence                   = Quantity(3.0, ureg.degree),
+))
+
+algorithm.validate_inputs(ds)
+ds = algorithm.update_dataset(ds)
+
+if ds["converged"].item():
+    print(f"Target electron temperature: {ds['target_electron_temp'].item():.2f}")
+    print(f"Divertor neutral pressure: {ds['neutral_pressure_in_divertor'].item().to(ureg.Pa):.2f}")
+else:
+    print("The forward solve did not converge: its outputs are NaN.")
+```
+
+The subproject also registers `run_inverse_extended_lengyel_model`, which solves in the same direction as the quick-start example above but via the same iteration loop as the forward model (swap the algorithm name and give `target_electron_temp` instead of `impurity_fraction`). It is an independent implementation of the same physics as `run_extended_lengyel_model_with_S_Zeff_and_alphat_correction`, and the two agree closely but not exactly, so pick one and stay with it rather than mixing them.
+
+The forward and inverse models are consistent with each other: feeding the impurity concentration from one into the other recovers the original input, so long as both solves converge.
 
 ## Contributing
 
