@@ -179,7 +179,9 @@ else:
     print("The forward solve did not converge: its outputs are NaN.")
 ```
 
-The subproject also registers `run_inverse_extended_lengyel_model`, which solves in the same direction as the quick-start example above but via the same iteration loop as the forward model (swap the algorithm name and give `target_electron_temp` instead of `impurity_fraction`). It is an independent implementation of the same physics as `run_extended_lengyel_model_with_S_Zeff_and_alphat_correction`, and the two agree closely but not exactly, so pick one and stay with it rather than mixing them.
+The subproject also registers `run_inverse_extended_lengyel_model`, which solves in the same direction as the quick-start example above but via the same iteration loop as the forward model (swap the algorithm name and give `target_electron_temp` instead of `impurity_fraction`). It is independent of `run_extended_lengyel_model_with_S_Zeff_and_alphat_correction`: this loop also evaluates the heat conductivity separately in the divertor and the main chamber, so the two disagree by a few percent in target temperature. Pick one and stay with it rather than mixing them.
+
+Optional inputs, all inert at their defaults, extend that loop: `pressure_broadening_factor` (the static-pressure step across the X-point), `divertor_enrichment_factor` (upstream impurity concentration = divertor concentration divided by this factor), and `flux_expansion_Bt_over_Bu` / `flux_expansion_Bxpt_over_Bu` (target and X-point field strength relative to upstream, including the Moulton flux-expansion term). `run_forward_extended_lengyel_model_pdiv` and `run_inverse_extended_lengyel_model_with_pdiv` are the same two directions with separatrix density unknown and divertor neutral pressure given instead.
 
 The forward and inverse models are consistent with each other: feeding the impurity concentration from one into the other recovers the original input, so long as both solves converge.
 

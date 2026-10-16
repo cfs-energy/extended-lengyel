@@ -9,6 +9,8 @@ def test_plugin_registers_its_algorithms(registered_plugin_algorithms):
     assert "run_basic_lengyel_model" in registered_plugin_algorithms
     assert "kallenbach_model" in registered_plugin_algorithms
     assert "run_forward_extended_lengyel_model" in registered_plugin_algorithms
+    assert "run_forward_extended_lengyel_model_pdiv" in registered_plugin_algorithms
+    assert "run_inverse_extended_lengyel_model_with_pdiv" in registered_plugin_algorithms
     assert cfspopcon.registry["kallenbach_model"].name == "kallenbach_model"
 
 

@@ -38,6 +38,8 @@ divertor_entrance_electron_temp:
   default_units: eV
 divertor_entrance_parallel_heat_flux:
   default_units: W / m**2
+divertor_enrichment_factor:
+  default_units: ''
 divertor_parallel_length:
   default_units: m
 dynamic_pressure:
@@ -72,6 +74,10 @@ fixed_impurity_weights:
   default_units: null
 flux_density_to_pascals_factor:
   default_units: (m**-2 / s) / Pa
+flux_expansion_Bt_over_Bu:
+  default_units: ''
+flux_expansion_Bxpt_over_Bu:
+  default_units: ''
 flux_tube_cross_section_area_in_divertor:
   default_units: m**2
 flux_tube_cross_section_area_out_of_divertor:
@@ -166,6 +172,8 @@ parallel_to_perp_factor:
   default_units: ''
 perp_ion_flux_to_target:
   default_units: m**-2 / s
+pressure_broadening_factor:
+  default_units: ''
 radiated_fraction_above_xpt:
   default_units: ''
 radiative_efficiency:

@@ -160,13 +160,28 @@ def calc_geometry(p: "ModelInputs") -> Geometry:
 
 
 def calc_z_effective(
-    impurity_fraction: float, electron_temp_eV: float, p: "ModelInputs", starting_z_effective: float = 1.0
+    impurity_fraction: float,
+    electron_temp_eV: float,
+    p: "ModelInputs",
+    starting_z_effective: float = 1.0,
+    enrichment_factor: float = 1.0,
 ) -> float:
-    """Calculate the effective charge from the seed and fixed impurity content at the given electron temperature."""
+    """Calculate the effective charge from the seed and fixed impurity content at the given electron temperature.
+
+    Args:
+        impurity_fraction: seed-impurity concentration multiplier (the divertor concentration c_z).
+        electron_temp_eV: electron temperature at which to evaluate the mean charge states.
+        p: model inputs (provides the seed/fixed mean-charge interpolators and concentration weights).
+        starting_z_effective: baseline Z_eff of the background plasma (1.0 for pure hydrogenic).
+        enrichment_factor: divertor enrichment f_enrich. All (seed and fixed) impurity concentrations
+            are divided by it, so passing ``p.divertor_enrichment_factor`` yields the *upstream*
+            (main-chamber) Z_eff, where the concentration is c_z / f_enrich; the default 1.0 yields the
+            divertor Z_eff (full concentration).
+    """
     seed_mean_z = p.mean_charge_for_seed_impurities.unitless_eval(electron_temp_eV)
     fixed_mean_z = p.mean_charge_for_fixed_impurities.unitless_eval(electron_temp_eV)
-    seed_c_z = impurity_fraction * p.CzLINT_for_seed_impurities.weights
-    fixed_c_z = p.CzLINT_for_fixed_impurities.weights
+    seed_c_z = impurity_fraction * p.CzLINT_for_seed_impurities.weights / enrichment_factor
+    fixed_c_z = p.CzLINT_for_fixed_impurities.weights / enrichment_factor
     z_effective = (
         starting_z_effective
         + (seed_mean_z * (seed_mean_z - 1.0) * seed_c_z).sum(dim="dim_species")
@@ -175,7 +190,9 @@ def calc_z_effective(
     return z_effective.values
 
 
-def calc_q_parallel(separatrix_electron_temp: float, alpha_t: float, geo: Geometry, p: "ModelInputs") -> float:
+def calc_q_parallel(
+    separatrix_electron_temp: float, alpha_t: float, geo: Geometry, p: "ModelInputs", clamp_alpha_t: bool
+) -> float:
     """Calculate the parallel heat flux entering the flux tube, consistent with alpha_t and the separatrix electron temperature."""
     separatrix_average_rho_s_pol = (
         np.sqrt(separatrix_electron_temp * p.average_ion_mass)
@@ -183,6 +200,8 @@ def calc_q_parallel(separatrix_electron_temp: float, alpha_t: float, geo: Geomet
         * np.sqrt(amu_to_kg / elementary_charge)
     )  # in metres, for Te in eV, mi in amu and B0 in T
 
+    if clamp_alpha_t:
+        alpha_t = np.maximum(alpha_t, 0.0)
     separatrix_average_lambda_Te = 2.1 * (1 + 2.1 * alpha_t**1.7) * separatrix_average_rho_s_pol
     separatrix_average_lambda_q = 2.0 / 7.0 * separatrix_average_lambda_Te
 
@@ -196,27 +215,63 @@ def calc_q_parallel(separatrix_electron_temp: float, alpha_t: float, geo: Geomet
     )  # in watts per metres-squared
 
 
-def calc_kappa_e(divertor_z_effective: float) -> float:
-    """Calculate the impurity-corrected electron heat conductivity coefficient.
+def calc_heat_conductivity_factor(z_effective: float) -> float:
+    """Calculate the impurity-corrected electron heat-conductivity factor kappa_e0 / kappa_z.
 
-    Uses equation 10 from Brown and Goldston, 2021, NME 27 101002.
+    kappa_z is the Z_eff correction to the Spitzer-Harm conductivity (equation 10 from Brown and
+    Goldston, 2021, NME 27 101002); the returned factor kappa_e0 / kappa_z is the quantity that
+    enters the conduction integral and the Lengyel power balance.
     """
-    kappa_z = 0.672 + 0.076 * np.sqrt(divertor_z_effective) + 0.252 * divertor_z_effective
+    kappa_z = 0.672 + 0.076 * np.sqrt(z_effective) + 0.252 * z_effective
     return kappa_e0 / kappa_z
 
 
 def calc_temperature_ladder(
-    electron_temp_at_cc_interface: float, q_parallel: float, kappa_e: float, p: "ModelInputs"
+    electron_temp_at_cc_interface: float,
+    q_parallel: float,
+    divertor_heat_conductivity_factor: float,
+    upstream_heat_conductivity_factor: float,
+    p: "ModelInputs",
 ) -> tuple[float, float]:
-    """Integrate the conduction equation to get the divertor entrance and separatrix electron temperatures (eV)."""
+    """Integrate the conduction equation to get the divertor entrance and separatrix electron temperatures (eV).
+
+    Args:
+        electron_temp_at_cc_interface: electron temperature at the convection-conduction interface (eV).
+        q_parallel: parallel heat flux entering the flux tube (W/m^2).
+        divertor_heat_conductivity_factor: heat-conductivity factor (kappa_e0/kappa_z) for the
+            cc->divertor (divertor) leg, from the divertor Z_eff.
+        upstream_heat_conductivity_factor: heat-conductivity factor (kappa_e0/kappa_z) for the
+            divertor->upstream (main-chamber) leg, from the upstream Z_eff.
+        p: model inputs (connection lengths, SOL conduction fraction, heat-flux broadening,
+            flux-expansion field ratios).
+    """
+    # Flux-expansion factors: the conductive flux is anchored upstream and scales as q ~ B along
+    # each leg (q_parallel / B conserved), so the leg-mean flux entering the conduction integral is
+    # q_parallel times the leg-mean of B / B_u. For a constant field gradient (B linear in s) that
+    # mean is the average of the leg's endpoint field ratios. Both reduce to 1 at the default ratios.
+    fx_t, fx_xpt = p.flux_expansion_Bt_over_Bu, p.flux_expansion_Bxpt_over_Bu
+    cc_div_flux_expansion_factor = 0.5 * (fx_t + fx_xpt)
+    div_u_flux_expansion_factor = 0.5 * (fx_xpt + 1.0)
+
     divertor_entrance_electron_temp = (
         electron_temp_at_cc_interface**3.5
-        + 3.5 * p.SOL_conduction_fraction * q_parallel / p.divertor_broadening_factor * p.divertor_parallel_length / kappa_e
+        + 3.5
+        * p.SOL_conduction_fraction
+        * q_parallel
+        / p.divertor_broadening_factor
+        * cc_div_flux_expansion_factor
+        * p.divertor_parallel_length
+        / divertor_heat_conductivity_factor
     ) ** (2.0 / 7.0)  # in electron-volts
 
     separatrix_electron_temp = (
         divertor_entrance_electron_temp**3.5
-        + 3.5 * p.SOL_conduction_fraction * q_parallel * (p.parallel_connection_length - p.divertor_parallel_length) / kappa_e
+        + 3.5
+        * p.SOL_conduction_fraction
+        * q_parallel
+        * div_u_flux_expansion_factor
+        * (p.parallel_connection_length - p.divertor_parallel_length)
+        / upstream_heat_conductivity_factor
     ) ** (2.0 / 7.0)  # in electron-volts
 
     return divertor_entrance_electron_temp, separatrix_electron_temp
@@ -246,7 +301,7 @@ def calc_f_other(p: "ModelInputs") -> float:
     return (
         ((1.0 + p.target_ratio_of_ion_to_electron_temp / p.target_ratio_of_electron_to_ion_density) / 2.0)
         * ((1.0 + p.target_mach_number**2) ** 2 / (4.0 * p.target_mach_number**2))
-        * p.toroidal_flux_expansion**-2
+        * p.flux_expansion_Bt_over_Bu**2
     )
 
 
@@ -278,6 +333,73 @@ def calc_lengyel_integrals(
     )
 
 
+def calc_tB(
+    q_parallel: float,
+    k_base: float,
+    upstream_heat_conductivity_factor: float,
+    Lint_div_u: float,
+    divertor_enrichment_factor: float,
+    flux_expansion_Bt_over_Bu: float,
+    flux_expansion_Bxpt_over_Bu: float,
+) -> float:
+    """Calculate the magnetic-flux-expansion correction t_B for the Lengyel power balance.
+
+    The field strength varies along the field line, so the conserved conductive quantity is
+    q_parallel / B rather than q_parallel. Integrating the conservative field-line energy
+    equation introduces ``t_B = - integral (q_parallel**2 / B) dB`` (Moulton et al. 2021,
+    NF 61 046029, eqs 10-11), which is zero when B is constant. The upstream parallel power
+    balance combines the two conduction legs as ``q_||u^2 - b_q^2 q_cc^2 + 2 t_B``, with the
+    combined correction ``t_B = b_q^2 t_B^{cc->div} + t_B^{div->u}`` (the cc->div leg carries
+    the same b_q^2 as its radiation integral).
+
+    Assumptions (see the appendix of the manuscript). t_B is evaluated in the upstream-referenced
+    flux ``q_up = q_parallel * B_u / B`` (which removes the flux expansion, so q_up = q_||u
+    everywhere in the no-radiation limit), giving ``t_B^{a->b} = -<q_up^2> (B_b^2 - B_a^2) / (2
+    B_u^2)`` (angle brackets: along-leg average) with only radiation varying q_up along the
+    field line:
+
+    - **Radiation reduces the flux.** The X-point value follows from the div->u radiation,
+      ``q_xpt^2 = q_||u^2 - k_base * (kappa_e0/kappa_z)_u * L_INT^{div->u} / f_enrich`` (the
+      upstream balance with t_B itself neglected -- a correction to a correction).
+    - **Per-leg representative flux.** The div->u leg (radiation weak at high T) uses the mean of
+      its squared endpoints ``0.5 (q_xpt^2 + q_||u^2)``; the cc->div leg (radiation peaks near the
+      target, so q_up stays near its X-point value ``q_xpt / b_q`` over most of the leg) uses
+      ``q_xpt^2``.
+    - **Reference field B_u, not the local B_xpt.** Both legs divide by B_u, consistently with how
+      q_xpt is defined (from the flux-expansion-free balance above); referencing the divertor leg
+      to the local B_xpt would double-count the flux expansion and break the no-radiation limit.
+
+    This is exact in the no-radiation limit (q_xpt -> q_||u gives 0.5 q_||u^2 ((B_t/B_u)^2 - 1))
+    and agrees with the spatial Lengyel reference (``spatial_lengyel.py``) to within ~2.5% for
+    B_t/B_u up to ~2. NOTE it uses the radiation-reduced flux whereas the conduction ladder
+    (``calc_temperature_ladder``) uses the radiation-free q_||u, so the two are not strictly
+    consistent -- accepted because the conduction integral depends only weakly on q_parallel
+    (through the 7/2 power) while t_B is quadratic in it. A temperature-integral treatment (or
+    reducing q_parallel for radiation in the ladder too) would remove both the residual and the
+    inconsistency.
+
+    Args:
+        q_parallel: upstream parallel heat flux q_||u (W/m^2).
+        k_base: ``2 * separatrix_electron_density**2 * separatrix_electron_temp**2`` (density in n20).
+        upstream_heat_conductivity_factor: kappa_e0/kappa_z for the div->upstream leg (upstream Z_eff).
+        Lint_div_u: impurity-weighted (seed + fixed) radiation integral over the div->upstream leg.
+        divertor_enrichment_factor: divertor enrichment f_enrich.
+        flux_expansion_Bt_over_Bu: target/upstream field-strength ratio B_t/B_u.
+        flux_expansion_Bxpt_over_Bu: X-point/upstream field-strength ratio B_xpt/B_u.
+
+    Returns:
+        The flux-expansion correction t_B (W^2/m^4) for the ``q_||u^2 - b_q^2 q_cc^2 + 2 t_B``
+        numerator; zero when both field ratios are 1.0.
+    """
+    q_parallel_squared = q_parallel**2
+    # Upstream-referenced X-point heat flux from the divertor->upstream radiation.
+    qxpt_up_squared = max(q_parallel_squared - k_base * upstream_heat_conductivity_factor * Lint_div_u / divertor_enrichment_factor, 0.0)
+    mean_q2_div_u = 0.5 * (qxpt_up_squared + q_parallel_squared)
+
+    fx_t, fx_xpt = flux_expansion_Bt_over_Bu, flux_expansion_Bxpt_over_Bu
+    return mean_q2_div_u * 0.5 * (fx_xpt**2 - 1.0) + qxpt_up_squared * 0.5 * (fx_t**2 - fx_xpt**2)
+
+
 class TargetPostProcessing(NamedTuple):
     """Target quantities derived from the target electron temperature and parallel heat flux."""
 
@@ -289,7 +411,12 @@ class TargetPostProcessing(NamedTuple):
 def calc_target_postprocessing(
     target_electron_temp: float, parallel_heat_flux_at_target: float, geo: Geometry, p: "ModelInputs"
 ) -> TargetPostProcessing:
-    """Calculate the ion flux, divertor neutral pressure and perpendicular heat flux at the target."""
+    """Calculate the ion flux, divertor neutral pressure and perpendicular heat flux at the target.
+
+    ``parallel_heat_flux_at_target`` is the actual parallel heat flux at the target sheath, already
+    carrying the B_t/B_u field-strength amplification (applied in the solver), so it feeds the sheath
+    relations directly.
+    """
     sound_speed_at_target = np.sqrt(2.0 * target_electron_temp * (eV_to_J / amu_to_kg) / p.average_ion_mass)  # m / s
 
     electron_density_at_target = parallel_heat_flux_at_target / (

@@ -1,10 +1,8 @@
 """Tests for the iterative forward extended Lengyel model.
 
-The reference values below are a regression baseline: they were produced by the
-original (pre-refactor) implementations of these models and are pinned in the
-golden file of the extended-lengyel-validation project, which remains the
-authoritative regression suite. They use the Mavrin polynomial atomic data, so
-this test does not depend on a radas dataset being built.
+The reference values below are a regression baseline for the iterative solver,
+including region-specific heat conductivity. They use the Mavrin polynomial
+atomic data, so this test does not depend on a radas dataset being built.
 """
 
 import numpy as np
@@ -75,73 +73,73 @@ FORWARD_REFERENCE_CASES = [
     (
         dict(impurity_fraction=0.01, separatrix_electron_density=2.5),
         dict(
-            target_electron_temp=65.49112461678739,
-            parallel_ion_flux_to_target=1.4681064591614932e24,
-            neutral_pressure_in_divertor=0.5050966227756978,
-            alpha_t=0.17692094272990122,
-            q_parallel=436134412.5994577,
-            heat_flux_perp_to_target=6449715.261109519,
-            separatrix_z_effective=1.2406625829525029,
+            target_electron_temp=65.48154989569336,
+            parallel_ion_flux_to_target=1.4683019644000154e24,
+            neutral_pressure_in_divertor=0.5051638856333035,
+            alpha_t=0.17690078943101023,
+            q_parallel=436129721.3687435,
+            heat_flux_perp_to_target=6449631.092781873,
+            separatrix_z_effective=1.2406651424538906,
         ),
     ),
     (
         dict(impurity_fraction=0.01, separatrix_electron_density=3.3),
         dict(
-            target_electron_temp=35.94328406827099,
-            parallel_ion_flux_to_target=2.4609526880213976e24,
-            neutral_pressure_in_divertor=0.8466817128781872,
-            alpha_t=0.260053003958726,
-            q_parallel=411740890.595647,
-            heat_flux_perp_to_target=5933645.0604971405,
-            separatrix_z_effective=1.241869557819673,
+            target_electron_temp=35.90608039627415,
+            parallel_ion_flux_to_target=2.4634043935643066e24,
+            neutral_pressure_in_divertor=0.8475252131448305,
+            alpha_t=0.25980786076213835,
+            q_parallel=411758077.21524113,
+            heat_flux_perp_to_target=5933408.576592905,
+            separatrix_z_effective=1.2418348697399,
         ),
     ),
     (
         dict(impurity_fraction=0.038, separatrix_electron_density=2.5),
         dict(
-            target_electron_temp=53.977817609083225,
-            parallel_ion_flux_to_target=1.6112141020396254e24,
-            neutral_pressure_in_divertor=0.5543322804897981,
-            alpha_t=0.24624239649550964,
-            q_parallel=406424307.37085736,
-            heat_flux_perp_to_target=5834036.209256478,
-            separatrix_z_effective=1.8590885204144865,
+            target_electron_temp=53.90743525133048,
+            parallel_ion_flux_to_target=1.613141039686647e24,
+            neutral_pressure_in_divertor=0.5549952362936749,
+            alpha_t=0.2459931390892039,
+            q_parallel=406427539.3165196,
+            heat_flux_perp_to_target=5833397.275933443,
+            separatrix_z_effective=1.8591639307014811,
         ),
     ),
     (
         dict(impurity_fraction=0.038, separatrix_electron_density=3.3),
         dict(
-            target_electron_temp=2.4566047419660366,
-            parallel_ion_flux_to_target=5.0708001889293e24,
-            neutral_pressure_in_divertor=1.74459013800771,
-            alpha_t=0.3598835042569608,
-            q_parallel=364587978.86462486,
-            heat_flux_perp_to_target=835626.7383516281,
-            separatrix_z_effective=1.8640696385197995,
+            target_electron_temp=2.3992689188137204,
+            parallel_ion_flux_to_target=5.07034970882717e24,
+            neutral_pressure_in_divertor=1.744435151986912,
+            alpha_t=0.3583405058600917,
+            q_parallel=364920307.47335297,
+            heat_flux_perp_to_target=816051.160352518,
+            separatrix_z_effective=1.8635044129661487,
         ),
     ),
     (
         dict(impurity_fraction=0.06, separatrix_electron_density=2.5),
         dict(
-            target_electron_temp=43.08974428274713,
-            parallel_ion_flux_to_target=1.800246557385063e24,
-            neutral_pressure_in_divertor=0.6193682008715609,
-            alpha_t=0.2962506740650417,
-            q_parallel=383753753.24930555,
-            heat_flux_perp_to_target=5203630.496488394,
-            separatrix_z_effective=2.344755836032303,
+            target_electron_temp=42.92978128700255,
+            parallel_ion_flux_to_target=1.805859404061695e24,
+            neutral_pressure_in_divertor=0.6212992801082423,
+            alpha_t=0.2955617559926586,
+            q_parallel=383831310.12152195,
+            heat_flux_perp_to_target=5200476.705934286,
+            separatrix_z_effective=2.34501249024204,
         ),
     ),
     (
         dict(impurity_fraction=0.038, separatrix_electron_density=3.3, power_crossing_separatrix=8.0),
         dict(
-            target_electron_temp=45.91719174198923,
-            parallel_ion_flux_to_target=2.4741026848392794e24,
-            neutral_pressure_in_divertor=0.8512059208746677,
-            alpha_t=0.28329227383734557,
-            q_parallel=546823857.8257205,
-            heat_flux_perp_to_target=7620677.517582321,
-            separatrix_z_effective=1.879207470757456,
+            target_electron_temp=45.71023683407206,
+            parallel_ion_flux_to_target=2.4840086488202465e24,
+            neutral_pressure_in_divertor=0.8546140313157742,
+            alpha_t=0.28241434402236465,
+            q_parallel=546917343.7936234,
+            heat_flux_perp_to_target=7616704.721007164,
+            separatrix_z_effective=1.879777737920754,
         ),
     ),
 ]
@@ -227,11 +225,12 @@ def test_forward_model_inverts_the_inverse_model(model_kwargs):
 
 
 def test_forward_model_agrees_with_the_published_inverse_model():
-    """The forward model inverts run_extended_lengyel_model_with_S_Zeff_and_alphat_correction.
+    """The forward model stays close to run_extended_lengyel_model_with_S_Zeff_and_alphat_correction.
 
-    That model is an independent implementation of the same physics (Body, Kallenbach and Eich,
-    NF 2025), built from the modular algorithms rather than the iteration loop of this subpackage,
-    so agreement between the two is a cross-check of the port and not a self-consistency check.
+    That model is the published NF 2025 formulation, built from the modular algorithms.
+    This subpackage adds region-specific heat conductivity even when pressure broadening,
+    enrichment and flux expansion are left at their defaults, so the two are no longer
+    the same model. The tolerances below bound that shift.
     """
     import cfspopcon
     import xarray as xr
@@ -300,14 +299,15 @@ def test_forward_model_agrees_with_the_published_inverse_model():
     )
 
     assert forward["converged"].item()
+    # Region-specific conductivity shifts the target temperature by about 4% at this point.
     assert np.isclose(
         magnitude_in_units(forward["target_electron_temp"], ureg.eV),
         magnitude_in_units(target_electron_temp, ureg.eV),
-        rtol=1e-2,
+        rtol=5e-2,
     )
     for key in ("alpha_t", "q_parallel", "separatrix_z_effective"):
         assert np.isclose(
-            magnitude_in_units(forward[key], OUTPUT_UNITS[key]), magnitude_in_units(inverse[key], OUTPUT_UNITS[key]), rtol=1e-3
+            magnitude_in_units(forward[key], OUTPUT_UNITS[key]), magnitude_in_units(inverse[key], OUTPUT_UNITS[key]), rtol=1e-2
         ), key
 
 
