@@ -65,10 +65,6 @@ def read_config( # noqa:PLR0912
         allowed_missing = []
     if elements is None:
         elements = []
-    if allowed_missing is None:
-        allowed_missing = []
-    if overrides is None:
-        overrides = {}
 
     config = read_config_from_yaml(filepath)
 

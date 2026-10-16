@@ -6,7 +6,7 @@ from cfspopcon import CompositeAlgorithm, declare_algorithm
 from cfspopcon.unit_handling import ureg
 
 from .Lengyel_model_core import CzLINT_integrator
-from ..xr_helpers import item
+from cfspopcon.helpers import get_item as item
 
 @declare_algorithm(return_keys=["impurity_fraction", "radiated_fraction_above_xpt"])
 def run_extended_lengyel_model_with_S_correction(

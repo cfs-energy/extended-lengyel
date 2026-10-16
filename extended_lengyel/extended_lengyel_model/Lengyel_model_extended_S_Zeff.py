@@ -11,7 +11,7 @@ from .upstream_temp import calc_separatrix_electron_temp_with_broadening, calc_s
 
 from .Lengyel_model_core import CzLINT_integrator, Mean_charge_interpolator, calc_z_effective
 from .Lengyel_model_extended_S import run_extended_lengyel_model_with_S_correction
-from ..xr_helpers import item
+from cfspopcon.helpers import get_item as item
 
 
 @declare_algorithm(

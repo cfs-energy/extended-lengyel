@@ -1,8 +1,16 @@
 from pathlib import Path
+
+import cfspopcon
+import cfspopcon.input_file_handling as input_file_handling
 import numpy as np
+import pytest
 import yaml
+from cfspopcon.input_file_handling import process_input_dictionary
+from cfspopcon.named_options import LambdaQScaling
+from cfspopcon.unit_handling import Quantity, magnitude_in_units
+
 from extended_lengyel.cli import run_extended_lengyel
-from cfspopcon.unit_handling import Quantity
+from extended_lengyel.input_patches import patched_cfspopcon_input
 
 def test_cli(tmp_path):
     
@@ -101,3 +109,31 @@ input:
         output_2 = yaml.load(f, Loader=yaml.SafeLoader)
 
     assert np.isclose(Quantity(output_2["ion_mass"]), Quantity(2.5, "amu"))
+
+
+def test_input_patches_cover_cfspopcon_gaps():
+    """Quantity strings, null-unit numbers, and grid bounds survive the reader."""
+    cfspopcon.register_plugin("extended_lengyel")
+    raw = {
+        "plugins": ["extended_lengyel"],
+        "algorithms": [],
+        "lambda_q_scaling": "EichRegression14",
+        "mask_invalid_results": "false",
+        "iterations": "5",
+        "seed_impurity_weights": ["1.0", "0.05"],
+        "minor_radius": "0.5 m",
+        "grid": {"minor_radius": {"min": "0.4 m", "max": "0.6 m", "num": 2}},
+    }
+
+    with patched_cfspopcon_input():
+        params, _algorithm, _points, _plots = process_input_dictionary(raw, Path("."))
+
+    assert params["lambda_q_scaling"] is LambdaQScaling.EichRegression14
+    assert params["mask_invalid_results"] is False
+    assert params["iterations"] == 5
+    assert params["seed_impurity_weights"] == [1.0, 0.05]
+    radii = magnitude_in_units(params["minor_radius"], "meter")
+    assert np.allclose(radii.values, [0.4, 0.6])
+
+    with pytest.raises(RuntimeError):
+        input_file_handling.set_default_units(1.0, "iterations")

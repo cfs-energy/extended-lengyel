@@ -4,7 +4,7 @@ import numpy as np
 from cfspopcon import declare_algorithm
 from cfspopcon.named_options import AtomicSpecies
 from cfspopcon.unit_handling import magnitude_in_units, ureg
-from .xr_helpers import item
+from cfspopcon.helpers import get_item as item
 
 
 @declare_algorithm(return_keys=["separatrix_electron_density"])

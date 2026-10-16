@@ -4,7 +4,7 @@ import numpy as np
 import xarray as xr
 from cfspopcon import CompositeAlgorithm, declare_algorithm
 
-from ..xr_helpers import item
+from cfspopcon.helpers import get_item as item
 
 
 @declare_algorithm(return_keys=["impurity_fraction"])
