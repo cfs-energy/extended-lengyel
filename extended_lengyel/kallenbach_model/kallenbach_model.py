@@ -4,14 +4,14 @@ import warnings
 from typing import Literal
 
 import numpy as np
-from cfspopcon import Algorithm, CompositeAlgorithm
+from cfspopcon import CompositeAlgorithm, declare_algorithm
 from cfspopcon.unit_handling import ureg, wraps_ufunc
 from scipy.integrate import solve_ivp
 
 from .kallenbach_ode import kallenbach_change_in_state_vector
 
 
-@Algorithm.register_algorithm(
+@declare_algorithm(
     return_keys=[
         "s_parallel",
         "electron_density",
@@ -193,69 +193,57 @@ def run_kallenbach_model(
         return (s_parallel, nan_array, nan_array, nan_array, nan_array, nan_array, np.nan, np.nan, model_success)
 
 
-CompositeAlgorithm(
-    algorithms=[
-        Algorithm.get_algorithm(alg)
-        for alg in [
-            "read_deuterium_adas_data",
-            "read_impurity_adas_data",
-            "calc_parallel_to_perp_factor",
-            "calc_parallel_heat_flux_at_target",
-            "calc_sound_speed_at_target",
-            "calc_franck_condon_neutral_velocity",
-            "calc_target_density",
-            "calc_neutral_density_at_target",
-            "calc_z_effective",
-            "calc_kappa_e0",
-        ]
+initialize_kallenbach_model = CompositeAlgorithm.declare(
+    [
+        "read_deuterium_adas_data",
+        "read_impurity_adas_data",
+        "calc_parallel_to_perp_factor",
+        "calc_parallel_heat_flux_at_target",
+        "calc_sound_speed_at_target",
+        "calc_franck_condon_neutral_velocity",
+        "calc_target_density",
+        "calc_neutral_density_at_target",
+        "calc_z_effective",
+        "calc_kappa_e0",
     ],
     name="initialize_kallenbach_model",
-    register=True,
 )
 
-CompositeAlgorithm(
-    algorithms=[
-        Algorithm.get_algorithm(alg)
-        for alg in [
-            "calc_ion_temp",
-            "calc_ion_density",
-            "calc_static_pressure",
-            "calc_dynamic_pressure",
-            "calc_total_pressure",
-            "calc_separatrix_total_pressure",
-            "calc_sound_speed",
-            "calc_mach_number",
-            "calc_charge_exchange_power_loss_density",
-            "calc_ionization_power_loss_density",
-            "calc_hydrogen_radiated_power_density",
-            "calc_impurity_radiated_power_density",
-            "calc_upstream_density",
-            "calc_upstream_temp",
-            "calc_upstream_q_total",
-            "calc_target_q_total",
-            "calc_SOL_momentum_loss_fraction",
-            "calc_SOL_power_loss_fraction",
-            "calc_convected_and_conducted_heat_flux",
-            "calc_values_at_conduction_convection_interface",
-            "calc_SOL_power_loss_fraction_in_convection_layer",
-            "calc_SOL_momentum_loss_fraction_in_convection_layer",
-            "calc_electron_temp_ratio_in_convection_layer",
-            "calc_electron_density_ratio_in_convection_layer",
-        ]
+postprocess_kallenbach_model = CompositeAlgorithm.declare(
+    [
+        "calc_ion_temp",
+        "calc_ion_density",
+        "calc_static_pressure",
+        "calc_dynamic_pressure",
+        "calc_total_pressure",
+        "calc_separatrix_total_pressure",
+        "calc_sound_speed",
+        "calc_mach_number",
+        "calc_charge_exchange_power_loss_density",
+        "calc_ionization_power_loss_density",
+        "calc_hydrogen_radiated_power_density",
+        "calc_impurity_radiated_power_density",
+        "calc_upstream_density",
+        "calc_upstream_temp",
+        "calc_upstream_q_total",
+        "calc_target_q_total",
+        "calc_SOL_momentum_loss_fraction",
+        "calc_SOL_power_loss_fraction",
+        "calc_convected_and_conducted_heat_flux",
+        "calc_values_at_conduction_convection_interface",
+        "calc_SOL_power_loss_fraction_in_convection_layer",
+        "calc_SOL_momentum_loss_fraction_in_convection_layer",
+        "calc_electron_temp_ratio_in_convection_layer",
+        "calc_electron_density_ratio_in_convection_layer",
     ],
     name="postprocess_kallenbach_model",
-    register=True,
 )
 
-CompositeAlgorithm(
-    algorithms=[
-        Algorithm.get_algorithm(alg)
-        for alg in [
-            "initialize_kallenbach_model",
-            "run_kallenbach_model",
-            "postprocess_kallenbach_model",
-        ]
+kallenbach_model = CompositeAlgorithm.declare(
+    [
+        "initialize_kallenbach_model",
+        "run_kallenbach_model",
+        "postprocess_kallenbach_model",
     ],
     name="kallenbach_model",
-    register=True,
 )

@@ -1,3 +1,5 @@
+plugins:
+  - extended_lengyel
 algorithms:
   - calc_magnetic_field_and_safety_factor
   - calc_fieldline_pitch_at_omp

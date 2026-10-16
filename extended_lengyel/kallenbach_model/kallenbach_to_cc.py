@@ -4,14 +4,14 @@ import warnings
 from typing import Literal
 
 import numpy as np
-from cfspopcon import Algorithm, CompositeAlgorithm
+from cfspopcon import CompositeAlgorithm, declare_algorithm
 from cfspopcon.unit_handling import ureg, wraps_ufunc
 from scipy.integrate import solve_ivp
 
 from .kallenbach_ode import eV_to_J, kallenbach_change_in_state_vector
 
 
-@Algorithm.register_algorithm(
+@declare_algorithm(
     return_keys=[
         "s_parallel_at_cc_interface",
         "electron_density_at_cc_interface",
@@ -147,29 +147,21 @@ def run_kallenbach_model_to_cc(
         return np.nan, np.nan, np.nan, np.nan, np.nan, np.nan, model_success
 
 
-CompositeAlgorithm(
-    algorithms=[
-        Algorithm.get_algorithm(alg)
-        for alg in [
-            "calc_SOL_power_loss_fraction_in_convection_layer",
-            "calc_SOL_momentum_loss_fraction_in_convection_layer",
-            "calc_electron_temp_ratio_in_convection_layer",
-            "calc_electron_density_ratio_in_convection_layer",
-        ]
+postprocess_kallenbach_model_at_cc = CompositeAlgorithm.declare(
+    [
+        "calc_SOL_power_loss_fraction_in_convection_layer",
+        "calc_SOL_momentum_loss_fraction_in_convection_layer",
+        "calc_electron_temp_ratio_in_convection_layer",
+        "calc_electron_density_ratio_in_convection_layer",
     ],
     name="postprocess_kallenbach_model_at_cc",
-    register=True,
 )
 
-CompositeAlgorithm(
-    algorithms=[
-        Algorithm.get_algorithm(alg)
-        for alg in [
-            "initialize_kallenbach_model",
-            "run_kallenbach_model_to_cc",
-            "postprocess_kallenbach_model_at_cc",
-        ]
+kallenbach_model_to_cc = CompositeAlgorithm.declare(
+    [
+        "initialize_kallenbach_model",
+        "run_kallenbach_model_to_cc",
+        "postprocess_kallenbach_model_at_cc",
     ],
     name="kallenbach_model_to_cc",
-    register=True,
 )

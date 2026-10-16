@@ -1,0 +1,220 @@
+1.3Psep/R/p0/lambda_int - 1:
+  default_units: ''
+cz*fz:
+  default_units: ''
+p0(1+fz*cz)/1.3:
+  default_units: ''
+Psep/R/lambda_int:
+  default_units: ''
+change_in_parallel_convective_heat_flux:
+  default_units: eV / s / meter ** 2
+charge_exchange_integral:
+  default_units: eV / meter ** 3
+charge_exchange_power_loss:
+  default_units: eV / s / meter ** 3
+conducted_fraction_at_cc_interface:
+  default_units: ''
+conduction_prefactor_in_divertor:
+  default_units: ''
+conduction_prefactor_in_main_chamber:
+  default_units: ''
+conductive_heat_flux_at_target:
+  default_units: W / m**2
+convective_heat_flux_at_target:
+  default_units: W / m**2
+converged:
+  default_units: null
+CzLINT_for_fixed_impurities:
+  default_units: null
+CzLINT_for_seed_impurities:
+  default_units: null
+deuterium_adas_data:
+  default_units: null
+divertor_broadening_factor:
+  default_units: ''
+divertor_entrance_electron_density:
+  default_units: m**-3
+divertor_entrance_electron_temp:
+  default_units: eV
+divertor_entrance_parallel_heat_flux:
+  default_units: W / m**2
+divertor_parallel_length:
+  default_units: m
+dynamic_pressure:
+  default_units: Pa
+electron_density_at_cc_interface:
+  default_units: m**-3
+electron_density_at_target:
+  default_units: m**-3
+electron_density_ratio_in_convection_layer:
+  default_units: ''
+electron_density:
+  default_units: m**-3
+electron_temp_at_cc_interface:
+  default_units: eV
+electron_temp_ratio_in_convection_layer:
+  default_units: ''
+electron_temp:
+  default_units: eV
+fast_neutral_flux_at_target:
+  default_units: m**-2 / s
+fast_neutral_flux:
+  default_units: m**-2 / s
+fast_neutral_fraction:
+  default_units: ''
+fast_neutral_penetration_factor:
+  default_units: ''
+fast_neutral_velocity:
+  default_units: m / s
+fixed_impurity_species:
+  default_units: null
+fixed_impurity_weights:
+  default_units: null
+flux_density_to_pascals_factor:
+  default_units: (m**-2 / s) / Pa
+flux_tube_cross_section_area_in_divertor:
+  default_units: m**2
+flux_tube_cross_section_area_out_of_divertor:
+  default_units: m**2
+Franck_condon_energy:
+  default_units: eV
+franck_condon_neutral_flux_at_target:
+  default_units: m**-2 / s
+franck_condon_neutral_flux:
+  default_units: m**-2 / s
+franck_condon_neutral_velocity:
+  default_units: m / s
+heat_flux_perp_to_target:
+  default_units: W / m**2
+hydrogen_effective_ionization_energy:
+  default_units: eV
+hydrogen_radiated_power:
+  default_units: eV / s / meter ** 3
+impurity_adas_data:
+  default_units: null
+impurity_fraction:
+  default_units: percent
+impurity_radiated_power:
+  default_units: eV / s / meter ** 3
+ion_density:
+  default_units: m**-3
+ion_mass:
+  default_units: amu
+ion_temp:
+  default_units: eV
+ion_velocity_at_cc_interface:
+  default_units: m / s
+ion_velocity_epsilon:
+  default_units: null
+ion_velocity:
+  default_units: m / s
+ionization_integral:
+  default_units: 1 / meter ** 2 / second
+ionization_power_loss:
+  default_units: eV / s / meter ** 3
+iterations:
+  default_units: null
+iterations_for_alphat:
+  default_units: null
+iterations_for_Lengyel_model:
+  default_units: null
+kappa_z:
+  default_units: ''
+lambda_int:
+  default_units: m
+mach_number_at_target:
+  default_units: ''
+mach_number:
+  default_units: ''
+mask_invalid_results:
+  default_units: null
+mean_charge_for_fixed_impurities:
+  default_units: null
+mean_charge_for_seed_impurities:
+  default_units: null
+model_success:
+  default_units: null
+neutral_density_at_cc_interface:
+  default_units: m**-3
+neutral_density_at_target:
+  default_units: m**-3
+neutral_density:
+  default_units: m**-3
+neutral_pressure_in_divertor:
+  default_units: Pa
+number_of_grid_points:
+  default_units: ''
+ode_atol:
+  default_units: null
+ode_method:
+  default_units: null
+ode_rtol:
+  default_units: null
+parallel_conductive_heat_flux:
+  default_units: W / m**2
+parallel_convective_heat_flux:
+  default_units: W / m**2
+parallel_heat_flux_at_cc_interface:
+  default_units: W / m**2
+parallel_heat_flux_at_target:
+  default_units: W / m**2
+parallel_heat_flux:
+  default_units: W / m**2
+parallel_ion_flux_to_target:
+  default_units: m**-2 / s
+parallel_to_perp_factor:
+  default_units: ''
+perp_ion_flux_to_target:
+  default_units: m**-2 / s
+radiated_fraction_above_xpt:
+  default_units: ''
+radiative_efficiency:
+  default_units: ''
+ratio_of_upstream_to_average_poloidal_field:
+  default_units: ''
+reference_electron_temp:
+  default_units: eV
+rtol_nearest_for_atomic_data:
+  default_units: null
+s_parallel_at_cc_interface:
+  default_units: m
+s_parallel:
+  default_units: m
+seed_impurity_species:
+  default_units: null
+seed_impurity_weights:
+  default_units: null
+separatrix_average_poloidal_field:
+  default_units: T
+separatrix_mach_number:
+  default_units: ''
+separatrix_ratio_of_electron_to_ion_density:
+  default_units: ''
+separatrix_ratio_of_ion_to_electron_temp:
+  default_units: ''
+separatrix_total_pressure:
+  default_units: Pa
+SOL_momentum_loss_fraction_in_convection_layer:
+  default_units: ''
+SOL_momentum_loss_fraction:
+  default_units: ''
+SOL_power_loss_fraction_in_convection_layer:
+  default_units: ''
+sound_speed_at_target:
+  default_units: m / s
+sound_speed:
+  default_units: m / s
+static_pressure:
+  default_units: Pa
+target_mach_number:
+  default_units: ''
+target_ratio_of_electron_to_ion_density:
+  default_units: ''
+target_ratio_of_ion_to_electron_temp:
+  default_units: ''
+total_pressure:
+  default_units: Pa
+divertor_z_effective:
+  default_units: ''
+separatrix_z_effective:
+  default_units: ''

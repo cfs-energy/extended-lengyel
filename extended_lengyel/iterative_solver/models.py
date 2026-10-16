@@ -12,7 +12,7 @@ algorithms. The two agree closely (see ``tests/test_forward_lengyel_model.py``)
 but are not identical -- pick one and stay with it rather than mixing them.
 """
 
-from cfspopcon.algorithm_class import Algorithm
+from cfspopcon import declare_algorithm
 from cfspopcon.unit_handling import Unitfull, ureg, wraps_ufunc
 
 from ..extended_lengyel_model.Lengyel_model_core import CzLINT_integrator, Mean_charge_interpolator
@@ -26,7 +26,7 @@ from .units import (
 )
 
 
-@Algorithm.register_algorithm(return_keys=list(FORWARD_RETURN_KEYS))
+@declare_algorithm(return_keys=list(FORWARD_RETURN_KEYS))
 @wraps_ufunc(
     input_units=build_input_units("impurity_fraction"),
     return_units=return_units_for(FORWARD_RETURN_KEYS),
@@ -85,7 +85,7 @@ def run_forward_extended_lengyel_model(
     )
 
 
-@Algorithm.register_algorithm(return_keys=list(INVERSE_RETURN_KEYS))
+@declare_algorithm(return_keys=list(INVERSE_RETURN_KEYS))
 @wraps_ufunc(
     input_units=build_input_units("target_electron_temp"),
     return_units=return_units_for(INVERSE_RETURN_KEYS),

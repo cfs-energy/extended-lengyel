@@ -2,13 +2,13 @@
 
 import numpy as np
 import xarray as xr
-from cfspopcon import Algorithm, CompositeAlgorithm
+from cfspopcon import CompositeAlgorithm, declare_algorithm
 from cfspopcon.unit_handling import ureg
 
 from .Lengyel_model_core import CzLINT_integrator
 from ..xr_helpers import item
 
-@Algorithm.register_algorithm(return_keys=["impurity_fraction", "radiated_fraction_above_xpt"])
+@declare_algorithm(return_keys=["impurity_fraction", "radiated_fraction_above_xpt"])
 def run_extended_lengyel_model_with_S_correction(
     q_parallel,
     divertor_broadening_factor,
@@ -60,52 +60,44 @@ def run_extended_lengyel_model_with_S_correction(
     return c_z, f_rad_main
 
 
-CompositeAlgorithm(
-    algorithms=[
-        Algorithm.get_algorithm(alg)
-        for alg in [
-            "set_radas_dir",
-            "read_atomic_data",
-            "set_single_impurity_species",
-            "build_CzLINT_for_seed_impurities",
-            "calc_kappa_e0",
-            "calc_Goldston_kappa_z",
-            "calc_momentum_loss_from_cc_fit",
-            "ignore_power_loss_in_convection_layer",
-            "ignore_temp_ratio_in_convection_layer",
-            "calc_separatrix_electron_temp_with_broadening",
-            "calc_separatrix_total_pressure_LG",
-            "calc_required_power_loss_fraction",
-            "calc_parallel_heat_flux_at_target_from_power_loss_fraction",
-            "calc_parallel_heat_flux_from_conv_loss",
-            "run_extended_lengyel_model_with_S_correction",
-        ]
+extended_lengyel_model_with_S_correction = CompositeAlgorithm.declare(
+    [
+        "set_radas_dir",
+        "read_atomic_data",
+        "set_single_impurity_species",
+        "build_CzLINT_for_seed_impurities",
+        "calc_kappa_e0",
+        "calc_Goldston_kappa_z",
+        "calc_momentum_loss_from_cc_fit",
+        "ignore_power_loss_in_convection_layer",
+        "ignore_temp_ratio_in_convection_layer",
+        "calc_separatrix_electron_temp_with_broadening",
+        "calc_separatrix_total_pressure_LG",
+        "calc_required_power_loss_fraction",
+        "calc_parallel_heat_flux_at_target_from_power_loss_fraction",
+        "calc_parallel_heat_flux_from_conv_loss",
+        "run_extended_lengyel_model_with_S_correction",
     ],
     name="extended_lengyel_model_with_S_correction",
-    register=True,
 )
 
-CompositeAlgorithm(
-    algorithms=[
-        Algorithm.get_algorithm(alg)
-        for alg in [
-            "set_radas_dir",
-            "read_atomic_data",
-            "set_single_impurity_species",
-            "build_CzLINT_for_seed_impurities",
-            "calc_kappa_e0",
-            "calc_Goldston_kappa_z",
-            "calc_momentum_loss_from_cc_fit",
-            "calc_power_loss_from_cc_fit",
-            "calc_electron_temp_from_cc_fit",
-            "calc_separatrix_electron_temp_with_broadening",
-            "calc_separatrix_total_pressure_LG",
-            "calc_required_power_loss_fraction",
-            "calc_parallel_heat_flux_at_target_from_power_loss_fraction",
-            "calc_parallel_heat_flux_from_conv_loss",
-            "run_extended_lengyel_model_with_S_correction",
-        ]
+extended_lengyel_model_with_S_fconv_correction = CompositeAlgorithm.declare(
+    [
+        "set_radas_dir",
+        "read_atomic_data",
+        "set_single_impurity_species",
+        "build_CzLINT_for_seed_impurities",
+        "calc_kappa_e0",
+        "calc_Goldston_kappa_z",
+        "calc_momentum_loss_from_cc_fit",
+        "calc_power_loss_from_cc_fit",
+        "calc_electron_temp_from_cc_fit",
+        "calc_separatrix_electron_temp_with_broadening",
+        "calc_separatrix_total_pressure_LG",
+        "calc_required_power_loss_fraction",
+        "calc_parallel_heat_flux_at_target_from_power_loss_fraction",
+        "calc_parallel_heat_flux_from_conv_loss",
+        "run_extended_lengyel_model_with_S_correction",
     ],
     name="extended_lengyel_model_with_S_fconv_correction",
-    register=True,
 )

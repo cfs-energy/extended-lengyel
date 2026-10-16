@@ -4,14 +4,14 @@ import warnings
 from typing import Literal
 
 import numpy as np
-from cfspopcon import Algorithm, CompositeAlgorithm
+from cfspopcon import CompositeAlgorithm, declare_algorithm
 from cfspopcon.unit_handling import ureg, wraps_ufunc
 from scipy.integrate import solve_ivp
 
 from .spatial_lengyel_ode import spatial_lengyel_change_in_state_vector
 
 
-@Algorithm.register_algorithm(
+@declare_algorithm(
     return_keys=[
         "divertor_entrance_parallel_heat_flux",
         "divertor_entrance_electron_density",
@@ -146,49 +146,37 @@ def run_spatial_lengyel_model(
         )
 
 
-CompositeAlgorithm(
-    algorithms=[
-        Algorithm.get_algorithm(alg)
-        for alg in [
-            "read_impurity_adas_data",
-            "calc_parallel_to_perp_factor",
-            "calc_parallel_heat_flux_at_target",
-            "calc_sound_speed_at_target",
-            "calc_target_density",
-            "calc_z_effective",
-            "calc_kappa_e0",
-            "calc_electron_temp_from_cc_fit",
-            "calc_electron_density_from_cc_fit",
-            "calc_power_loss_from_cc_fit",
-            "calc_parallel_heat_flux_from_conv_loss",
-            "ignore_s_parallel_width_for_cc_interface",
-        ]
+initialize_spatial_lengyel_model = CompositeAlgorithm.declare(
+    [
+        "read_impurity_adas_data",
+        "calc_parallel_to_perp_factor",
+        "calc_parallel_heat_flux_at_target",
+        "calc_sound_speed_at_target",
+        "calc_target_density",
+        "calc_z_effective",
+        "calc_kappa_e0",
+        "calc_electron_temp_from_cc_fit",
+        "calc_electron_density_from_cc_fit",
+        "calc_power_loss_from_cc_fit",
+        "calc_parallel_heat_flux_from_conv_loss",
+        "ignore_s_parallel_width_for_cc_interface",
     ],
     name="initialize_spatial_lengyel_model",
-    register=True,
 )
 
-CompositeAlgorithm(
-    algorithms=[
-        Algorithm.get_algorithm(alg)
-        for alg in [
-            "calc_momentum_loss_from_cc_fit",
-            "calc_SOL_power_loss_fraction",
-        ]
+postprocess_spatial_lengyel_model = CompositeAlgorithm.declare(
+    [
+        "calc_momentum_loss_from_cc_fit",
+        "calc_SOL_power_loss_fraction",
     ],
     name="postprocess_spatial_lengyel_model",
-    register=True,
 )
 
-CompositeAlgorithm(
-    algorithms=[
-        Algorithm.get_algorithm(alg)
-        for alg in [
-            "initialize_spatial_lengyel_model",
-            "run_spatial_lengyel_model",
-            "postprocess_spatial_lengyel_model",
-        ]
+spatial_lengyel_model = CompositeAlgorithm.declare(
+    [
+        "initialize_spatial_lengyel_model",
+        "run_spatial_lengyel_model",
+        "postprocess_spatial_lengyel_model",
     ],
     name="spatial_lengyel_model",
-    register=True,
 )

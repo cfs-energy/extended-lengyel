@@ -1,6 +1,6 @@
 """Compute the power loss in the SOL."""
 
-from cfspopcon import Algorithm
+from cfspopcon import declare_algorithm
 from cfspopcon.formulas.scrape_off_layer.two_point_model.required_power_loss_fraction import calc_required_SOL_power_loss_fraction
 from cfspopcon.formulas.scrape_off_layer.two_point_model.target_electron_temp import (
     calc_f_other_target_electron_temp,
@@ -8,7 +8,7 @@ from cfspopcon.formulas.scrape_off_layer.two_point_model.target_electron_temp im
 )
 
 
-@Algorithm.register_algorithm(return_keys=["SOL_power_loss_fraction"])
+@declare_algorithm(return_keys=["SOL_power_loss_fraction"])
 def calc_required_power_loss_fraction(
     target_electron_temp,
     q_parallel,
@@ -43,7 +43,7 @@ def calc_required_power_loss_fraction(
     return SOL_power_loss_fraction
 
 
-@Algorithm.register_algorithm(return_keys=["parallel_heat_flux_at_target"])
+@declare_algorithm(return_keys=["parallel_heat_flux_at_target"])
 def calc_parallel_heat_flux_at_target_from_power_loss_fraction(SOL_power_loss_fraction, q_parallel):
     """Compute the parallel heat flux reaching the target from the power loss."""
     return q_parallel * (1.0 - SOL_power_loss_fraction)
