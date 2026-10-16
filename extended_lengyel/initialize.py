@@ -10,7 +10,7 @@ from .directories import radas_dir
 
 from cfspopcon.formulas.separatrix_conditions.separatrix_operational_space.shared import calc_lambda_q_Eich2020H
 from cfspopcon.formulas.metrics.larmor_radius import calc_larmor_radius
-from .xr_helpers import item
+from cfspopcon.helpers import get_item as item
 
 @declare_algorithm(return_keys=["radas_dir"])
 def set_radas_dir():

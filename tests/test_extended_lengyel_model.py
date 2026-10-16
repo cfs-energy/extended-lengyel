@@ -7,7 +7,7 @@ from cfspopcon.unit_handling import ureg
 
 from extended_lengyel.directories import radas_dir
 from extended_lengyel.extended_lengyel_model.Lengyel_model_core import CzLINT_integrator, Mean_charge_interpolator, calc_z_effective
-from extended_lengyel.xr_helpers import item, values
+from cfspopcon.helpers import get_item as item
 from cfspopcon.unit_handling import magnitude_in_units, ureg, get_units
 
 def compare_magnitude(a, b):

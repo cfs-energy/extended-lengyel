@@ -12,7 +12,7 @@ from cfspopcon.unit_handling import magnitude, ureg, wraps_ufunc, Unitfull, magn
 from scipy.interpolate import InterpolatedUnivariateSpline  # type:ignore[import-untyped]
 from typing import Self
 from collections.abc import Callable
-from ..xr_helpers import item, values
+from cfspopcon.helpers import get_item as item, get_values as values
 from ..config import setup_impurities
 from ..mavrin_data import MavrinData, SpeciesMavrinData
 

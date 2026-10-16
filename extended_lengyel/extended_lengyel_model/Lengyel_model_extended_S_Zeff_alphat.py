@@ -12,7 +12,7 @@ from cfspopcon.formulas.metrics.larmor_radius import calc_larmor_radius
 
 from .Lengyel_model_extended_S_Zeff import run_extended_lengyel_model_with_S_and_Zeff_correction
 from .Lengyel_model_core import CzLINT_integrator, Mean_charge_interpolator, calc_z_effective
-from ..xr_helpers import item
+from cfspopcon.helpers import get_item as item
 
 
 @declare_algorithm(
