@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "extended_lengyel"
-version = "1.0.0"
-description = "Extended Lengyel model for plasma edge modeling."
+version = "2.0.0"
+description = "Extended Lengyel model for plasma edge modeling, as a cfspopcon plugin."
 authors = ["Commonwealth Fusion Systems"]
 readme = "README.md"
 license = "MIT"
@@ -23,8 +23,8 @@ xlengyel = 'extended_lengyel.cli:run_extended_lengyel_cli'
 python = ">=3.12"
 
 # Core CFS Physics Libraries
-radas = "^1!1.0.0"
-cfspopcon = "^8.0.0"
+radas = "^1!1.0.1"
+cfspopcon = "^9.0.1"
 
 # Data Science Stack (Synchronized with radas/cfspopcon)
 numpy = "^2.4.4"
@@ -58,6 +58,8 @@ filterwarnings = [
     "error",
     "default::FutureWarning",
     "ignore:numpy.ndarray size changed:RuntimeWarning",
+    # netCDF4 1.7 sets `.shape` on arrays internally, which NumPy 2.5 deprecated.
+    "ignore:Setting the shape on a NumPy array has been deprecated:DeprecationWarning",
 ]
 
 [tool.ruff]

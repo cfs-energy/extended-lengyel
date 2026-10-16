@@ -317,14 +317,14 @@ pycparser = {version = "*", markers = "implementation_name != \"PyPy\""}
 
 [[package]]
 name = "cfspopcon"
-version = "8.0.0"
+version = "9.0.1"
 description = "Empirically-derived scoping of tokamak operational space."
 optional = false
 python-versions = ">=3.12"
 groups = ["main"]
 files = [
-    {file = "cfspopcon-8.0.0-py3-none-any.whl", hash = "sha256:e6b70ff82ea4eefcad730f4c92c43db30cccf602b63ef3be4673ca29879abe44"},
-    {file = "cfspopcon-8.0.0.tar.gz", hash = "sha256:1aebf4fdf9d3a38629f489c2bf161cd0f71348169bacb1c372b433ff36a548d1"},
+    {file = "cfspopcon-9.0.1-py3-none-any.whl", hash = "sha256:d7838e845003f6e184d7c36e0b4ae032edd5a9023141c1e2513530075bc72134"},
+    {file = "cfspopcon-9.0.1.tar.gz", hash = "sha256:14a93f1b31968d15ad33a022230a3e5beea2e3ef585c53fad38940efc6bdfcd0"},
 ]
 
 [package.dependencies]
@@ -3758,4 +3758,4 @@ viz = ["cartopy (>=0.24)", "matplotlib (>=3.10)", "nc-time-axis", "seaborn"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12"
-content-hash = "b2c5d157e7ab503441ffa971c4db95c02ed824beb907f098f71cb0ddaa85ea7e"
+content-hash = "ac968afe5ebd1e8bd3b1a1030fe60409cb9e9b39221d52b97c33d38c9723c653"

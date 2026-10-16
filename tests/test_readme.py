@@ -1,10 +1,28 @@
-def test_readme():
-    """Test the Python text from the README file."""
+import pytest
+
+
+def readme_code_blocks():
+    """Return the contents of every ```python block in the README."""
     from pathlib import Path
 
     readme_text = (Path(__file__).parents[1]/"README.md").read_text().splitlines()
 
-    start_line = readme_text.index("```python")
-    stop_line = readme_text[start_line:].index("```")
+    blocks, block = [], None
+    for line in readme_text:
+        if block is None:
+            if line.strip() == "```python":
+                block = []
+        elif line.strip() == "```":
+            blocks.append("\n".join(block))
+            block = None
+        else:
+            block.append(line)
 
-    exec("\n".join(readme_text[start_line+1:start_line+stop_line]))
+    assert blocks, "No ```python blocks found in the README."
+    return blocks
+
+
+@pytest.mark.parametrize("block_number", range(len(readme_code_blocks())))
+def test_readme(block_number):
+    """Test the Python text from the README file."""
+    exec(readme_code_blocks()[block_number])

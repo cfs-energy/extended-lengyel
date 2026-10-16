@@ -4,7 +4,7 @@ For reference and verification.
 """
 
 import numpy as np
-from cfspopcon.algorithm_class import Algorithm, CompositeAlgorithm
+from cfspopcon import CompositeAlgorithm, declare_algorithm
 from cfspopcon.unit_handling import magnitude_in_units, ureg, wraps_ufunc
 
 from ..adas_data import AtomicSpeciesAdasData
@@ -12,7 +12,7 @@ from ..adas_data import AtomicSpeciesAdasData
 J_to_eV = float(magnitude_in_units(1.0 * ureg.J, ureg.eV))
 
 
-@Algorithm.register_algorithm(
+@declare_algorithm(
     return_keys=[
         "s_parallel",
         "parallel_conductive_heat_flux",
@@ -351,67 +351,55 @@ def run_kallenbach_idl_translation(  # noqa: PLR0915
         return (*tuple([val * np.nan for val in result]), False)
 
 
-CompositeAlgorithm(
-    algorithms=[
-        Algorithm.get_algorithm(alg)
-        for alg in [
-            "read_deuterium_adas_data",
-            "read_impurity_adas_data",
-            "calc_parallel_to_perp_factor",
-            "calc_lambda_q_from_lambda_int",
-            "calc_parallel_heat_flux_at_target",
-            "calc_magnetic_field_and_safety_factor",
-            "calc_fieldline_pitch_at_omp",
-            "calc_flux_tube_cross_section_area_in_divertor",
-            "calc_flux_tube_cross_section_area_out_of_divertor",
-            "calc_sound_speed_at_target",
-            "calc_franck_condon_neutral_velocity",
-            "calc_target_density",
-            "calc_ion_flux_to_target",
-            "calc_flux_density_to_pascals_factor",
-            "calc_divertor_neutral_pressure",
-            "calc_fast_neutral_velocity",
-            "calc_neutral_recycling_fluxes",
-            "calc_z_effective",
-            "calc_q_convective_tar",
-            "calc_q_conductive_tar",
-            "calc_kappa_e0",
-        ]
+initialize_kallenbach_idl_translation = CompositeAlgorithm.declare(
+    [
+        "read_deuterium_adas_data",
+        "read_impurity_adas_data",
+        "calc_parallel_to_perp_factor",
+        "calc_lambda_q_from_lambda_int",
+        "calc_parallel_heat_flux_at_target",
+        "calc_magnetic_field_and_safety_factor",
+        "calc_fieldline_pitch_at_omp",
+        "calc_flux_tube_cross_section_area_in_divertor",
+        "calc_flux_tube_cross_section_area_out_of_divertor",
+        "calc_sound_speed_at_target",
+        "calc_franck_condon_neutral_velocity",
+        "calc_target_density",
+        "calc_ion_flux_to_target",
+        "calc_flux_density_to_pascals_factor",
+        "calc_divertor_neutral_pressure",
+        "calc_fast_neutral_velocity",
+        "calc_neutral_recycling_fluxes",
+        "calc_z_effective",
+        "calc_q_convective_tar",
+        "calc_q_conductive_tar",
+        "calc_kappa_e0",
     ],
     name="initialize_kallenbach_idl_translation",
-    register=True,
 )
 
-CompositeAlgorithm(
-    algorithms=[
-        Algorithm.get_algorithm(alg)
-        for alg in [
-            "calc_upstream_density",
-            "calc_upstream_temp",
-            "calc_q_total",
-            "calc_upstream_q_total",
-            "calc_target_q_total",
-            "calc_SOL_momentum_loss_fraction",
-            "calc_SOL_power_loss_fraction",
-            "calc_power_crossing_separatrix_from_heat_flux_in_flux_tube",
-            "calc_radiative_efficiency",
-            "calc_qdet_ext_7a",
-            "calc_qdet_ext_7b",
-        ]
+postprocess_kallenbach_idl_translation = CompositeAlgorithm.declare(
+    [
+        "calc_upstream_density",
+        "calc_upstream_temp",
+        "calc_q_total",
+        "calc_upstream_q_total",
+        "calc_target_q_total",
+        "calc_SOL_momentum_loss_fraction",
+        "calc_SOL_power_loss_fraction",
+        "calc_power_crossing_separatrix_from_heat_flux_in_flux_tube",
+        "calc_radiative_efficiency",
+        "calc_qdet_ext_7a",
+        "calc_qdet_ext_7b",
     ],
     name="postprocess_kallenbach_idl_translation",
-    register=True,
 )
 
-CompositeAlgorithm(
-    algorithms=[
-        Algorithm.get_algorithm(alg)
-        for alg in [
-            "initialize_kallenbach_idl_translation",
-            "run_kallenbach_idl_translation",
-            "postprocess_kallenbach_idl_translation",
-        ]
+kallenbach_idl_translation = CompositeAlgorithm.declare(
+    [
+        "initialize_kallenbach_idl_translation",
+        "run_kallenbach_idl_translation",
+        "postprocess_kallenbach_idl_translation",
     ],
     name="kallenbach_idl_translation",
-    register=True,
 )

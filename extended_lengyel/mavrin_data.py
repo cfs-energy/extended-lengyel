@@ -7,7 +7,7 @@ from radas.mavrin_reference.read_mavrin_data import read_mavrin_data as _read_ma
 from cfspopcon.unit_handling import Unitfull, ureg, wraps_ufunc
 import numpy as np
 import xarray as xr
-from cfspopcon import Algorithm
+from cfspopcon import declare_algorithm
 
 class SpeciesMavrinData:
     """An interface to the Mavrin polynomials, for a single atomic species."""
@@ -56,7 +56,7 @@ class MavrinData:
             species = AtomicSpecies[key.capitalize()]
             self.datasets[species] = SpeciesMavrinData(species, mavrin_data[f"{key}_Lz"], mavrin_data[f"{key}_mean_charge"])
 
-@Algorithm.register_algorithm(return_keys=["atomic_data"])
+@declare_algorithm(return_keys=["atomic_data"])
 def read_mavrin_data() -> MavrinData:
     """Construct a MavrinData interface using the Mavrin polynomials."""
     return MavrinData()

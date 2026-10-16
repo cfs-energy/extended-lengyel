@@ -50,9 +50,11 @@ def run_extended_lengyel(config_file, output_file, cli_args=None) -> None:
         click.confirm(f"{output_file} already exists. Overwrite?", abort=True)
     assert output_file.suffix == ".yml", f"{output_file} is not a YAML file."
 
-    algorithms = config.read_config_from_yaml(config_file)["algorithms"]
+    raw_config = config.read_config_from_yaml(config_file)
+    for plugin in raw_config.get("plugins", ["extended_lengyel"]):
+        cfspopcon.register_plugin(plugin)
 
-    algorithm = cfspopcon.CompositeAlgorithm.from_list(algorithms)
+    algorithm = cfspopcon.CompositeAlgorithm.from_list(raw_config["algorithms"])
 
     data_vars = config.read_config(
         elements          = ["input"],

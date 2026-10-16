@@ -14,7 +14,7 @@ from extended_lengyel import read_config, directories
 
 @pytest.fixture(scope="session")
 def dataset():
-    algorithm = cfspopcon.Algorithm.get_algorithm("kallenbach_idl_translation")
+    algorithm = cfspopcon.registry["kallenbach_idl_translation"]
 
     ds = xr.Dataset(
         data_vars=read_config(

@@ -1,13 +1,13 @@
 """Calculate the upstream temperature, taking into account divertor broadening."""
 
-from cfspopcon import Algorithm
+from cfspopcon import declare_algorithm
 from cfspopcon.formulas.scrape_off_layer.two_point_model.separatrix_pressure import calc_upstream_total_pressure
 import numpy as np
 from cfspopcon.unit_handling import wraps_ufunc, ureg
 from scipy.interpolate import InterpolatedUnivariateSpline
 
 
-@Algorithm.register_algorithm(return_keys=["separatrix_electron_temp"])
+@declare_algorithm(return_keys=["separatrix_electron_temp"])
 def calc_separatrix_electron_temp_no_broadening(
     target_electron_temp,
     q_parallel,
@@ -26,7 +26,7 @@ def calc_separatrix_electron_temp_no_broadening(
     return separatrix_electron_temp
 
 
-@Algorithm.register_algorithm(return_keys=["divertor_entrance_electron_temp", "separatrix_electron_temp"])
+@declare_algorithm(return_keys=["divertor_entrance_electron_temp", "separatrix_electron_temp"])
 def calc_separatrix_electron_temp_with_broadening(
     electron_temp_at_cc_interface,
     q_parallel,
@@ -105,7 +105,7 @@ def calc_electron_temp_from_parallel_length(
     return Te_stop
 
 
-@Algorithm.register_algorithm(return_keys=["separatrix_total_pressure"])
+@declare_algorithm(return_keys=["separatrix_total_pressure"])
 def calc_separatrix_total_pressure_LG(
     separatrix_electron_density,
     separatrix_electron_temp,

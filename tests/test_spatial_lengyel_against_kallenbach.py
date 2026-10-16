@@ -17,7 +17,7 @@ def build_dataset(
             ["kallenbach_model_to_cc", "run_spatial_lengyel_model", "postprocess_spatial_lengyel_model"]
         )
     else:
-        algorithm = cfspopcon.Algorithm.get_algorithm("kallenbach_model")
+        algorithm = cfspopcon.registry["kallenbach_model"]
 
     ds = xr.Dataset(
         data_vars=extended_lengyel.read_config(
