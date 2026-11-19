@@ -1,0 +1,708 @@
+{
+  "metadata": {
+    "generated_on": "2026-06-26",
+    "generator": "tests/generate_golden.py",
+    "atomic_data": "mavrin",
+    "source": "extended Lengyel models (values pinned from the pre-refactor originals)",
+    "skipped_cases": [
+      {
+        "model": "forward",
+        "overrides": {
+          "impurity_fraction": 0.06,
+          "separatrix_electron_density": 3.3
+        },
+        "reason": "non-converged"
+      },
+      {
+        "model": "forward",
+        "overrides": {
+          "impurity_fraction": 0.1,
+          "separatrix_electron_density": 2.5
+        },
+        "reason": "non-converged"
+      },
+      {
+        "model": "forward",
+        "overrides": {
+          "impurity_fraction": 0.1,
+          "separatrix_electron_density": 3.3
+        },
+        "reason": "non-converged"
+      },
+      {
+        "model": "forward",
+        "overrides": {
+          "impurity_fraction": 0.038,
+          "separatrix_electron_density": 3.3,
+          "power_crossing_separatrix": 4.0
+        },
+        "reason": "non-converged"
+      },
+      {
+        "model": "forward_pdiv",
+        "overrides": {
+          "impurity_fraction": 0.02,
+          "neutral_pressure_in_divertor": 2.0
+        },
+        "reason": "non-converged"
+      },
+      {
+        "model": "forward_pdiv",
+        "overrides": {
+          "impurity_fraction": 0.02,
+          "neutral_pressure_in_divertor": 5.0
+        },
+        "reason": "non-converged"
+      },
+      {
+        "model": "forward_pdiv",
+        "overrides": {
+          "impurity_fraction": 0.038,
+          "neutral_pressure_in_divertor": 2.0
+        },
+        "reason": "non-converged"
+      },
+      {
+        "model": "forward_pdiv",
+        "overrides": {
+          "impurity_fraction": 0.038,
+          "neutral_pressure_in_divertor": 5.0
+        },
+        "reason": "non-converged"
+      },
+      {
+        "model": "forward_pdiv",
+        "overrides": {
+          "impurity_fraction": 0.06,
+          "neutral_pressure_in_divertor": 2.0
+        },
+        "reason": "non-converged"
+      },
+      {
+        "model": "forward_pdiv",
+        "overrides": {
+          "impurity_fraction": 0.06,
+          "neutral_pressure_in_divertor": 5.0
+        },
+        "reason": "non-converged"
+      },
+      {
+        "model": "inverse_pdiv",
+        "overrides": {
+          "target_electron_temp": 2.34,
+          "neutral_pressure_in_divertor": 5.0
+        },
+        "reason": "non-converged"
+      },
+      {
+        "model": "inverse_pdiv",
+        "overrides": {
+          "target_electron_temp": 5.0,
+          "neutral_pressure_in_divertor": 5.0
+        },
+        "reason": "non-converged"
+      },
+      {
+        "model": "inverse_pdiv",
+        "overrides": {
+          "target_electron_temp": 10.0,
+          "neutral_pressure_in_divertor": 5.0
+        },
+        "reason": "non-converged"
+      }
+    ]
+  },
+  "models": {
+    "forward": {
+      "function": "run_forward_extended_lengyel_model",
+      "return_keys": [
+        "target_electron_temp",
+        "parallel_ion_flux_to_target",
+        "neutral_pressure_in_divertor",
+        "alpha_t",
+        "q_parallel",
+        "heat_flux_perp_to_target",
+        "separatrix_z_effective",
+        "converged"
+      ],
+      "output_units": {
+        "target_electron_temp": "electron_volt",
+        "parallel_ion_flux_to_target": "1 / meter ** 2 / second",
+        "neutral_pressure_in_divertor": "pascal",
+        "alpha_t": "dimensionless",
+        "q_parallel": "watt / meter ** 2",
+        "heat_flux_perp_to_target": "watt / meter ** 2",
+        "separatrix_z_effective": "dimensionless",
+        "converged": "None"
+      },
+      "cases": [
+        {
+          "overrides": {
+            "impurity_fraction": 0.01,
+            "separatrix_electron_density": 2.5
+          },
+          "outputs": {
+            "target_electron_temp": 65.48154989569336,
+            "parallel_ion_flux_to_target": 1.4683019644000154e+24,
+            "neutral_pressure_in_divertor": 0.5051638856333035,
+            "alpha_t": 0.17690078943101023,
+            "q_parallel": 436129721.3687435,
+            "heat_flux_perp_to_target": 6449631.092781873,
+            "separatrix_z_effective": 1.2406651424538906,
+            "converged": true
+          }
+        },
+        {
+          "overrides": {
+            "impurity_fraction": 0.01,
+            "separatrix_electron_density": 3.3
+          },
+          "outputs": {
+            "target_electron_temp": 35.90608039627415,
+            "parallel_ion_flux_to_target": 2.4634043935643066e+24,
+            "neutral_pressure_in_divertor": 0.8475252131448305,
+            "alpha_t": 0.25980786076213835,
+            "q_parallel": 411758077.21524113,
+            "heat_flux_perp_to_target": 5933408.576592905,
+            "separatrix_z_effective": 1.2418348697399,
+            "converged": true
+          }
+        },
+        {
+          "overrides": {
+            "impurity_fraction": 0.038,
+            "separatrix_electron_density": 2.5
+          },
+          "outputs": {
+            "target_electron_temp": 53.90743525133048,
+            "parallel_ion_flux_to_target": 1.613141039686647e+24,
+            "neutral_pressure_in_divertor": 0.5549952362936749,
+            "alpha_t": 0.2459931390892039,
+            "q_parallel": 406427539.3165196,
+            "heat_flux_perp_to_target": 5833397.275933443,
+            "separatrix_z_effective": 1.8591639307014811,
+            "converged": true
+          }
+        },
+        {
+          "overrides": {
+            "impurity_fraction": 0.038,
+            "separatrix_electron_density": 3.3
+          },
+          "outputs": {
+            "target_electron_temp": 2.3992689188137204,
+            "parallel_ion_flux_to_target": 5.07034970882717e+24,
+            "neutral_pressure_in_divertor": 1.744435151986912,
+            "alpha_t": 0.3583405058600917,
+            "q_parallel": 364920307.47335297,
+            "heat_flux_perp_to_target": 816051.160352518,
+            "separatrix_z_effective": 1.8635044129661487,
+            "converged": true
+          }
+        },
+        {
+          "overrides": {
+            "impurity_fraction": 0.06,
+            "separatrix_electron_density": 2.5
+          },
+          "outputs": {
+            "target_electron_temp": 42.92978128700255,
+            "parallel_ion_flux_to_target": 1.805859404061695e+24,
+            "neutral_pressure_in_divertor": 0.6212992801082423,
+            "alpha_t": 0.2955617559926586,
+            "q_parallel": 383831310.12152195,
+            "heat_flux_perp_to_target": 5200476.705934286,
+            "separatrix_z_effective": 2.34501249024204,
+            "converged": true
+          }
+        },
+        {
+          "overrides": {
+            "impurity_fraction": 0.038,
+            "separatrix_electron_density": 3.3,
+            "power_crossing_separatrix": 8.0
+          },
+          "outputs": {
+            "target_electron_temp": 45.71023683407206,
+            "parallel_ion_flux_to_target": 2.4840086488202465e+24,
+            "neutral_pressure_in_divertor": 0.8546140313157742,
+            "alpha_t": 0.28241434402236465,
+            "q_parallel": 546917343.7936234,
+            "heat_flux_perp_to_target": 7616704.721007164,
+            "separatrix_z_effective": 1.879777737920754,
+            "converged": true
+          }
+        }
+      ]
+    },
+    "forward_pdiv": {
+      "function": "run_forward_extended_lengyel_model_pdiv",
+      "return_keys": [
+        "target_electron_temp",
+        "separatrix_electron_density",
+        "parallel_ion_flux_to_target",
+        "alpha_t",
+        "q_parallel",
+        "heat_flux_perp_to_target",
+        "separatrix_z_effective",
+        "converged"
+      ],
+      "output_units": {
+        "target_electron_temp": "electron_volt",
+        "separatrix_electron_density": "1 / meter ** 3",
+        "parallel_ion_flux_to_target": "1 / meter ** 2 / second",
+        "alpha_t": "dimensionless",
+        "q_parallel": "watt / meter ** 2",
+        "heat_flux_perp_to_target": "watt / meter ** 2",
+        "separatrix_z_effective": "dimensionless",
+        "converged": "None"
+      },
+      "cases": [
+        {
+          "overrides": {
+            "impurity_fraction": 0.02,
+            "neutral_pressure_in_divertor": 1.0
+          },
+          "outputs": {
+            "target_electron_temp": 26.636468866248826,
+            "separatrix_electron_density": 3.3653735974719058e+19,
+            "parallel_ion_flux_to_target": 2.906585381324499e+24,
+            "alpha_t": 0.30395674415688073,
+            "q_parallel": 391366085.0841771,
+            "heat_flux_perp_to_target": 5193501.725650989,
+            "separatrix_z_effective": 1.4644189290576817,
+            "converged": true
+          }
+        },
+        {
+          "overrides": {
+            "impurity_fraction": 0.038,
+            "neutral_pressure_in_divertor": 1.0
+          },
+          "outputs": {
+            "target_electron_temp": 22.558532166439804,
+            "separatrix_electron_density": 3.052423310581468e+19,
+            "parallel_ion_flux_to_target": 2.906585367468703e+24,
+            "alpha_t": 0.32472657839091296,
+            "q_parallel": 378472279.19261545,
+            "heat_flux_perp_to_target": 4398397.391349206,
+            "separatrix_z_effective": 1.8607240042272384,
+            "converged": true
+          }
+        },
+        {
+          "overrides": {
+            "impurity_fraction": 0.06,
+            "neutral_pressure_in_divertor": 1.0
+          },
+          "outputs": {
+            "target_electron_temp": 18.237256688325377,
+            "separatrix_electron_density": 2.694033427945754e+19,
+            "parallel_ion_flux_to_target": 2.9065860917838116e+24,
+            "alpha_t": 0.32972687565303654,
+            "q_parallel": 371758303.9843268,
+            "heat_flux_perp_to_target": 3555848.476345919,
+            "separatrix_z_effective": 2.3431556859997733,
+            "converged": true
+          }
+        },
+        {
+          "overrides": {
+            "impurity_fraction": 0.005,
+            "neutral_pressure_in_divertor": 2.0
+          },
+          "outputs": {
+            "target_electron_temp": 10.888057131862723,
+            "separatrix_electron_density": 4.731195492527115e+19,
+            "parallel_ion_flux_to_target": 5.813170761712979e+24,
+            "alpha_t": 0.3746519376598564,
+            "q_parallel": 366504768.3298967,
+            "heat_flux_perp_to_target": 4245843.829987666,
+            "separatrix_z_effective": 1.132570872044706,
+            "converged": true
+          }
+        },
+        {
+          "overrides": {
+            "impurity_fraction": 0.01,
+            "neutral_pressure_in_divertor": 2.0
+          },
+          "outputs": {
+            "target_electron_temp": 9.02837247669376,
+            "separatrix_electron_density": 4.414061487053016e+19,
+            "parallel_ion_flux_to_target": 5.813170729196432e+24,
+            "alpha_t": 0.3721717959714224,
+            "q_parallel": 366144676.7543781,
+            "heat_flux_perp_to_target": 3520651.930490274,
+            "separatrix_z_effective": 1.2448943626984683,
+            "converged": true
+          }
+        },
+        {
+          "overrides": {
+            "impurity_fraction": 0.015,
+            "neutral_pressure_in_divertor": 2.0
+          },
+          "outputs": {
+            "target_electron_temp": 7.312311468678111,
+            "separatrix_electron_density": 4.144098801978581e+19,
+            "parallel_ion_flux_to_target": 5.813170679572223e+24,
+            "alpha_t": 0.36958920142166307,
+            "q_parallel": 365875117.5122298,
+            "heat_flux_perp_to_target": 2851466.677437141,
+            "separatrix_z_effective": 1.3566352987232377,
+            "converged": true
+          }
+        }
+      ]
+    },
+    "inverse": {
+      "function": "run_inverse_extended_lengyel_model",
+      "return_keys": [
+        "impurity_fraction",
+        "parallel_ion_flux_to_target",
+        "neutral_pressure_in_divertor",
+        "alpha_t",
+        "q_parallel",
+        "heat_flux_perp_to_target",
+        "separatrix_z_effective",
+        "converged"
+      ],
+      "output_units": {
+        "impurity_fraction": "dimensionless",
+        "parallel_ion_flux_to_target": "1 / meter ** 2 / second",
+        "neutral_pressure_in_divertor": "pascal",
+        "alpha_t": "dimensionless",
+        "q_parallel": "watt / meter ** 2",
+        "heat_flux_perp_to_target": "watt / meter ** 2",
+        "separatrix_z_effective": "dimensionless",
+        "converged": "None"
+      },
+      "cases": [
+        {
+          "overrides": {
+            "target_electron_temp": 1.5,
+            "separatrix_electron_density": 2.5
+          },
+          "outputs": {
+            "impurity_fraction": 0.07673063249402859,
+            "parallel_ion_flux_to_target": 3.7885669949669607e+24,
+            "neutral_pressure_in_divertor": 1.3034425278737831,
+            "alpha_t": 0.33302118448730333,
+            "q_parallel": 367226810.66201943,
+            "heat_flux_perp_to_target": 381212.1859119765,
+            "separatrix_z_effective": 2.7137404248327215,
+            "converged": true
+          }
+        },
+        {
+          "overrides": {
+            "target_electron_temp": 1.5,
+            "separatrix_electron_density": 3.3
+          },
+          "outputs": {
+            "impurity_fraction": 0.03953502536639338,
+            "parallel_ion_flux_to_target": 4.752468499697332e+24,
+            "neutral_pressure_in_divertor": 1.6350692921929015,
+            "alpha_t": 0.36326054672355224,
+            "q_parallel": 362578320.7045861,
+            "heat_flux_perp_to_target": 478201.62812330865,
+            "separatrix_z_effective": 1.897502523103863,
+            "converged": true
+          }
+        },
+        {
+          "overrides": {
+            "target_electron_temp": 2.34,
+            "separatrix_electron_density": 2.5
+          },
+          "outputs": {
+            "impurity_fraction": 0.07508734339752492,
+            "parallel_ion_flux_to_target": 4.0302624976105476e+24,
+            "neutral_pressure_in_divertor": 1.3865969758114867,
+            "alpha_t": 0.3300741438007129,
+            "q_parallel": 368722100.6419502,
+            "heat_flux_perp_to_target": 632629.9306689338,
+            "separatrix_z_effective": 2.6772948548260236,
+            "converged": true
+          }
+        },
+        {
+          "overrides": {
+            "target_electron_temp": 2.34,
+            "separatrix_electron_density": 3.3
+          },
+          "outputs": {
+            "impurity_fraction": 0.038092486328299306,
+            "parallel_ion_flux_to_target": 5.058026052130387e+24,
+            "neutral_pressure_in_divertor": 1.7401952432671128,
+            "alpha_t": 0.35863764661204967,
+            "q_parallel": 364778570.6003008,
+            "heat_flux_perp_to_target": 793957.8805544385,
+            "separatrix_z_effective": 1.8655529110363682,
+            "converged": true
+          }
+        },
+        {
+          "overrides": {
+            "target_electron_temp": 5.0,
+            "separatrix_electron_density": 2.5
+          },
+          "outputs": {
+            "impurity_fraction": 0.07139936944774393,
+            "parallel_ion_flux_to_target": 4.049707600754722e+24,
+            "neutral_pressure_in_divertor": 1.393286991965531,
+            "alpha_t": 0.3233956660045552,
+            "q_parallel": 372122071.12559056,
+            "heat_flux_perp_to_target": 1358295.3562116052,
+            "separatrix_z_effective": 2.595552991854878,
+            "converged": true
+          }
+        },
+        {
+          "overrides": {
+            "target_electron_temp": 5.0,
+            "separatrix_electron_density": 3.3
+          },
+          "outputs": {
+            "impurity_fraction": 0.034732878309908184,
+            "parallel_ion_flux_to_target": 5.08757861078156e+24,
+            "neutral_pressure_in_divertor": 1.7503626922800497,
+            "alpha_t": 0.3477806020079056,
+            "q_parallel": 369977648.543911,
+            "heat_flux_perp_to_target": 1706403.296894379,
+            "separatrix_z_effective": 1.7911309556006345,
+            "converged": true
+          }
+        },
+        {
+          "overrides": {
+            "target_electron_temp": 10.0,
+            "separatrix_electron_density": 2.5
+          },
+          "outputs": {
+            "impurity_fraction": 0.06882607467471405,
+            "parallel_ion_flux_to_target": 3.4878806560055736e+24,
+            "neutral_pressure_in_divertor": 1.199992499862239,
+            "alpha_t": 0.31864470405714074,
+            "q_parallel": 374536528.93463624,
+            "heat_flux_perp_to_target": 2339710.6977253086,
+            "separatrix_z_effective": 2.5385676923502682,
+            "converged": true
+          }
+        },
+        {
+          "overrides": {
+            "target_electron_temp": 10.0,
+            "separatrix_electron_density": 3.3
+          },
+          "outputs": {
+            "impurity_fraction": 0.03112735584896414,
+            "parallel_ion_flux_to_target": 4.3834376806673987e+24,
+            "neutral_pressure_in_divertor": 1.5081055974083768,
+            "alpha_t": 0.33593927562285036,
+            "q_parallel": 375682998.01220864,
+            "heat_flux_perp_to_target": 2940460.711180176,
+            "separatrix_z_effective": 1.7112249783740743,
+            "converged": true
+          }
+        },
+        {
+          "overrides": {
+            "target_electron_temp": 20.0,
+            "separatrix_electron_density": 2.5
+          },
+          "outputs": {
+            "impurity_fraction": 0.0762061411195666,
+            "parallel_ion_flux_to_target": 2.626422467654179e+24,
+            "neutral_pressure_in_divertor": 0.9036109814216227,
+            "alpha_t": 0.3315635672770921,
+            "q_parallel": 367786478.23998165,
+            "heat_flux_perp_to_target": 3523669.1563604726,
+            "separatrix_z_effective": 2.7022929347309503,
+            "converged": true
+          }
+        },
+        {
+          "overrides": {
+            "target_electron_temp": 20.0,
+            "separatrix_electron_density": 3.3
+          },
+          "outputs": {
+            "impurity_fraction": 0.028302012998851624,
+            "parallel_ion_flux_to_target": 3.286963565033467e+24,
+            "neutral_pressure_in_divertor": 1.130867714343694,
+            "alpha_t": 0.3260079472164253,
+            "q_parallel": 380338051.30864865,
+            "heat_flux_perp_to_target": 4409866.377107962,
+            "separatrix_z_effective": 1.648426163474102,
+            "converged": true
+          }
+        },
+        {
+          "overrides": {
+            "target_electron_temp": 2.34,
+            "separatrix_electron_density": 3.3,
+            "power_crossing_separatrix": 4.0
+          },
+          "outputs": {
+            "impurity_fraction": 0.02371239788712167,
+            "parallel_ion_flux_to_target": 4.556392679981046e+24,
+            "neutral_pressure_in_divertor": 1.5676101282278867,
+            "alpha_t": 0.37950251686255965,
+            "q_parallel": 272137903.8267139,
+            "heat_flux_perp_to_target": 715216.5366265404,
+            "separatrix_z_effective": 1.5558125743885738,
+            "converged": true
+          }
+        },
+        {
+          "overrides": {
+            "target_electron_temp": 2.34,
+            "separatrix_electron_density": 3.3,
+            "power_crossing_separatrix": 8.0
+          },
+          "outputs": {
+            "impurity_fraction": 0.06270942455621102,
+            "parallel_ion_flux_to_target": 5.746869185432213e+24,
+            "neutral_pressure_in_divertor": 1.9771891874608483,
+            "alpha_t": 0.34590367497640884,
+            "q_parallel": 505875082.3510433,
+            "heat_flux_perp_to_target": 902085.5233372275,
+            "separatrix_z_effective": 2.439275169817942,
+            "converged": true
+          }
+        }
+      ]
+    },
+    "inverse_pdiv": {
+      "function": "run_inverse_extended_lengyel_model_with_pdiv",
+      "return_keys": [
+        "impurity_fraction",
+        "separatrix_electron_density",
+        "parallel_ion_flux_to_target",
+        "alpha_t",
+        "q_parallel",
+        "heat_flux_perp_to_target",
+        "separatrix_z_effective",
+        "separatrix_electron_temp",
+        "converged"
+      ],
+      "output_units": {
+        "impurity_fraction": "dimensionless",
+        "separatrix_electron_density": "1 / meter ** 3",
+        "parallel_ion_flux_to_target": "1 / meter ** 2 / second",
+        "alpha_t": "dimensionless",
+        "q_parallel": "watt / meter ** 2",
+        "heat_flux_perp_to_target": "watt / meter ** 2",
+        "separatrix_z_effective": "dimensionless",
+        "separatrix_electron_temp": "electron_volt",
+        "converged": "None"
+      },
+      "cases": [
+        {
+          "overrides": {
+            "target_electron_temp": 2.34,
+            "neutral_pressure_in_divertor": 1.0
+          },
+          "outputs": {
+            "impurity_fraction": 0.20409826330144623,
+            "separatrix_electron_density": 1.6023691844281158e+19,
+            "parallel_ion_flux_to_target": 2.906585869106027e+24,
+            "alpha_t": 0.3049027859736349,
+            "q_parallel": 358545360.68291974,
+            "heat_flux_perp_to_target": 456246.5144506165,
+            "separatrix_z_effective": 5.704598616186067,
+            "separatrix_electron_temp": 121.8819584482082,
+            "converged": true
+          }
+        },
+        {
+          "overrides": {
+            "target_electron_temp": 2.34,
+            "neutral_pressure_in_divertor": 2.0
+          },
+          "outputs": {
+            "impurity_fraction": 0.0244363063596941,
+            "separatrix_electron_density": 3.891282742219115e+19,
+            "parallel_ion_flux_to_target": 5.813170416820918e+24,
+            "alpha_t": 0.3843691229241064,
+            "q_parallel": 357482656.6770606,
+            "heat_flux_perp_to_target": 912492.8214825889,
+            "separatrix_z_effective": 1.5670651939590023,
+            "separatrix_electron_temp": 100.37815666089644,
+            "converged": true
+          }
+        },
+        {
+          "overrides": {
+            "target_electron_temp": 5.0,
+            "neutral_pressure_in_divertor": 1.0
+          },
+          "outputs": {
+            "impurity_fraction": 0.20218545299464497,
+            "separatrix_electron_density": 1.5921908025107102e+19,
+            "parallel_ion_flux_to_target": 2.906585848727665e+24,
+            "alpha_t": 0.30134359250961995,
+            "q_parallel": 360134321.5590723,
+            "heat_flux_perp_to_target": 974885.7078030489,
+            "separatrix_z_effective": 5.660390385643345,
+            "separatrix_electron_temp": 121.85664585373212,
+            "converged": true
+          }
+        },
+        {
+          "overrides": {
+            "target_electron_temp": 5.0,
+            "neutral_pressure_in_divertor": 2.0
+          },
+          "outputs": {
+            "impurity_fraction": 0.021738271747483554,
+            "separatrix_electron_density": 3.860376305623915e+19,
+            "parallel_ion_flux_to_target": 5.813170257353923e+24,
+            "alpha_t": 0.36857701487820915,
+            "q_parallel": 364572907.0163177,
+            "heat_flux_perp_to_target": 1949770.9325877551,
+            "separatrix_z_effective": 1.5063959300103793,
+            "separatrix_electron_temp": 100.5181958403715,
+            "converged": true
+          }
+        },
+        {
+          "overrides": {
+            "target_electron_temp": 10.0,
+            "neutral_pressure_in_divertor": 1.0
+          },
+          "outputs": {
+            "impurity_fraction": 0.12437544548537867,
+            "separatrix_electron_density": 1.9678683711185076e+19,
+            "parallel_ion_flux_to_target": 2.9065861083720416e+24,
+            "alpha_t": 0.3090206931938425,
+            "q_parallel": 368332059.43743604,
+            "heat_flux_perp_to_target": 1949771.58977855,
+            "separatrix_z_effective": 3.809636109805817,
+            "separatrix_electron_temp": 114.33816321051236,
+            "converged": true
+          }
+        },
+        {
+          "overrides": {
+            "target_electron_temp": 10.0,
+            "neutral_pressure_in_divertor": 2.0
+          },
+          "outputs": {
+            "impurity_fraction": 0.007339538635411037,
+            "separatrix_electron_density": 4.57774296198779e+19,
+            "parallel_ion_flux_to_target": 5.813170600481493e+24,
+            "alpha_t": 0.373653177965408,
+            "q_parallel": 366263461.8675623,
+            "heat_flux_perp_to_target": 3899542.0953494543,
+            "separatrix_z_effective": 1.185198561153322,
+            "separatrix_electron_temp": 98.30279107503692,
+            "converged": true
+          }
+        }
+      ]
+    }
+  }
+}
