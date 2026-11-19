@@ -2,7 +2,7 @@
 
 import numpy as np
 import xarray as xr
-from cfspopcon import Algorithm, CompositeAlgorithm
+from cfspopcon import CompositeAlgorithm, declare_algorithm
 
 from ..initialize import calc_Goldston_kappa_z
 from .convective_loss_fits import calc_parallel_heat_flux_from_conv_loss
@@ -14,7 +14,7 @@ from .Lengyel_model_extended_S import run_extended_lengyel_model_with_S_correcti
 from ..xr_helpers import item
 
 
-@Algorithm.register_algorithm(
+@declare_algorithm(
     return_keys=[
         "impurity_fraction",
         "radiated_fraction_above_xpt",
@@ -132,22 +132,18 @@ def run_extended_lengyel_model_with_S_and_Zeff_correction(
     )
 
 
-CompositeAlgorithm(
-    algorithms=[
-        Algorithm.get_algorithm(alg)
-        for alg in [
-            "set_radas_dir",
-            "read_atomic_data",
-            "set_single_impurity_species",
-            "build_CzLINT_for_seed_impurities",
-            "build_mean_charge_for_seed_impurities",
-            "calc_kappa_e0",
-            "calc_momentum_loss_from_cc_fit",
-            "calc_power_loss_from_cc_fit",
-            "calc_electron_temp_from_cc_fit",
-            "run_extended_lengyel_model_with_S_and_Zeff_correction",
-        ]
+extended_lengyel_model_with_S_fconv_Zeff_correction = CompositeAlgorithm.declare(
+    [
+        "set_radas_dir",
+        "read_atomic_data",
+        "set_single_impurity_species",
+        "build_CzLINT_for_seed_impurities",
+        "build_mean_charge_for_seed_impurities",
+        "calc_kappa_e0",
+        "calc_momentum_loss_from_cc_fit",
+        "calc_power_loss_from_cc_fit",
+        "calc_electron_temp_from_cc_fit",
+        "run_extended_lengyel_model_with_S_and_Zeff_correction",
     ],
     name="extended_lengyel_model_with_S_fconv_Zeff_correction",
-    register=True,
 )

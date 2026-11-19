@@ -13,7 +13,7 @@ The software can be found in the `extended_lengyel` folder. This contains the fo
 * `spatial_lengyel_model`: a version of the Lengyel model which does not switch to the temperature-integral form.
 * `extended_lengyel_model`: the main extended Lengyel model discussed in the paper.
 
-In addition to this, the software also has shared initialization and post-processing modules, as well as a module for interacting with data from OpenADAS using the [radas](https://github.com/cfs-energy/radas) library. The library is built as an extension of [cfspopcon](https://github.com/cfs-energy/cfspopcon), which allows for straightforward unit-handling and scanning of input parameters.
+In addition to this, the software also has shared initialization and post-processing modules, as well as a module for interacting with data from OpenADAS using the [radas](https://github.com/cfs-energy/radas) library. The library is a [cfspopcon](https://github.com/cfs-energy/cfspopcon) plugin, which allows for straightforward unit-handling and scanning of input parameters. Importing `extended_lengyel` registers nothing. Call `cfspopcon.register_plugin("extended_lengyel")`, or list `extended_lengyel` under `plugins` in an input file, and its algorithms and the default units in `extended_lengyel/variables.yaml` become available alongside the built-in ones.
 
 ## Notebooks
 
@@ -45,9 +45,11 @@ CI runs the same checks. `notebooks/` is excluded from ruff.
 If want to use the extended Lengyel model to compute the impurity concentration for an experiment, you should be able to adapt the example below. We've added in-line comments to explain the steps.
 
 ```python
-# The extended Lengyel model is built on top of cfspopcon, and we use a lot of the functionality from cfspopcon directly.
+# The extended Lengyel model is a cfspopcon plugin. Registering it adds its algorithms and the
+# default units in extended_lengyel/variables.yaml.
 import cfspopcon
 import extended_lengyel
+cfspopcon.register_plugin("extended_lengyel")
 # xarray (https://docs.xarray.dev/en/stable/) is used for storing results and scanning over parameters.
 import xarray as xr
 # cfspopcon unit handling is built using pint (https://pint.readthedocs.io/en/stable/index.html).
@@ -58,10 +60,10 @@ from cfspopcon.named_options import AtomicSpecies
 # The first step is to declare which computations we want to perform. Instead of having a single function block, we break
 # our analysis down into smaller 'algorithms'. These algorithms know the names and units of the input and output arguments.
 # For instance, "calc_ion_flux_to_target" defines the variable parallel_ion_flux_to_target with units of "m**-2 / s" (declared
-# in `extended_units.yaml`). This is needed by "calc_divertor_neutral_pressure".
-# 
-# To find an algorithm called "alg", search both cfspopcon and extended_lengyel for a function called "alg" with an
-# @Algorithm.register_algorithm decorator, or a CompositeAlgorithm with name="alg".
+# in `variables.yaml`). This is needed by "calc_divertor_neutral_pressure".
+#
+# To find an algorithm called "alg", search both cfspopcon and extended_lengyel for a function called "alg" with a
+# @declare_algorithm decorator, or a CompositeAlgorithm.declare(..., name="alg").
 algorithm = cfspopcon.CompositeAlgorithm.from_list([
     "calc_magnetic_field_and_safety_factor",
     "calc_fieldline_pitch_at_omp",
@@ -130,6 +132,14 @@ for species in ds["seed_impurity_species"]:
     cz = (ds["impurity_fraction"] * ds["seed_impurity_weights"]).sel(dim_species=species).item()
     print(f"{species.item()} concentration: {cz:.2}")
 ```
+
+The same calculation can be run from the command line. `input.yml` lists the plugin under `plugins`, followed by the `algorithms` to run and the `input` values:
+
+```bash
+poetry run xlengyel input.yml output.yml
+```
+
+If `plugins` is omitted, the command line interface registers `extended_lengyel`.
 
 ## Contributing
 
