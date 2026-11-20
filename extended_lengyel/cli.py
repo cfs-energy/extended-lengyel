@@ -102,7 +102,7 @@ def write_output_file(filepath: Path, ds: xr.Dataset):
     seed_impurity_concentration = impurity_fraction * ds["seed_impurity_weights"].dropna(dim="dim_species")
     fixed_impurity_concentration = ds["fixed_impurity_weights"].dropna(dim="dim_species")
 
-    output_impurity_fraction = dict(seed_impurity=dict(), fixed_impurity=dict())
+    output_impurity_fraction: dict[str, dict[str, float]] = dict(seed_impurity=dict(), fixed_impurity=dict())
     for cz in seed_impurity_concentration:
         output_impurity_fraction["seed_impurity"][item(cz.dim_species).name] = item(cz)
     for cz in fixed_impurity_concentration:

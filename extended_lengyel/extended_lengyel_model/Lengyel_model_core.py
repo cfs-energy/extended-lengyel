@@ -11,7 +11,7 @@ from cfspopcon.formulas.atomic_data import AtomicData
 from cfspopcon.unit_handling import magnitude, ureg, wraps_ufunc, Unitfull, magnitude_in_units
 from scipy.interpolate import InterpolatedUnivariateSpline  # type:ignore[import-untyped]
 from typing import Self
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 from ..xr_helpers import item, values
 from ..config import setup_impurities
 from ..mavrin_data import MavrinData, SpeciesMavrinData
@@ -30,7 +30,7 @@ class CzLINT_integrator:
         self,
         impurity_species_list: xr.DataArray,
         impurity_weights_list: xr.DataArray,
-        atomic_data: AtomicData | MavrinData,
+        atomic_data: AtomicData | MavrinData | None,
         ne_tau: Unitfull = 0.5 * ureg.ms * ureg.n20,
         electron_density: Unitfull = 1.0 * ureg.n20,
         rtol_nearest: float=1e-6,
@@ -129,17 +129,17 @@ class CzLINT_integrator:
 
     @classmethod
     def from_list(cls,
-        impurity_species_list: list[str | AtomicSpecies],
-        impurity_weights_list: list[float],
-        atomic_data: AtomicData,
+        impurity_species_list: Sequence[str | AtomicSpecies],
+        impurity_weights_list: Sequence[float],
+        atomic_data: AtomicData | None,
         ne_tau: Unitfull = 0.5 * ureg.ms * ureg.n20,
         electron_density: Unitfull = 1.0 * ureg.n20,
         rtol_nearest: float=1e-6,
     ) -> Self:
         """Returns an CzLINT_integrator from linked lists of impurity species and weights."""
-        impurity_species_list = [s if isinstance(s, AtomicSpecies) else AtomicSpecies[s] for s in impurity_species_list]
-        impurity_species_list, impurity_weights_list = setup_impurities(impurity_species_list, impurity_weights_list)
-        return cls(impurity_species_list, impurity_weights_list, atomic_data, ne_tau, electron_density, rtol_nearest)
+        species_list = [s if isinstance(s, AtomicSpecies) else AtomicSpecies[s] for s in impurity_species_list]
+        species, weights = setup_impurities(species_list, impurity_weights_list)
+        return cls(species, weights, atomic_data, ne_tau, electron_density, rtol_nearest)
 
 class Mean_charge_interpolator:
     """Class to hold a mixed-seeding Zeff interpolator."""
@@ -147,7 +147,7 @@ class Mean_charge_interpolator:
     def __init__(
         self,
         impurity_species_list: xr.DataArray,
-        atomic_data: AtomicData | MavrinData,
+        atomic_data: AtomicData | MavrinData | None,
         ne_tau: Unitfull = 0.5 * ureg.ms * ureg.n20,
         electron_density: Unitfull = 1.0 * ureg.n20,
         rtol_nearest: float=1e-6,
@@ -225,16 +225,16 @@ class Mean_charge_interpolator:
 
     @classmethod
     def from_list(cls,
-        impurity_species_list: list[str | AtomicSpecies],
-        atomic_data: AtomicData | MavrinData,
+        impurity_species_list: Sequence[str | AtomicSpecies],
+        atomic_data: AtomicData | MavrinData | None,
         ne_tau: Unitfull = 0.5 * ureg.ms * ureg.n20,
         electron_density: Unitfull = 1.0 * ureg.n20,
         rtol_nearest: float=1e-6,
     ) -> Self:
         """Returns an CzLINT_integrator from linked lists of impurity species and weights."""
-        impurity_species_list = [s if isinstance(s, AtomicSpecies) else AtomicSpecies[s] for s in impurity_species_list]
-        impurity_species_list = xr.DataArray(np.atleast_1d(impurity_species_list), coords={"dim_species": np.atleast_1d(impurity_species_list)})
-        return cls(impurity_species_list, atomic_data, ne_tau, electron_density, rtol_nearest)
+        species_list = [s if isinstance(s, AtomicSpecies) else AtomicSpecies[s] for s in impurity_species_list]
+        species = xr.DataArray(np.atleast_1d(species_list), coords={"dim_species": np.atleast_1d(species_list)})
+        return cls(species, atomic_data, ne_tau, electron_density, rtol_nearest)
 
 def calc_z_effective(
         electron_temp,
