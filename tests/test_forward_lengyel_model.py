@@ -176,9 +176,7 @@ def apply_overrides(model_kwargs: dict, overrides: dict) -> dict:
     return dict(model_kwargs, **{key: value * OVERRIDE_UNITS[key] for key, value in overrides.items()})
 
 
-@pytest.mark.parametrize(
-    ("overrides", "expected"), FORWARD_REFERENCE_CASES, ids=[str(case[0]) for case in FORWARD_REFERENCE_CASES]
-)
+@pytest.mark.parametrize(("overrides", "expected"), FORWARD_REFERENCE_CASES, ids=[str(case[0]) for case in FORWARD_REFERENCE_CASES])
 def test_forward_model_against_reference_values(model_kwargs, overrides, expected):
     """The forward model reproduces the reference values of the original implementation."""
     *outputs, converged = run_forward_extended_lengyel_model(**apply_overrides(model_kwargs, overrides))
@@ -212,9 +210,7 @@ def test_forward_model_inverts_the_inverse_model(model_kwargs):
     )
     assert forward_converged
 
-    assert np.isclose(
-        magnitude_in_units(target_electron_temp_out, ureg.eV), magnitude_in_units(target_electron_temp, ureg.eV), rtol=1e-3
-    )
+    assert np.isclose(magnitude_in_units(target_electron_temp_out, ureg.eV), magnitude_in_units(target_electron_temp, ureg.eV), rtol=1e-3)
     # Both solves describe the same plasma state, so every derived output must agree.
     for key, inverse_output, forward_output in zip(FORWARD_RETURN_KEYS[1:], inverse_outputs, forward_outputs, strict=True):
         assert np.isclose(
@@ -276,9 +272,7 @@ def test_forward_model_agrees_with_the_published_inverse_model():
         ]
     )
     inverse = inverse_algorithm.update_dataset(
-        xr.Dataset(
-            data_vars=dict(ion_mass=2.0 * ureg.amu, target_electron_temp=target_electron_temp, **shared_inputs)
-        )
+        xr.Dataset(data_vars=dict(ion_mass=2.0 * ureg.amu, target_electron_temp=target_electron_temp, **shared_inputs))
     )
 
     forward_algorithm = cfspopcon.CompositeAlgorithm.from_list(
@@ -291,11 +285,7 @@ def test_forward_model_agrees_with_the_published_inverse_model():
         ]
     )
     forward = forward_algorithm.update_dataset(
-        xr.Dataset(
-            data_vars=dict(
-                average_ion_mass=2.0 * ureg.amu, impurity_fraction=inverse["impurity_fraction"], **shared_inputs
-            )
-        )
+        xr.Dataset(data_vars=dict(average_ion_mass=2.0 * ureg.amu, impurity_fraction=inverse["impurity_fraction"], **shared_inputs))
     )
 
     assert forward["converged"].item()

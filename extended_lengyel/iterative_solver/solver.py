@@ -12,7 +12,7 @@ pressure constraint) share a single iteration loop, parameterized by:
 """
 
 from dataclasses import dataclass, fields, replace
-from typing import Any, Literal
+from typing import Any, Literal, cast
 
 import numpy as np
 
@@ -127,7 +127,7 @@ class SolverResult:
     converged: bool
 
 
-def run_extended_lengyel_solver(  # noqa: PLR0912, PLR0915
+def run_extended_lengyel_solver(  # noqa: C901, PLR0912, PLR0915
     p: ModelInputs, mode: Literal["forward", "inverse"], pdiv: bool
 ) -> SolverResult:
     """Run the unified extended Lengyel iteration loop for the requested model variant."""
@@ -136,17 +136,19 @@ def run_extended_lengyel_solver(  # noqa: PLR0912, PLR0915
     clamp_negative_values = mode == "inverse" and pdiv
 
     geo = calc_geometry(p)
+    # The wrappers set exactly the inputs the mode needs; the others stay None and are never read.
+    required_neutral_pressure = cast("float", p.required_neutral_pressure_in_divertor)
 
     # Starting values for the iterative solver
     if mode == "inverse":
         # Target temperature is fixed, so the convection-layer losses are loop-invariant
-        losses = calc_convection_layer_losses(p.target_electron_temp)
-        target_electron_temp = p.target_electron_temp
+        target_electron_temp = cast("float", p.target_electron_temp)
+        losses = calc_convection_layer_losses(target_electron_temp)
         electron_temp_at_cc_interface = calc_cc_interface_temp(target_electron_temp, losses)
         impurity_fraction = np.nan
         prev_impurity_fraction = np.nan
     else:
-        impurity_fraction = p.impurity_fraction
+        impurity_fraction = cast("float", p.impurity_fraction)
         target_electron_temp = 2.0  # eV
         electron_temp_at_cc_interface = 2.5  # eV
         divertor_entrance_electron_temp = 50.0  # eV
@@ -163,9 +165,9 @@ def run_extended_lengyel_solver(  # noqa: PLR0912, PLR0915
 
     if pdiv:
         # Initial guess
-        separatrix_electron_density = 0.265 * p.required_neutral_pressure_in_divertor**0.31  # in n20 units
+        separatrix_electron_density = 0.265 * required_neutral_pressure**0.31  # in n20 units
     else:
-        separatrix_electron_density = p.separatrix_electron_density
+        separatrix_electron_density = cast("float", p.separatrix_electron_density)
 
     # When pdiv, convergence is blocked for one iteration after any guard below trips
     convergence_allowed = False
@@ -381,7 +383,7 @@ def run_extended_lengyel_solver(  # noqa: PLR0912, PLR0915
         if pdiv:
             # Post-processing inside the loop: the computed neutral pressure drives the density update
             post = calc_target_postprocessing(target_electron_temp, parallel_heat_flux_at_target, geo, p)
-            pdiv_factor = post.neutral_pressure_in_divertor / p.required_neutral_pressure_in_divertor
+            pdiv_factor = post.neutral_pressure_in_divertor / required_neutral_pressure
             if np.isfinite(pdiv_factor) and pdiv_factor > 0:
                 new_separatrix_electron_density = separatrix_electron_density / pdiv_factor
             else:
@@ -395,7 +397,7 @@ def run_extended_lengyel_solver(  # noqa: PLR0912, PLR0915
                 # Inverse-pdiv updates the density immediately and without relaxation
                 separatrix_electron_density = new_separatrix_electron_density
             current.append(post.neutral_pressure_in_divertor)
-            previous.append(p.required_neutral_pressure_in_divertor)
+            previous.append(required_neutral_pressure)
 
         converged = np.allclose(current, previous, **CONVERGENCE)
         if pdiv:

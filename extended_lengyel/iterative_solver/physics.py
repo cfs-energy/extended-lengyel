@@ -5,7 +5,7 @@ electron-volts, electron densities in 10^20 m^-3 (n20) and ion masses in amu
 (unless noted otherwise in the docstring).
 """
 
-from typing import TYPE_CHECKING, NamedTuple
+from typing import TYPE_CHECKING, NamedTuple, cast
 
 import numpy as np
 
@@ -52,7 +52,7 @@ def calc_alpha_t(
     For separatrix electron density in per-cubic-metre, separatrix electron temp in electron-volts,
     major radius in metres, average ion mass in kilograms, and all other inputs dimensionless.
     """
-    epsilon_0 = 5.5263493580350935e+7  # e^2 eV^-1 m^-1
+    epsilon_0 = 5.5263493580350935e7  # e^2 eV^-1 m^-1
     electron_mass = 9.1093837015e-31  # kg
 
     # Calculate the Coulomb logarithm, for electron density in per-cubic-metre and electron temp in electron-volts.
@@ -126,9 +126,7 @@ class Geometry(NamedTuple):
 
 def calc_geometry(p: "ModelInputs") -> Geometry:
     """Calculate the loop-invariant magnetic field and geometry quantities from the model inputs."""
-    shaping_factor = np.sqrt(
-        (1.0 + p.elongation_psi95**2 * (1.0 + 2.0 * p.triangularity_psi95**2 - 1.2 * p.triangularity_psi95**3)) / 2.0
-    )
+    shaping_factor = np.sqrt((1.0 + p.elongation_psi95**2 * (1.0 + 2.0 * p.triangularity_psi95**2 - 1.2 * p.triangularity_psi95**3)) / 2.0)
     poloidal_circumference = 2.0 * np.pi * p.minor_radius * shaping_factor
 
     upstream_toroidal_field = p.magnetic_field_on_axis * (p.major_radius / (p.major_radius + p.minor_radius))
@@ -185,12 +183,10 @@ def calc_z_effective(
         + (seed_mean_z * (seed_mean_z - 1.0) * seed_c_z).sum(dim="dim_species")
         + (fixed_mean_z * (fixed_mean_z - 1.0) * fixed_c_z).sum(dim="dim_species")
     )
-    return z_effective.values
+    return cast("float", z_effective.values)
 
 
-def calc_q_parallel(
-    separatrix_electron_temp: float, alpha_t: float, geo: Geometry, p: "ModelInputs", clamp_alpha_t: bool
-) -> float:
+def calc_q_parallel(separatrix_electron_temp: float, alpha_t: float, geo: Geometry, p: "ModelInputs", clamp_alpha_t: bool) -> float:
     """Calculate the parallel heat flux entering the flux tube, consistent with alpha_t and the separatrix electron temperature."""
     separatrix_average_rho_s_pol = (
         np.sqrt(separatrix_electron_temp * p.average_ion_mass)
@@ -275,9 +271,7 @@ def calc_temperature_ladder(
     return divertor_entrance_electron_temp, separatrix_electron_temp
 
 
-def calc_separatrix_total_pressure(
-    separatrix_electron_density: float, separatrix_electron_temp: float, p: "ModelInputs"
-) -> float:
+def calc_separatrix_total_pressure(separatrix_electron_density: float, separatrix_electron_temp: float, p: "ModelInputs") -> float:
     """Calculate the separatrix total pressure in Pascals, for density in n20 and temperature in eV."""
     return (
         (1.0 + p.separatrix_mach_number**2)
@@ -290,8 +284,10 @@ def calc_separatrix_total_pressure(
 def calc_target_electron_temp_basic(q_parallel: float, separatrix_total_pressure: float, p: "ModelInputs") -> float:
     """Calculate the basic two-point-model target electron temperature (eV), before loss corrections."""
     return (
-        (8.0 * p.average_ion_mass / p.sheath_heat_transmission_factor**2) * (q_parallel**2 / separatrix_total_pressure**2)
-    ) * amu_to_kg / elementary_charge
+        ((8.0 * p.average_ion_mass / p.sheath_heat_transmission_factor**2) * (q_parallel**2 / separatrix_total_pressure**2))
+        * amu_to_kg
+        / elementary_charge
+    )
 
 
 def calc_f_other(p: "ModelInputs") -> float:
@@ -323,11 +319,11 @@ def calc_lengyel_integrals(
 
     return LengyelIntegrals(
         # Seed impurities
-        Ls_cc_div=p.CzLINT_for_seed_impurities.unitless_eval(T_cc, T_div) * n20_to_m3**2,
-        Ls_div_u=p.CzLINT_for_seed_impurities.unitless_eval(T_div, T_u) * n20_to_m3**2,
+        Ls_cc_div=cast("float", p.CzLINT_for_seed_impurities.unitless_eval(T_cc, T_div) * n20_to_m3**2),
+        Ls_div_u=cast("float", p.CzLINT_for_seed_impurities.unitless_eval(T_div, T_u) * n20_to_m3**2),
         # Fixed impurities
-        Lf_cc_div=p.CzLINT_for_fixed_impurities.unitless_eval(T_cc, T_div) * n20_to_m3**2,
-        Lf_div_u=p.CzLINT_for_fixed_impurities.unitless_eval(T_div, T_u) * n20_to_m3**2,
+        Lf_cc_div=cast("float", p.CzLINT_for_fixed_impurities.unitless_eval(T_cc, T_div) * n20_to_m3**2),
+        Lf_div_u=cast("float", p.CzLINT_for_fixed_impurities.unitless_eval(T_div, T_u) * n20_to_m3**2),
     )
 
 

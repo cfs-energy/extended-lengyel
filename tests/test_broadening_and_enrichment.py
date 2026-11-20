@@ -41,12 +41,8 @@ def _base() -> dict:
         fraction_of_P_SOL_to_divertor=2.0 / 3.0,
         sheath_heat_transmission_factor=8.0,
         iterations=100,
-        CzLINT_for_seed_impurities=CzLINT_integrator.from_list(
-            [AtomicSpecies.Nitrogen, AtomicSpecies.Argon], [1.0, 0.05], atomic_data
-        ),
-        mean_charge_for_seed_impurities=Mean_charge_interpolator.from_list(
-            [AtomicSpecies.Nitrogen, AtomicSpecies.Argon], atomic_data
-        ),
+        CzLINT_for_seed_impurities=CzLINT_integrator.from_list([AtomicSpecies.Nitrogen, AtomicSpecies.Argon], [1.0, 0.05], atomic_data),
+        mean_charge_for_seed_impurities=Mean_charge_interpolator.from_list([AtomicSpecies.Nitrogen, AtomicSpecies.Argon], atomic_data),
         CzLINT_for_fixed_impurities=CzLINT_integrator.from_list([AtomicSpecies.Helium], [1.0e-2], atomic_data),
         mean_charge_for_fixed_impurities=Mean_charge_interpolator.from_list([AtomicSpecies.Helium], atomic_data),
     )

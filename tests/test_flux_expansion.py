@@ -67,12 +67,8 @@ def build_model_inputs(**overrides: object) -> ModelInputs:
         target_ratio_of_electron_to_ion_density=1.0,
         target_mach_number=1.0,
         flux_expansion_Bt_over_Bu=1.0,
-        CzLINT_for_seed_impurities=CzLINT_integrator.from_list(
-            [AtomicSpecies.Nitrogen, AtomicSpecies.Argon], [1.0, 0.05], atomic_data
-        ),
-        mean_charge_for_seed_impurities=Mean_charge_interpolator.from_list(
-            [AtomicSpecies.Nitrogen, AtomicSpecies.Argon], atomic_data
-        ),
+        CzLINT_for_seed_impurities=CzLINT_integrator.from_list([AtomicSpecies.Nitrogen, AtomicSpecies.Argon], [1.0, 0.05], atomic_data),
+        mean_charge_for_seed_impurities=Mean_charge_interpolator.from_list([AtomicSpecies.Nitrogen, AtomicSpecies.Argon], atomic_data),
         CzLINT_for_fixed_impurities=CzLINT_integrator.from_list([AtomicSpecies.Helium], [1.0e-2], atomic_data),
         mean_charge_for_fixed_impurities=Mean_charge_interpolator.from_list([AtomicSpecies.Helium], atomic_data),
     )
@@ -114,9 +110,7 @@ def test_spatial_no_radiation_analytic_limit() -> None:
         result = _spatial(field_ratio, c_z=0.0, broadening=1.0)
         assert result.converged
         assert result.q_parallel / Q_CC == pytest.approx(1.0 / field_ratio, rel=1e-6)
-        assert result.tB_cc_div + result.tB_div_u == pytest.approx(
-            0.5 * result.q_parallel**2 * (field_ratio**2 - 1.0), rel=1e-6
-        )
+        assert result.tB_cc_div + result.tB_div_u == pytest.approx(0.5 * result.q_parallel**2 * (field_ratio**2 - 1.0), rel=1e-6)
 
 
 def test_ladder_correction_matches_spatial() -> None:
@@ -164,9 +158,7 @@ def test_full_models_physical_flux_expansion_trend() -> None:
     """Forward target heat flux and inverse impurity fraction both rise with B_t/B_u."""
     target_heat_flux = [
         run_extended_lengyel_solver(
-            build_model_inputs(
-                impurity_fraction=0.03, separatrix_electron_density=3.0e19, flux_expansion_Bt_over_Bu=field_ratio
-            ),
+            build_model_inputs(impurity_fraction=0.03, separatrix_electron_density=3.0e19, flux_expansion_Bt_over_Bu=field_ratio),
             mode="forward",
             pdiv=False,
         ).heat_flux_perp_to_target
@@ -174,9 +166,7 @@ def test_full_models_physical_flux_expansion_trend() -> None:
     ]
     impurity_fraction = [
         run_extended_lengyel_solver(
-            build_model_inputs(
-                target_electron_temp=5.0, separatrix_electron_density=3.0e19, flux_expansion_Bt_over_Bu=field_ratio
-            ),
+            build_model_inputs(target_electron_temp=5.0, separatrix_electron_density=3.0e19, flux_expansion_Bt_over_Bu=field_ratio),
             mode="inverse",
             pdiv=False,
         ).impurity_fraction
@@ -240,12 +230,6 @@ def test_stangeby_2pm_self_consistency_with_flux_expansion() -> None:
                 rel=1e-6,
             )
             assert ion_flux == pytest.approx(
-                sheath_gamma
-                / (8.0 * ion_mass)
-                * total_pressure**2
-                / q_upstream
-                * (1 - momentum_loss) ** 2
-                / (1 - cooling)
-                / field_ratio,
+                sheath_gamma / (8.0 * ion_mass) * total_pressure**2 / q_upstream * (1 - momentum_loss) ** 2 / (1 - cooling) / field_ratio,
                 rel=1e-6,
             )

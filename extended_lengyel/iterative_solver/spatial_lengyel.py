@@ -62,7 +62,7 @@ def cooling_curve(czlint: CzLINT_integrator, electron_temp: float, *, rel_step: 
 
 def _change_in_state_vector(
     s_parallel: float,
-    state_vector: tuple[float, float, float, float, float],
+    state_vector: tuple[float, float, float, float],
     impurity_fraction: float,
     czlint_seed: CzLINT_integrator,
     czlint_fixed: CzLINT_integrator,
@@ -70,7 +70,7 @@ def _change_in_state_vector(
     s_start: float,
     field_strength_at_start: float,
     field_gradient: float,
-) -> tuple[float, float, float, float, float]:
+) -> tuple[float, float, float, float]:
     """Derivative of the state vector w.r.t. the parallel coordinate.
 
     The state vector is ``(q_parallel, n_e, T_e, integral (q_parallel**2 / B) dB)``.
