@@ -32,6 +32,14 @@ poetry run radas -c radas_config.yml -s deuterium -s nitrogen -s neon -s argon
 poetry run pytest
 ```
 
+### Checks before opening a PR
+```bash
+poetry run pytest             # tests plus coverage; fails below the --cov-fail-under value in pyproject.toml (use --no-cov for a partial run)
+poetry run ty check           # type check (ty is pinned, since its diagnostics change between releases)
+pre-commit run --all-files    # ruff check and ruff format; `pre-commit install` (once) also rejects AI-attribution trailers in commit messages
+```
+CI runs the same checks. `notebooks/` is excluded from ruff.
+
 ## A quick-start example
 
 If want to use the extended Lengyel model to compute the impurity concentration for an experiment, you should be able to adapt the example below. We've added in-line comments to explain the steps.

@@ -58,11 +58,7 @@ def test_kallenbach_ref_ionization_power_loss_left(dataset, reference_data):
     assert_close(ref, test)
 
 
-# def test_kallenbach_ref_hydrogen_radiation_left(dataset, reference_data):
-#     # Seems like we have a different definition to the paper for this quantity.
-# ref  = reference_data["hydrogen_radiation_left"]
-# test = dataset["hydrogen_radiated_power"].pint.to(ureg.MW/ureg.m**3)
-#     assert_close(ref, test)
+# `hydrogen_radiation_left` is not compared: our definition of the hydrogen radiated power differs from the paper's.
 
 
 def test_kallenbach_ref_nitrogen_radiation_left(dataset, reference_data):
