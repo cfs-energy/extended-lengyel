@@ -16,12 +16,14 @@ from ..xr_helpers import item, values
 from ..config import setup_impurities
 from ..mavrin_data import MavrinData, SpeciesMavrinData
 
+
 def _species_as_enum(species: str | AtomicSpecies):
     species = item(species)
     if isinstance(species, AtomicSpecies):
         return species
     else:
         return AtomicSpecies[species]
+
 
 class CzLINT_integrator:
     """Class to hold an L-int integrator."""
@@ -33,7 +35,7 @@ class CzLINT_integrator:
         atomic_data: AtomicData | MavrinData | None,
         ne_tau: Unitfull = 0.5 * ureg.ms * ureg.n20,
         electron_density: Unitfull = 1.0 * ureg.n20,
-        rtol_nearest: float=1e-6,
+        rtol_nearest: float = 1e-6,
     ) -> None:
         """Initializes a CzLINT_integrator from linked lists of impurity species and weights."""
         assert (np.ndim(impurity_species_list) == 1) and (np.ndim(impurity_weights_list) == 1)
@@ -46,10 +48,10 @@ class CzLINT_integrator:
         self.integrators = dict()
         for species in self.species:
             self.integrators[species] = self.build_L_int_integrator(
-                species_atomic_data = item(atomic_data).datasets[_species_as_enum(species)],
+                species_atomic_data=item(atomic_data).datasets[_species_as_enum(species)],
                 electron_density=electron_density,
                 ne_tau=ne_tau,
-                rtol_nearest=rtol_nearest
+                rtol_nearest=rtol_nearest,
             )
 
     def __call__(self, start_temp: Unitfull, stop_temp: Unitfull, **kwargs) -> Unitfull:
@@ -66,9 +68,9 @@ class CzLINT_integrator:
         """
         return self._inner(start_temp, stop_temp, integrator_method="unitless_func", **kwargs)
 
-    def _inner(self, start_temp: Unitfull, stop_temp: Unitfull, integrator_method: str, allow_negative: bool=False) -> Unitfull:
+    def _inner(self, start_temp: Unitfull, stop_temp: Unitfull, integrator_method: str, allow_negative: bool = False) -> Unitfull:
         """Common function for unitless and unit-aware eval."""
-        if not(allow_negative):
+        if not (allow_negative):
             stop_temp = np.maximum(stop_temp, start_temp)
 
         if integrator_method == "unitless_func":
@@ -77,7 +79,7 @@ class CzLINT_integrator:
             weighted_L_INT = 0.0 * ureg.W * ureg.m**3 * ureg.eV**1.5
 
         for species in self.species:
-            weight = self.weights.sel(dim_species = species).values
+            weight = self.weights.sel(dim_species=species).values
             integrator = self.integrators[species].__getattribute__(integrator_method)
 
             weighted_L_INT += weight * integrator(start_temp, stop_temp)
@@ -89,7 +91,7 @@ class CzLINT_integrator:
         species_atomic_data: xr.Dataset | SpeciesMavrinData,
         electron_density: Unitfull,
         ne_tau: Unitfull,
-        rtol_nearest: float=1e-6,
+        rtol_nearest: float = 1e-6,
     ) -> Callable[[Unitfull, Unitfull], Unitfull]:
         r"""Build an interpolator to calculate the integral of L_{int}$ between arbitrary temperature points.
 
@@ -104,7 +106,8 @@ class CzLINT_integrator:
 
             # Select an ne_tau value, requiring that the nearest value is close to the requested value
             Lz_curve_at_ne_tau = species_atomic_data.equilibrium_Lz.sel(
-                dim_ne_tau=ne_tau_ref, method="nearest", tolerance=rtol_nearest * ne_tau_ref)
+                dim_ne_tau=ne_tau_ref, method="nearest", tolerance=rtol_nearest * ne_tau_ref
+            )
             # Use interpolation to find the value at the given electron density
             Lz_curve = Lz_curve_at_ne_tau.pint.dequantify().interp(dim_electron_density=electron_density_ref).pint.quantify()
 
@@ -128,18 +131,20 @@ class CzLINT_integrator:
         return cls.from_list(impurity_species_list=[], impurity_weights_list=[], atomic_data=None)
 
     @classmethod
-    def from_list(cls,
+    def from_list(
+        cls,
         impurity_species_list: Sequence[str | AtomicSpecies],
         impurity_weights_list: Sequence[float],
         atomic_data: AtomicData | None,
         ne_tau: Unitfull = 0.5 * ureg.ms * ureg.n20,
         electron_density: Unitfull = 1.0 * ureg.n20,
-        rtol_nearest: float=1e-6,
+        rtol_nearest: float = 1e-6,
     ) -> Self:
         """Returns an CzLINT_integrator from linked lists of impurity species and weights."""
         species_list = [s if isinstance(s, AtomicSpecies) else AtomicSpecies[s] for s in impurity_species_list]
         species, weights = setup_impurities(species_list, impurity_weights_list)
         return cls(species, weights, atomic_data, ne_tau, electron_density, rtol_nearest)
+
 
 class Mean_charge_interpolator:
     """Class to hold a mixed-seeding Zeff interpolator."""
@@ -150,7 +155,7 @@ class Mean_charge_interpolator:
         atomic_data: AtomicData | MavrinData | None,
         ne_tau: Unitfull = 0.5 * ureg.ms * ureg.n20,
         electron_density: Unitfull = 1.0 * ureg.n20,
-        rtol_nearest: float=1e-6,
+        rtol_nearest: float = 1e-6,
     ) -> None:
         """Initializes a Mean_charge_interpolator from a list of impurity species."""
         assert np.ndim(impurity_species_list) == 1
@@ -161,10 +166,10 @@ class Mean_charge_interpolator:
         self.interpolators = dict()
         for species in self.species:
             self.interpolators[species] = self.build_mean_charge_interpolator(
-                species_atomic_data = item(atomic_data).datasets[_species_as_enum(species)],
+                species_atomic_data=item(atomic_data).datasets[_species_as_enum(species)],
                 electron_density=electron_density,
                 ne_tau=ne_tau,
-                rtol_nearest=rtol_nearest
+                rtol_nearest=rtol_nearest,
             )
 
     def __call__(self, electron_temp: Unitfull) -> Unitfull:
@@ -189,10 +194,7 @@ class Mean_charge_interpolator:
 
     @staticmethod
     def build_mean_charge_interpolator(
-        species_atomic_data: xr.Dataset | SpeciesMavrinData,
-        electron_density,
-        ne_tau,
-        rtol_nearest = 1e-6
+        species_atomic_data: xr.Dataset | SpeciesMavrinData, electron_density, ne_tau, rtol_nearest=1e-6
     ) -> Callable[[Unitfull], Unitfull]:
         """Build an interpolator to calculate the mean charge."""
         if isinstance(species_atomic_data, SpeciesMavrinData):
@@ -202,7 +204,9 @@ class Mean_charge_interpolator:
             ne_tau_ref = magnitude_in_units(ne_tau, ureg.m**-3 * ureg.s)
 
             # Select an ne_tau value, requiring that the nearest value is close to the requested value
-            mean_z_curve_at_ne_tau = species_atomic_data.equilibrium_mean_charge_state.sel(dim_ne_tau=ne_tau_ref, method="nearest", tolerance=rtol_nearest * ne_tau_ref)
+            mean_z_curve_at_ne_tau = species_atomic_data.equilibrium_mean_charge_state.sel(
+                dim_ne_tau=ne_tau_ref, method="nearest", tolerance=rtol_nearest * ne_tau_ref
+            )
             # Use interpolation to find the value at the given electron density
             mean_z_curve = mean_z_curve_at_ne_tau.pint.dequantify().interp(dim_electron_density=electron_density_ref).pint.quantify()
 
@@ -224,27 +228,29 @@ class Mean_charge_interpolator:
         return cls.from_list(impurity_species_list=[], atomic_data=None)
 
     @classmethod
-    def from_list(cls,
+    def from_list(
+        cls,
         impurity_species_list: Sequence[str | AtomicSpecies],
         atomic_data: AtomicData | MavrinData | None,
         ne_tau: Unitfull = 0.5 * ureg.ms * ureg.n20,
         electron_density: Unitfull = 1.0 * ureg.n20,
-        rtol_nearest: float=1e-6,
+        rtol_nearest: float = 1e-6,
     ) -> Self:
         """Returns an CzLINT_integrator from linked lists of impurity species and weights."""
         species_list = [s if isinstance(s, AtomicSpecies) else AtomicSpecies[s] for s in impurity_species_list]
         species = xr.DataArray(np.atleast_1d(species_list), coords={"dim_species": np.atleast_1d(species_list)})
         return cls(species, atomic_data, ne_tau, electron_density, rtol_nearest)
 
+
 def calc_z_effective(
-        electron_temp,
-        c_z,
-        mean_charge_for_seed_impurities: Mean_charge_interpolator,
-        mean_charge_for_fixed_impurities: Mean_charge_interpolator,
-        CzLINT_for_seed_impurities: CzLINT_integrator,
-        CzLINT_for_fixed_impurities: CzLINT_integrator,
-        starting_z_effective: float = 1.0,
-        ) -> Unitfull:
+    electron_temp,
+    c_z,
+    mean_charge_for_seed_impurities: Mean_charge_interpolator,
+    mean_charge_for_fixed_impurities: Mean_charge_interpolator,
+    CzLINT_for_seed_impurities: CzLINT_integrator,
+    CzLINT_for_fixed_impurities: CzLINT_integrator,
+    starting_z_effective: float = 1.0,
+) -> Unitfull:
     """Calculate the effective charge (z_effective) from the seed and fixed impurities at the given electron temp.
 
     The notation used here is explained in https://github.com/cfs-energy/extended-lengyel/wiki/Background-impurities.
@@ -266,54 +272,77 @@ def calc_z_effective(
     )
     return z_effective
 
+
 @Algorithm.register_algorithm(return_keys=["seed_impurity_species", "seed_impurity_weights"])
 def set_single_impurity_species(impurity_species):
     """Convert a single edge impurity species into arrays compatible with mixed-impurity seeding routines."""
     seed_impurity_species = [item(impurity_species)]
     return setup_impurities(seed_impurity_species, impurity_weights=[1.0])
 
+
 @Algorithm.register_algorithm(return_keys=["CzLINT_for_seed_impurities"])
 def build_CzLINT_for_seed_impurities(
+    seed_impurity_species,
+    seed_impurity_weights,
+    atomic_data,
+    reference_ne_tau=0.5 * ureg.ms * ureg.n20,
+    reference_electron_density=1.0 * ureg.n20,
+    rtol_nearest_for_atomic_data=1e-6,
+) -> CzLINT_integrator:
+    """Build a CzLINT_integrator for the seed impurities."""
+    return CzLINT_integrator(
         seed_impurity_species,
         seed_impurity_weights,
         atomic_data,
-        reference_ne_tau = 0.5 * ureg.ms * ureg.n20,
-        reference_electron_density = 1.0 * ureg.n20,
-        rtol_nearest_for_atomic_data = 1e-6,
-    ) -> CzLINT_integrator:
-    """Build a CzLINT_integrator for the seed impurities."""
-    return CzLINT_integrator(seed_impurity_species, seed_impurity_weights, atomic_data, reference_ne_tau, reference_electron_density, rtol_nearest_for_atomic_data)
+        reference_ne_tau,
+        reference_electron_density,
+        rtol_nearest_for_atomic_data,
+    )
+
 
 @Algorithm.register_algorithm(return_keys=["CzLINT_for_fixed_impurities"])
 def build_CzLINT_for_fixed_impurities(
+    fixed_impurity_species,
+    fixed_impurity_weights,
+    atomic_data,
+    reference_ne_tau=0.5 * ureg.ms * ureg.n20,
+    reference_electron_density=1.0 * ureg.n20,
+    rtol_nearest_for_atomic_data=1e-6,
+) -> CzLINT_integrator:
+    """Build a CzLINT_integrator for the fixed impurities."""
+    return CzLINT_integrator(
         fixed_impurity_species,
         fixed_impurity_weights,
         atomic_data,
-        reference_ne_tau = 0.5 * ureg.ms * ureg.n20,
-        reference_electron_density = 1.0 * ureg.n20,
-        rtol_nearest_for_atomic_data = 1e-6,
-    ) -> CzLINT_integrator:
-    """Build a CzLINT_integrator for the fixed impurities."""
-    return CzLINT_integrator(fixed_impurity_species, fixed_impurity_weights, atomic_data, reference_ne_tau, reference_electron_density, rtol_nearest_for_atomic_data)
+        reference_ne_tau,
+        reference_electron_density,
+        rtol_nearest_for_atomic_data,
+    )
+
 
 @Algorithm.register_algorithm(return_keys=["mean_charge_for_seed_impurities"])
 def build_mean_charge_for_seed_impurities(
-        seed_impurity_species,
-        atomic_data,
-        reference_ne_tau = 0.5 * ureg.ms * ureg.n20,
-        reference_electron_density = 1.0 * ureg.n20,
-        rtol_nearest_for_atomic_data = 1e-6,
-    ) -> Mean_charge_interpolator:
+    seed_impurity_species,
+    atomic_data,
+    reference_ne_tau=0.5 * ureg.ms * ureg.n20,
+    reference_electron_density=1.0 * ureg.n20,
+    rtol_nearest_for_atomic_data=1e-6,
+) -> Mean_charge_interpolator:
     """Build a Mean_charge_interpolator for the seed impurities."""
-    return Mean_charge_interpolator(seed_impurity_species, atomic_data, reference_ne_tau, reference_electron_density, rtol_nearest_for_atomic_data)
+    return Mean_charge_interpolator(
+        seed_impurity_species, atomic_data, reference_ne_tau, reference_electron_density, rtol_nearest_for_atomic_data
+    )
+
 
 @Algorithm.register_algorithm(return_keys=["mean_charge_for_fixed_impurities"])
 def build_mean_charge_for_fixed_impurities(
-        fixed_impurity_species,
-        atomic_data,
-        reference_ne_tau = 0.5 * ureg.ms * ureg.n20,
-        reference_electron_density = 1.0 * ureg.n20,
-        rtol_nearest_for_atomic_data = 1e-6,
-    ) -> Mean_charge_interpolator:
+    fixed_impurity_species,
+    atomic_data,
+    reference_ne_tau=0.5 * ureg.ms * ureg.n20,
+    reference_electron_density=1.0 * ureg.n20,
+    rtol_nearest_for_atomic_data=1e-6,
+) -> Mean_charge_interpolator:
     """Build a Mean_charge_interpolator for the fixed impurities."""
-    return Mean_charge_interpolator(fixed_impurity_species, atomic_data, reference_ne_tau, reference_electron_density, rtol_nearest_for_atomic_data)
+    return Mean_charge_interpolator(
+        fixed_impurity_species, atomic_data, reference_ne_tau, reference_electron_density, rtol_nearest_for_atomic_data
+    )

@@ -4,10 +4,10 @@ import yaml
 from extended_lengyel.cli import run_extended_lengyel
 from cfspopcon.unit_handling import Quantity
 
+
 def test_cli(tmp_path):
 
-    yaml_text = \
-"""
+    yaml_text = """
 algorithms:
   - calc_magnetic_field_and_safety_factor
   - calc_fieldline_pitch_at_omp

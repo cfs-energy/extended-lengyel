@@ -19,7 +19,8 @@ def test_convert(element: str, conversion: Callable[[str], Any]) -> Any | None:
     except (ValueError, UndefinedUnitError, KeyError):
         return None
 
-def convert_elements(element): # noqa:PLR0911
+
+def convert_elements(element):  # noqa:PLR0911
     """Read the elements of the configuration and convert them to their underlying types."""
     if isinstance(element, dict):
         return {k: convert_elements(v) for k, v in element.items()}
@@ -28,25 +29,27 @@ def convert_elements(element): # noqa:PLR0911
     elif isinstance(element, float | int):
         return element
     elif isinstance(element, str):
-        if (val:=test_convert(element, float)) is not None:
+        if (val := test_convert(element, float)) is not None:
             return val
-        if (val:=test_convert(element, lambda s: float(Fraction(s)))) is not None:
+        if (val := test_convert(element, lambda s: float(Fraction(s)))) is not None:
             return val
-        elif (val:=test_convert(element, Quantity)) is not None:
+        elif (val := test_convert(element, Quantity)) is not None:
             return val
-        elif (val:=test_convert(element, lambda s: AtomicSpecies.__getitem__(str.capitalize(s)))) is not None:
+        elif (val := test_convert(element, lambda s: AtomicSpecies.__getitem__(str.capitalize(s)))) is not None:
             return val
         elif element.startswith("PATH:"):
             return Path(element.lstrip("PATH:")).absolute()
 
     raise NotImplementedError(f"Cannot handle {element} of type {type(element)}")
 
+
 def read_config_from_yaml(filepath: Path):
     """Read a configuration YAML file."""
     with open(filepath) as file:
         return yaml.safe_load(file)
 
-def read_config( # noqa:PLR0912
+
+def read_config(  # noqa:PLR0912
     filepath: Path,
     elements: list[str] | None = None,
     keys: list[str] | None = None,
@@ -82,16 +85,18 @@ def read_config( # noqa:PLR0912
         else:
             flattened_config[k] = v
 
-    flattened_config["seed_impurity_species"], flattened_config["seed_impurity_weights"] = \
-        setup_impurities(flattened_config.get("seed_impurity_species", []), flattened_config.get("seed_impurity_weights", []))
-    flattened_config["fixed_impurity_species"], flattened_config["fixed_impurity_weights"] = \
-        setup_impurities(flattened_config.get("fixed_impurity_species", []), flattened_config.get("fixed_impurity_weights", []))
+    flattened_config["seed_impurity_species"], flattened_config["seed_impurity_weights"] = setup_impurities(
+        flattened_config.get("seed_impurity_species", []), flattened_config.get("seed_impurity_weights", [])
+    )
+    flattened_config["fixed_impurity_species"], flattened_config["fixed_impurity_weights"] = setup_impurities(
+        flattened_config.get("fixed_impurity_species", []), flattened_config.get("fixed_impurity_weights", [])
+    )
 
     if keys is None:
         return flattened_config
     else:
         if warn_if_unused:
-            if len(unused_keys:=set(flattened_config.keys()) - set(keys)):
+            if len(unused_keys := set(flattened_config.keys()) - set(keys)):
                 warnings.warn(f"Not all keys in config were used. Unused keys were {unused_keys}.")
         selected_config = {}
         for k in keys:
@@ -106,6 +111,7 @@ def read_config( # noqa:PLR0912
 
         return selected_config
 
+
 def setup_impurities(impurity_species, impurity_weights) -> tuple[xr.DataArray, xr.DataArray]:
     """Convert linked lists for seed impurity species into xarrays."""
     coords = {"dim_species": np.atleast_1d(impurity_species)}
@@ -113,6 +119,7 @@ def setup_impurities(impurity_species, impurity_weights) -> tuple[xr.DataArray, 
     impurity_species = xr.DataArray(np.atleast_1d(impurity_species), coords=coords)
 
     return impurity_species, impurity_weights
+
 
 def promote_to_coordinate(array, units, dims):
     """Convert an array of values to a coordinate for performing scans over."""

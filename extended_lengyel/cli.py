@@ -14,6 +14,7 @@ import cfspopcon
 
 from cfspopcon.unit_handling import UnitStrippedWarning
 
+
 @click.command()
 @click.argument("config_file", type=click.Path(exists=True))
 @click.argument("output_file", type=click.Path(exists=False))
@@ -37,6 +38,7 @@ def run_extended_lengyel_cli(config_file: str, output_file: str, kwargs: tuple[t
     else:
         run_extended_lengyel(config_file, output_file, cli_args)
 
+
 def run_extended_lengyel(config_file, output_file, cli_args=None) -> None:
     """Run the extended Lengyel model as a calculator."""
     if cli_args is None:
@@ -55,13 +57,13 @@ def run_extended_lengyel(config_file, output_file, cli_args=None) -> None:
     algorithm = cfspopcon.CompositeAlgorithm.from_list(algorithms)
 
     data_vars = config.read_config(
-        elements          = ["input"],
-        filepath          = config_file,
-        keys              = algorithm.input_keys,
-        allowed_missing   = algorithm.default_keys,
-        overrides         = cli_args,
-        warn_if_unused    = True,
-        convert_overrides = True,
+        elements=["input"],
+        filepath=config_file,
+        keys=algorithm.input_keys,
+        allowed_missing=algorithm.default_keys,
+        overrides=cli_args,
+        warn_if_unused=True,
+        convert_overrides=True,
     )
 
     ds = xr.Dataset(data_vars=data_vars)
@@ -72,9 +74,11 @@ def run_extended_lengyel(config_file, output_file, cli_args=None) -> None:
 
     print("Extended lengyel model ran successfully.")
 
+
 def write_output_file(filepath: Path, ds: xr.Dataset):
     """Write the results from the extended Lengyel model to a YAML file."""
     from cfspopcon.file_io import sanitize_variable, ignored_keys
+
     ignored_keys += [
         "seed_impurity_species",
         "seed_impurity_weights",

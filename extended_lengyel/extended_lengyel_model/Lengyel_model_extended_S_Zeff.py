@@ -44,9 +44,9 @@ def run_extended_lengyel_model_with_S_and_Zeff_correction(
     mean_charge_for_seed_impurities,
     CzLINT_for_fixed_impurities: CzLINT_integrator | None = None,
     mean_charge_for_fixed_impurities: Mean_charge_interpolator | None = None,
-    conduction_prefactor_in_divertor: float=7.0/2.0,
-    conduction_prefactor_in_main_chamber: float=7.0/2.0,
-    SOL_conduction_fraction: float=1.0,
+    conduction_prefactor_in_divertor: float = 7.0 / 2.0,
+    conduction_prefactor_in_main_chamber: float = 7.0 / 2.0,
+    SOL_conduction_fraction: float = 1.0,
     iterations_for_Lengyel_model: int = 5,
     mask_invalid_results: bool = True,
 ):
