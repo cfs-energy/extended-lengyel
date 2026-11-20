@@ -95,12 +95,12 @@ def write_output_file(filepath: Path, ds: xr.Dataset):
     for key in ds.keys():
         if key in ignored_keys:
             continue
-        output_dict[key] = sanitize_variable(ds[key], key)
+        output_dict[key] = sanitize_variable(ds[key], str(key))
 
     for key in ds.coords:
         if key in ignored_keys:
             continue
-        output_dict[key] = sanitize_variable(ds[key], key)
+        output_dict[key] = sanitize_variable(ds[key], str(key))
 
     impurity_fraction = cfspopcon.unit_handling.magnitude_in_units(ds["impurity_fraction"], "")
     seed_impurity_concentration = impurity_fraction * ds["seed_impurity_weights"].dropna(dim="dim_species")

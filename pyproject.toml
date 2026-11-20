@@ -101,21 +101,3 @@ python-version = "3.12"
 
 [tool.ty.src]
 include = ["extended_lengyel"]
-
-# xarray types Dataset keys as Hashable; the keys here are always strings.
-[[tool.ty.overrides]]
-include = ["extended_lengyel/cli.py"]
-[tool.ty.overrides.rules]
-invalid-argument-type = "ignore"
-
-# Enum members are not numpy ArrayLike, but np.atleast_1d accepts them at run time.
-[[tool.ty.overrides]]
-include = ["extended_lengyel/extended_lengyel_model/Lengyel_model_core.py"]
-[tool.ty.overrides.rules]
-no-matching-overload = "ignore"
-
-# scipy's event protocol reads a `terminal` attribute set on the callback function.
-[[tool.ty.overrides]]
-include = ["extended_lengyel/kallenbach_model/kallenbach_to_cc.py"]
-[tool.ty.overrides.rules]
-missing-attribute = "ignore"
