@@ -2,12 +2,12 @@
 
 import numpy as np
 import xarray as xr
-from cfspopcon import Algorithm, CompositeAlgorithm
+from cfspopcon import CompositeAlgorithm, declare_algorithm
 
 from ..xr_helpers import item
 
 
-@Algorithm.register_algorithm(return_keys=["impurity_fraction"])
+@declare_algorithm(return_keys=["impurity_fraction"])
 def run_basic_lengyel_model(
     q_parallel,
     kappa_e0,
@@ -32,23 +32,19 @@ def run_basic_lengyel_model(
     return c_z
 
 
-CompositeAlgorithm(
-    algorithms=[
-        Algorithm.get_algorithm(alg)
-        for alg in [
-            "set_radas_dir",
-            "read_atomic_data",
-            "set_single_impurity_species",
-            "build_CzLINT_for_seed_impurities",
-            "calc_kappa_e0",
-            "calc_Goldston_kappa_z",
-            "calc_momentum_loss_from_cc_fit",
-            "calc_separatrix_electron_temp_no_broadening",
-            "calc_separatrix_total_pressure_LG",
-            "calc_required_power_loss_fraction",
-            "run_basic_lengyel_model",
-        ]
+basic_lengyel_model = CompositeAlgorithm.declare(
+    [
+        "set_radas_dir",
+        "read_atomic_data",
+        "set_single_impurity_species",
+        "build_CzLINT_for_seed_impurities",
+        "calc_kappa_e0",
+        "calc_Goldston_kappa_z",
+        "calc_momentum_loss_from_cc_fit",
+        "calc_separatrix_electron_temp_no_broadening",
+        "calc_separatrix_total_pressure_LG",
+        "calc_required_power_loss_fraction",
+        "run_basic_lengyel_model",
     ],
     name="basic_lengyel_model",
-    register=True,
 )
