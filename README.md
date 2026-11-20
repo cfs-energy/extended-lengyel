@@ -36,7 +36,7 @@ poetry run pytest
 ```bash
 poetry run pytest             # tests plus coverage; fails below the --cov-fail-under value in pyproject.toml (use --no-cov for a partial run)
 poetry run ty check           # type check (ty is pinned, since its diagnostics change between releases)
-pre-commit run --all-files    # ruff check and ruff format (install once with `pre-commit install`)
+pre-commit run --all-files    # ruff check and ruff format; `pre-commit install` (once) also rejects AI-attribution trailers in commit messages
 ```
 CI runs the same checks. `notebooks/` is excluded from ruff.
 
