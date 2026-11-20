@@ -9,7 +9,7 @@ from cfspopcon.unit_handling import magnitude_in_units, ureg
 from extended_lengyel.extended_lengyel_model.Lengyel_model_core import CzLINT_integrator, Mean_charge_interpolator
 from extended_lengyel.iterative_solver import (
     run_forward_extended_lengyel_model,
-    run_forward_extended_lengyel_model_pdiv,
+    run_forward_extended_lengyel_model_with_pdiv,
     run_inverse_extended_lengyel_model,
     run_inverse_extended_lengyel_model_with_pdiv,
 )
@@ -136,7 +136,7 @@ def test_pdiv_round_trip_recovers_target_temperature_and_separatrix_density(kwar
 
     recovered = as_arrays(
         FORWARD_PDIV_RETURN_KEYS,
-        run_forward_extended_lengyel_model_pdiv(
+        run_forward_extended_lengyel_model_with_pdiv(
             impurity_fraction=seeded["impurity_fraction"] * ureg.dimensionless, neutral_pressure_in_divertor=pressure, **kwargs
         ),
     )

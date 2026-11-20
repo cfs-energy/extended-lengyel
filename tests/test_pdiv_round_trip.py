@@ -12,7 +12,7 @@ from cfspopcon.unit_handling import magnitude_in_units, ureg
 
 from extended_lengyel.extended_lengyel_model.Lengyel_model_core import CzLINT_integrator, Mean_charge_interpolator
 from extended_lengyel.iterative_solver import (
-    run_forward_extended_lengyel_model_pdiv,
+    run_forward_extended_lengyel_model_with_pdiv,
     run_inverse_extended_lengyel_model_with_pdiv,
 )
 from extended_lengyel.mavrin_data import read_mavrin_data
@@ -61,7 +61,7 @@ def run_inverse_then_forward(target_electron_temp: float, neutral_pressure_pa: f
     impurity_fraction = inverse_results[0]
     assert bool(inverse_results[-1]), "inverse-pdiv model did not converge: bad test point"
 
-    forward_results = run_forward_extended_lengyel_model_pdiv(
+    forward_results = run_forward_extended_lengyel_model_with_pdiv(
         impurity_fraction=impurity_fraction,
         neutral_pressure_in_divertor=neutral_pressure_pa * ureg.Pa,
         **base_kwargs,

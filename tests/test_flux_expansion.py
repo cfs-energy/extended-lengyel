@@ -126,7 +126,7 @@ def test_ladder_correction_matches_spatial() -> None:
             divertor_broadening_factor=B_Q,
             SOL_conduction_fraction=1.0,
         )
-        divertor_temp, upstream_temp = physics.calc_temperature_ladder(T_CC, result.q_parallel, kappa, kappa, inputs)
+        divertor_temp, upstream_temp = physics.calc_electron_temp_at_div_and_u(T_CC, result.q_parallel, kappa, kappa, inputs)
         assert divertor_temp == pytest.approx(result.divertor_entrance_electron_temp, rel=1e-6)
         assert upstream_temp == pytest.approx(result.separatrix_electron_temp, rel=1e-6)
 

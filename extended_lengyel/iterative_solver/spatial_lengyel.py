@@ -38,7 +38,6 @@ from typing import TYPE_CHECKING, Literal
 import numpy as np
 from scipy.integrate import solve_ivp
 
-from .physics import calc_heat_conductivity_factor
 
 if TYPE_CHECKING:
     from extended_lengyel.extended_lengyel_model.Lengyel_model_core import CzLINT_integrator
@@ -236,8 +235,3 @@ def run_spatial_lengyel_model(
         tB_cc_div=-res1.y[3, -1],
         tB_div_u=-res2.y[3, -1],
     )
-
-
-def heat_conductivity_factor_from_z_effective(z_effective: float) -> float:
-    """Convenience wrapper: the impurity-corrected heat-conductivity factor kappa_e0/kappa_z."""
-    return calc_heat_conductivity_factor(z_effective)

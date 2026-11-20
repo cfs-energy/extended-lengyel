@@ -7,7 +7,7 @@
 - Every solve returns `converged`. A non-converged or unphysical solve (inverse needing a negative impurity fraction, or separatrix Z_eff below 1) returns NaN for all physics outputs, so mask on the flag.
 - Optional inputs, inert at their defaults: `pressure_broadening_factor`, `divertor_enrichment_factor`, `flux_expansion_Bt_over_Bu`, `flux_expansion_Bxpt_over_Bu` (Moulton flux-expansion term).
 - The loop evaluates heat conductivity separately in the divertor and main chamber, so it differs by a few percent in target temperature from `run_extended_lengyel_model_with_S_Zeff_and_alphat_correction`; do not mix the two.
-- Example: `bench/forward_inverse_example.py`.
+- Example: `tests/test_forward_inverse_example.py`.
 
 ### cfspopcon plugin
 - `extended_lengyel` is a cfspopcon 9 plugin. Importing it registers nothing; call `cfspopcon.register_plugin("extended_lengyel")` or list it under `plugins` in an input file (the command line interface registers it when `plugins` is omitted). Registering twice is a no-op.

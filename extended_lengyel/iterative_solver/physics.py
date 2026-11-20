@@ -220,7 +220,7 @@ def calc_heat_conductivity_factor(z_effective: float) -> float:
     return kappa_e0 / kappa_z
 
 
-def calc_temperature_ladder(
+def calc_electron_temp_at_div_and_u(
     electron_temp_at_cc_interface: float,
     q_parallel: float,
     divertor_heat_conductivity_factor: float,
@@ -366,7 +366,7 @@ def calc_tB(
     This is exact in the no-radiation limit (q_xpt -> q_||u gives 0.5 q_||u^2 ((B_t/B_u)^2 - 1))
     and agrees with the spatial Lengyel reference (``spatial_lengyel.py``) to within ~2.5% for
     B_t/B_u up to ~2. NOTE it uses the radiation-reduced flux whereas the conduction ladder
-    (``calc_temperature_ladder``) uses the radiation-free q_||u, so the two are not strictly
+    (``calc_electron_temp_at_div_and_u``) uses the radiation-free q_||u, so the two are not strictly
     consistent -- accepted because the conduction integral depends only weakly on q_parallel
     (through the 7/2 power) while t_B is quadratic in it. A temperature-integral treatment (or
     reducing q_parallel for radiation in the ladder too) would remove both the residual and the

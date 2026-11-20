@@ -32,7 +32,7 @@ from .physics import (
     calc_target_electron_temp_basic,
     calc_target_postprocessing,
     calc_tB,
-    calc_temperature_ladder,
+    calc_electron_temp_at_div_and_u,
     calc_z_effective,
     relax,
 )
@@ -81,7 +81,7 @@ class ModelInputs:
     divertor_enrichment_factor: float = 1.0
     # X-point/upstream field-strength ratio B_xpt/B_u. With flux_expansion_Bt_over_Bu (= B_t/B_u) it
     # tracks magnetic flux expansion on both conduction legs (u<->xpt and xpt<->t): it sets the per-leg
-    # mean field in the conduction ladder (calc_temperature_ladder) and the per-leg field factors in
+    # mean field in the conduction ladder (calc_electron_temp_at_div_and_u) and the per-leg field factors in
     # t_B (calc_tB). At the default 1.0 there is no flux expansion and both are inert.
     flux_expansion_Bxpt_over_Bu: float = 1.0
     # Mode-specific inputs: forward models set impurity_fraction, inverse models set
@@ -192,7 +192,7 @@ def run_extended_lengyel_solver(  # noqa: C901, PLR0912, PLR0915
         upstream_z_effective = np.maximum(separatrix_z_effective, 0.0) if clamp_negative_values else separatrix_z_effective
         upstream_heat_conductivity_factor = calc_heat_conductivity_factor(upstream_z_effective)
 
-        divertor_entrance_electron_temp, separatrix_electron_temp = calc_temperature_ladder(
+        divertor_entrance_electron_temp, separatrix_electron_temp = calc_electron_temp_at_div_and_u(
             electron_temp_at_cc_interface,
             q_parallel,
             divertor_heat_conductivity_factor,

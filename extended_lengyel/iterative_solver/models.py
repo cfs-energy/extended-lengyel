@@ -98,7 +98,7 @@ def run_forward_extended_lengyel_model(
     return_units=return_units_for(FORWARD_PDIV_RETURN_KEYS),
     output_core_dims=tuple(() for _ in FORWARD_PDIV_RETURN_KEYS),
 )
-def run_forward_extended_lengyel_model_pdiv(
+def run_forward_extended_lengyel_model_with_pdiv(
     impurity_fraction: Unitfull,
     power_crossing_separatrix: Unitfull,
     neutral_pressure_in_divertor: Unitfull,
