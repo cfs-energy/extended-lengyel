@@ -44,6 +44,7 @@ pytest = "^9.0.3"
 pytest-cov = "^7.1.0"
 coverage = "^7.13.5"
 ruff = "^0.15.10"
+ty = "0.0.107"  # pinned: beta, diagnostics change between 0.0.x releases
 nbmake = "^1.5"
 ipdb = "^0.13.13"
 
@@ -52,7 +53,7 @@ requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
-addopts = "--cov=extended_lengyel --cov-report term-missing --cov-report xml:coverage.xml --verbose -s --nbmake"
+addopts = "--cov=extended_lengyel --cov-report term-missing --cov-report xml:coverage.xml --cov-fail-under=87 --verbose -s --nbmake"
 testpaths = ["tests"]
 filterwarnings = [
     "error",
@@ -63,10 +64,12 @@ filterwarnings = [
 [tool.ruff]
 target-version = "py312"
 line-length = 140
+extend-exclude = ["notebooks"]  # exploratory notebooks are not linted or formatted
+force-exclude = true  # also applies to files passed explicitly, e.g. by pre-commit
 
 [tool.ruff.lint]
 select = [
-    "A", "B", "C4", "D", "E", "ERA", "F", "FLY", 
+    "A", "B", "C4", "C901", "D", "E", "ERA", "F", "FLY", 
     "ISC", "PERF", "PIE", "PGH", "PL", "Q", "RUF", "T10", 
     "TCH", "UP", "W"
 ]
@@ -84,8 +87,35 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/*" = ["D100", "D103"]  # test names document the tests
 
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
 [tool.ruff.lint.pyupgrade]
 keep-runtime-typing = true
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.ty.environment]
+python-version = "3.12"
+
+[tool.ty.src]
+include = ["extended_lengyel"]
+
+# xarray types Dataset keys as Hashable; the keys here are always strings.
+[[tool.ty.overrides]]
+include = ["extended_lengyel/cli.py"]
+[tool.ty.overrides.rules]
+invalid-argument-type = "ignore"
+
+# Enum members are not numpy ArrayLike, but np.atleast_1d accepts them at run time.
+[[tool.ty.overrides]]
+include = ["extended_lengyel/extended_lengyel_model/Lengyel_model_core.py"]
+[tool.ty.overrides.rules]
+no-matching-overload = "ignore"
+
+# scipy's event protocol reads a `terminal` attribute set on the callback function.
+[[tool.ty.overrides]]
+include = ["extended_lengyel/kallenbach_model/kallenbach_to_cc.py"]
+[tool.ty.overrides.rules]
+missing-attribute = "ignore"
