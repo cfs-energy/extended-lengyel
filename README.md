@@ -41,6 +41,14 @@ pre-commit run --all-files    # ruff check and ruff format; `pre-commit install`
 ```
 CI runs the same checks. `notebooks/` is excluded from ruff.
 
+### Golden regression
+
+`tests/golden/extended_lengyel_golden.json` pins the outputs of the four iterative models (forward, inverse and their `_pdiv` variants) on a grid of inputs, generated from the original models. `tests/test_golden_regression.py` compares against it within a relative tolerance of 1e-5, and the same comparison runs standalone:
+```bash
+poetry run python tests/generate_golden.py --check
+```
+Never regenerate the file to make a failing check pass: a difference means the model output moved. Only after a deliberate, reviewed physics change, run `poetry run python tests/generate_golden.py --write` and commit the new JSON with that change.
+
 ## A quick-start example
 
 If want to use the extended Lengyel model to compute the impurity concentration for an experiment, you should be able to adapt the example below. We've added in-line comments to explain the steps.
