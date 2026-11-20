@@ -56,8 +56,8 @@ def run_extended_lengyel_model_with_S_Zeff_and_alphat_correction(
     ratio_of_upstream_to_average_poloidal_field,
     CzLINT_for_fixed_impurities: CzLINT_integrator | None = None,
     mean_charge_for_fixed_impurities: Mean_charge_interpolator | None = None,
-    conduction_prefactor_in_divertor: float = 7.0/2.0,
-    conduction_prefactor_in_main_chamber: float = 7.0/2.0,
+    conduction_prefactor_in_divertor: float = 7.0 / 2.0,
+    conduction_prefactor_in_main_chamber: float = 7.0 / 2.0,
     SOL_conduction_fraction: float = 1.0,
     iterations_for_Lengyel_model: int = 5,
     iterations_for_alphat: int = 5,
@@ -230,7 +230,7 @@ CompositeAlgorithm(
             "calc_parallel_to_perp_factor",
             "calc_ion_flux_to_target",
             "calc_divertor_neutral_pressure",
-            "calc_heat_flux_perp_to_target"
+            "calc_heat_flux_perp_to_target",
         ]
     ],
     name="extended_lengyel_for_experiment_inputs",

@@ -8,6 +8,7 @@ from cfspopcon.unit_handling import ureg
 from .Lengyel_model_core import CzLINT_integrator
 from ..xr_helpers import item
 
+
 @Algorithm.register_algorithm(return_keys=["impurity_fraction", "radiated_fraction_above_xpt"])
 def run_extended_lengyel_model_with_S_correction(
     q_parallel,
@@ -42,17 +43,11 @@ def run_extended_lengyel_model_with_S_correction(
     b = divertor_broadening_factor
     k = 2.0 * (kappa_e0 / kappa_z) * separatrix_electron_density**2 * separatrix_electron_temp**2
 
-    q_div_squared = (
-        (Ls_div_u * (qcc**2 + k * Lf_cc_div) + Ls_cc_div * (qu**2 - k * Lf_div_u))
-        / (Ls_div_u / b**2  + Ls_cc_div)
-    )
+    q_div_squared = (Ls_div_u * (qcc**2 + k * Lf_cc_div) + Ls_cc_div * (qu**2 - k * Lf_div_u)) / (Ls_div_u / b**2 + Ls_cc_div)
     q_div_squared = np.maximum(q_div_squared, 0.0 * ureg.W**2 * ureg.m**-4)
     f_rad_main = 1.0 - np.sqrt(q_div_squared) / qu
 
-    c_z = (
-        (qu**2 + (1 / b**2 - 1) * q_div_squared - qcc**2) / (k * Ls_cc_u)
-        - Lf_cc_u / Ls_cc_u
-    )
+    c_z = (qu**2 + (1 / b**2 - 1) * q_div_squared - qcc**2) / (k * Ls_cc_u) - Lf_cc_u / Ls_cc_u
 
     if mask_invalid_results:
         c_z = xr.where(c_z < 0.0, np.nan, c_z)
