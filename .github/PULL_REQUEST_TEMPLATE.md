@@ -21,6 +21,7 @@ the PR, say so in the AI tools used section. -->
 ## Checks ran
 
 - [ ] `pytest` is green
+- [ ] Check against stored reference values passes (`poetry run python tests/generate_golden.py --check`, where the repo has the stored-values file): results are unchanged, or the source of every change is expected and the changes are summarised under "Impacts to users"
 - [ ] Coverage reported (`pytest --cov`) and at or above the `--cov-fail-under` value in `pyproject.toml`
 - [ ] Tests written for new features and for the edge cases they handle
 - [ ] `ruff check` and `ruff format --check` are clean (the same checks run in CI and in `pre-commit`)
@@ -33,7 +34,7 @@ the PR, say so in the AI tools used section. -->
 
 ## Evidence that the changes achieve the goal
 
-<!-- Run-times, golden-regression or bit-identity results, validation comparisons.
+<!-- Run-times, stored-reference-value or bit-identity results, validation comparisons.
 Prefer figures: attach plots and state the command that produced them. -->
 
 ## Follow-on work
