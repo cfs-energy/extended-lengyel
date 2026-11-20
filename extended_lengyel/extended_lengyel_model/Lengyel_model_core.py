@@ -238,7 +238,7 @@ class Mean_charge_interpolator:
     ) -> Self:
         """Returns an CzLINT_integrator from linked lists of impurity species and weights."""
         species_list = [s if isinstance(s, AtomicSpecies) else AtomicSpecies[s] for s in impurity_species_list]
-        species = xr.DataArray(np.atleast_1d(species_list), coords={"dim_species": np.atleast_1d(species_list)})
+        species = xr.DataArray(np.atleast_1d(species_list), coords={"dim_species": np.atleast_1d(species_list)})  # ty: ignore[no-matching-overload]
         return cls(species, atomic_data, ne_tau, electron_density, rtol_nearest)
 
 
