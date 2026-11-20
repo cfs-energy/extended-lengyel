@@ -5,7 +5,7 @@ from extended_lengyel.cli import run_extended_lengyel
 from cfspopcon.unit_handling import Quantity
 
 def test_cli(tmp_path):
-    
+
     yaml_text = \
 """
 algorithms:
@@ -84,7 +84,7 @@ input:
 
     run_extended_lengyel(config_file, output_file)
 
-    with open(output_file, "r") as f:
+    with open(output_file) as f:
         output = yaml.load(f, Loader=yaml.SafeLoader)
 
     c_N = output["impurity_fraction"]["seed_impurity"]["Nitrogen"]
@@ -97,7 +97,7 @@ input:
     output_file_2 = tmp_path / "output2.yml"
     run_extended_lengyel(config_file, output_file_2, cli_args=dict(ion_mass="2.5 amu"))
 
-    with open(output_file_2, "r") as f:
+    with open(output_file_2) as f:
         output_2 = yaml.load(f, Loader=yaml.SafeLoader)
 
     assert np.isclose(Quantity(output_2["ion_mass"]), Quantity(2.5, "amu"))

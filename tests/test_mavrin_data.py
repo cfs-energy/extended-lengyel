@@ -1,7 +1,7 @@
 import pytest
 from cfspopcon.formulas.atomic_data.atomic_data import read_atomic_data, AtomicData
 from extended_lengyel.directories import radas_dir
-from extended_lengyel.mavrin_data import read_mavrin_data, MavrinData, SpeciesMavrinData
+from extended_lengyel.mavrin_data import read_mavrin_data, MavrinData
 from cfspopcon.named_options import AtomicSpecies
 from extended_lengyel.extended_lengyel_model.Lengyel_model_core import (
     build_CzLINT_for_seed_impurities,
@@ -9,7 +9,6 @@ from extended_lengyel.extended_lengyel_model.Lengyel_model_core import (
     set_single_impurity_species
 )
 import numpy as np
-import xarray as xr
 from cfspopcon.unit_handling import magnitude_in_units, ureg
 
 @pytest.fixture()

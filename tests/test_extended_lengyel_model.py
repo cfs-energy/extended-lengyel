@@ -7,8 +7,8 @@ from cfspopcon.unit_handling import ureg
 
 from extended_lengyel.directories import radas_dir
 from extended_lengyel.extended_lengyel_model.Lengyel_model_core import CzLINT_integrator, Mean_charge_interpolator, calc_z_effective
-from extended_lengyel.xr_helpers import item, values
-from cfspopcon.unit_handling import magnitude_in_units, ureg, get_units
+from extended_lengyel.xr_helpers import item
+from cfspopcon.unit_handling import magnitude_in_units, get_units
 
 def compare_magnitude(a, b):
     return magnitude_in_units(a, get_units(b)), magnitude_in_units(b, get_units(b))
@@ -79,7 +79,7 @@ def test_mixed_seeding_mean_charge():
             electron_density=electron_density,
             ne_tau=ne_tau,
         )
-    
+
     mixed_mean_charge = Mean_charge_interpolator.from_list(
         impurity_species_list=species_list,
         atomic_data=atomic_data,
@@ -129,14 +129,14 @@ def test_calc_z_effective():
     )
 
     assert np.allclose(magnitude_in_units(z_eff_deuterium, ureg.dimensionless), 1.0, rtol=1e-3)
-    
+
     coronal_ne_tau = 1.0e19 * ureg.m**-3 * ureg.s
 
     mean_charge_N = Mean_charge_interpolator.from_list(["Nitrogen"],
                                              atomic_data,
                                              ne_tau=coronal_ne_tau,
     )
-    
+
     assert np.isclose(magnitude_in_units(mean_charge_N(10.0 * ureg.keV), ureg.dimensionless), 7, rtol=1e-3)
 
     z_eff_seeding = calc_z_effective(
