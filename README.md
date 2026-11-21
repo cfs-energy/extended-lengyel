@@ -12,7 +12,7 @@ The software can be found in the `extended_lengyel` folder. This contains the fo
 * `kallenbach_model`: the model introduced in Kallenbach et al., 2016, "Analytical calculations for impurity seeded  partially detached divertor conditions".
 * `spatial_lengyel_model`: a version of the Lengyel model which does not switch to the temperature-integral form.
 * `extended_lengyel_model`: the main extended Lengyel model discussed in the paper.
-* `iterative_solver`: forward and inverse solves of the same model, sharing a single iteration loop. The *forward* solve is the new capability — given an impurity concentration, iterate to find the target electron temperature.
+* `iterative_solver`: forward and inverse solves of the same model, sharing a single iteration loop. The *forward* solve is the new capability — given an impurity concentration, iterate to find the target electron temperature. The equations are written out in [docs/iterative_solver_equations.md](docs/iterative_solver_equations.md).
 
 In addition to this, the software also has shared initialization and post-processing modules, as well as a module for interacting with data from OpenADAS using the [radas](https://github.com/cfs-energy/radas) library. The library is a [cfspopcon](https://github.com/cfs-energy/cfspopcon) plugin, which allows for straightforward unit-handling and scanning of input parameters. Importing `extended_lengyel` registers nothing. Call `cfspopcon.register_plugin("extended_lengyel")`, or list `extended_lengyel` under `plugins` in an input file, and its algorithms and the default units in `extended_lengyel/variables.yaml` become available alongside the built-in ones.
 

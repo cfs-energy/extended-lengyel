@@ -3,11 +3,12 @@
 ## Unreleased
 
 ### Iterative solver
-- `extended_lengyel.iterative_solver` adds four registered algorithms that share one fixed-point loop: `run_forward_extended_lengyel_model` (impurity fraction in, target temperature out), `run_inverse_extended_lengyel_model` (the reverse), and the `_pdiv` pair, which solve for the separatrix density from a given divertor neutral pressure instead of taking it as input.
+- `extended_lengyel.iterative_solver` adds four registered algorithms that share one fixed-point loop: `run_forward_extended_lengyel_model` (impurity fraction in, target temperature out), `run_inverse_extended_lengyel_model` (the reverse), and the `_with_pdiv` pair, which solve for the separatrix density from a given divertor neutral pressure instead of taking it as input.
 - Every solve returns `converged`. A non-converged or unphysical solve (inverse needing a negative impurity fraction, or separatrix Z_eff below 1) returns NaN for all physics outputs, so mask on the flag.
 - Optional inputs, inert at their defaults: `pressure_broadening_factor`, `divertor_enrichment_factor`, `flux_expansion_Bt_over_Bu`, `flux_expansion_Bxpt_over_Bu` (Moulton flux-expansion term).
 - The loop evaluates heat conductivity separately in the divertor and main chamber, so it differs by a few percent in target temperature from `run_extended_lengyel_model_with_S_Zeff_and_alphat_correction`; do not mix the two.
-- Example: `tests/test_forward_inverse_example.py`.
+- Equations: `docs/iterative_solver_equations.md`. Example: `tests/test_forward_inverse_example.py`.
+- Physical constants in the solver now come from `scipy.constants`; outputs shift by at most 5e-7 relative on a 516-case grid (inside the 1e-6 solver tolerance); no case changes convergence status.
 
 ### cfspopcon plugin
 - `extended_lengyel` is a cfspopcon 9 plugin. Importing it registers nothing; call `cfspopcon.register_plugin("extended_lengyel")` or list it under `plugins` in an input file (the command line interface registers it when `plugins` is omitted). Registering twice is a no-op.

@@ -2,13 +2,17 @@
 
 from typing import Any
 
-mu_0 = 1.2566370621250601e-6  # meter * tesla / ampere
-elementary_charge = 1.602176634e-19  # coulomb
+import scipy.constants as sc
+
+mu_0 = sc.mu_0  # meter * tesla / ampere
+elementary_charge = sc.elementary_charge  # coulomb
+amu_to_kg = sc.atomic_mass  # kilogram / amu
+eV_to_J = sc.elementary_charge
+boltzmann_constant = sc.Boltzmann  # joule/kelvin
+electron_mass = sc.electron_mass  # kilogram
+epsilon_0_per_eV = sc.epsilon_0 / sc.elementary_charge  # e^2 eV^-1 m^-1 (vacuum permittivity)
 MA_to_A = 1.0e6  # MA / A
-amu_to_kg = 1.6605390666e-27  # amu / kilogram
 MW_to_W = 1.0e6  # MW / W
-eV_to_J = elementary_charge
-boltzmann_constant = 1.380649e-23  # joule/kelvin
 n20_to_m3 = 1.0e20  # 10^20 / m^3 to 1 / m^3
 
 kappa_e0 = 2390.0  # W / (m * eV**3.5)

@@ -15,7 +15,9 @@ from .constants import (
     POWER_LOSS_FIT,
     amu_to_kg,
     boltzmann_constant,
+    electron_mass,
     elementary_charge,
+    epsilon_0_per_eV,
     eV_to_J,
     kappa_e0,
     mu_0,
@@ -52,9 +54,6 @@ def calc_alpha_t(
     For separatrix electron density in per-cubic-metre, separatrix electron temp in electron-volts,
     major radius in metres, average ion mass in kilograms, and all other inputs dimensionless.
     """
-    epsilon_0 = 5.5263493580350935e7  # e^2 eV^-1 m^-1
-    electron_mass = 9.1093837015e-31  # kg
-
     # Calculate the Coulomb logarithm, for electron density in per-cubic-metre and electron temp in electron-volts.
     # From text on page 6 of :cite:`Verdoolaege_2021`
     coulomb_log = 30.9 - np.log(separatrix_electron_density**0.5 * separatrix_electron_temp**-1.0)
@@ -68,7 +67,7 @@ def calc_alpha_t(
         * np.sqrt(2.0 * np.pi)
         * separatrix_electron_density
         * coulomb_log
-        / ((4.0 * np.pi * epsilon_0) ** 2 * np.sqrt(electron_mass) * separatrix_electron_temp**1.5)
+        / ((4.0 * np.pi * epsilon_0_per_eV) ** 2 * np.sqrt(electron_mass) * separatrix_electron_temp**1.5)
     ) * np.sqrt(eV_to_J)
     # Calculate the electron-ion collision frequency, using equation B2 from from :cite:`Eich_2020`.
     nu_ei = nu_ee * z_effective_correction * z_effective
