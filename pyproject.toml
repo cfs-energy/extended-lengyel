@@ -53,7 +53,7 @@ requires = ["poetry-core>=2.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.pytest.ini_options]
-addopts = "--cov=extended_lengyel --cov-report term-missing --cov-report xml:coverage.xml --cov-fail-under=87 --verbose -s --nbmake"
+addopts = "--cov=extended_lengyel --cov-report term-missing --cov-report xml:coverage.xml --verbose -s --nbmake"
 testpaths = ["tests"]
 filterwarnings = [
     "error",

@@ -34,7 +34,7 @@ poetry run pytest
 
 ### Checks before opening a PR
 ```bash
-poetry run pytest             # tests plus coverage; fails below the --cov-fail-under value in pyproject.toml (use --no-cov for a partial run)
+poetry run pytest --cov-fail-under=87  # tests plus coverage; CI enforces the 87% floor, so a plain `pytest` or a partial run does not fail on it
 poetry run ty check           # type check (ty is pinned, since its diagnostics change between releases)
 pre-commit run --all-files    # ruff check and ruff format; `pre-commit install` (once) also rejects AI-attribution trailers in commit messages
 ```

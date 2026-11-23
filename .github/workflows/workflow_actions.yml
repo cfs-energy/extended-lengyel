@@ -93,7 +93,7 @@ jobs:
         run: exit 1
 
       - name: Test repository
-        run: poetry run pytest tests  # coverage gate (--cov-fail-under) comes from pyproject.toml
+        run: poetry run pytest tests --cov-fail-under=87  # the coverage floor is enforced in CI only, so partial local runs pass
       
       - name: Test notebooks
         run: poetry run python notebooks/run_notebooks.py
