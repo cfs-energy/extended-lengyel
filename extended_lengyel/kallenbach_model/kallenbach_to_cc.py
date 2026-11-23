@@ -102,7 +102,7 @@ def run_kallenbach_model_to_cc(
 
         return parallel_conductive_heat_flux / parallel_heat_flux - conducted_fraction_at_cc_interface
 
-    conduction_dominated.terminal = True
+    conduction_dominated.terminal = True  # ty: ignore[missing-attribute]
 
     with warnings.catch_warnings():
         warnings.simplefilter("error")
