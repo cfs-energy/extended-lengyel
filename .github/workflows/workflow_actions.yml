@@ -56,7 +56,7 @@ jobs:
           path: ./radas_dir
           retention-days: 180 # Set to 6 months
 
-  # --- JOB 2: TEST & LINT ---
+  # --- JOB 2: TEST ---
   build:
     name: Test (Python ${{ matrix.python-version }})
     needs: radas
@@ -93,19 +93,44 @@ jobs:
         run: exit 1
 
       - name: Test repository
-        run: poetry run pytest tests
+        run: poetry run pytest tests --cov-fail-under=87  # the coverage floor is enforced in CI only, so partial local runs pass
       
       - name: Test notebooks
         run: poetry run python notebooks/run_notebooks.py
 
-      - name: Run ruff
-        run: poetry run ruff check extended_lengyel
+  # --- JOB 3: LINT & TYPE CHECK ---
+  lint:
+    name: Lint and type check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
 
-  # --- JOB 3: PREPARE RELEASE ---
+      - name: Install Poetry
+        run: pipx install "poetry>=2,<3"
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+          cache: 'poetry'
+
+      - name: Install dependencies
+        run: poetry install
+
+      - name: Ruff check
+        run: poetry run ruff check extended_lengyel tests
+
+      - name: Ruff format
+        run: poetry run ruff format --check extended_lengyel tests
+
+      - name: Type check
+        run: poetry run ty check
+
+  # --- JOB 4: PREPARE RELEASE ---
   build_release:
     name: Build Release
     if: startsWith(github.ref, 'refs/tags')
-    needs: build
+    needs: [build, lint]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -123,7 +148,7 @@ jobs:
           path: ./dist
           retention-days: 1
 
-  # --- JOB 4: PUBLISH ---
+  # --- JOB 5: PUBLISH ---
   publish:
     name: Publish to PyPI
     if: startsWith(github.ref, 'refs/tags')

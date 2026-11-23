@@ -44,6 +44,7 @@ pytest = "^9.0.3"
 pytest-cov = "^7.1.0"
 coverage = "^7.13.5"
 ruff = "^0.15.10"
+ty = "0.0.107"  # pinned: beta, diagnostics change between 0.0.x releases
 nbmake = "^1.5"
 ipdb = "^0.13.13"
 
@@ -63,10 +64,12 @@ filterwarnings = [
 [tool.ruff]
 target-version = "py312"
 line-length = 140
+extend-exclude = ["notebooks"]  # exploratory notebooks are not linted or formatted
+force-exclude = true  # also applies to files passed explicitly, e.g. by pre-commit
 
 [tool.ruff.lint]
 select = [
-    "A", "B", "C4", "D", "E", "ERA", "F", "FLY", 
+    "A", "B", "C4", "C901", "D", "E", "ERA", "F", "FLY", 
     "ISC", "PERF", "PIE", "PGH", "PL", "Q", "RUF", "T10", 
     "TCH", "UP", "W"
 ]
@@ -81,8 +84,20 @@ ignore = [
     "PLC0415", # Allow imports not at the top of the file
 ]
 
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["D100", "D103"]  # test names document the tests
+
+[tool.ruff.lint.mccabe]
+max-complexity = 15
+
 [tool.ruff.lint.pyupgrade]
 keep-runtime-typing = true
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"
+
+[tool.ty.environment]
+python-version = "3.12"
+
+[tool.ty.src]
+include = ["extended_lengyel"]

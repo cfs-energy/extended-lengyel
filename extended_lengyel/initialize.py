@@ -12,6 +12,7 @@ from cfspopcon.formulas.separatrix_conditions.separatrix_operational_space.share
 from cfspopcon.formulas.metrics.larmor_radius import calc_larmor_radius
 from .xr_helpers import item
 
+
 @Algorithm.register_algorithm(return_keys=["radas_dir"])
 def set_radas_dir():
     """Sets the radas directory."""
@@ -214,9 +215,17 @@ def calc_Kallenbach_kappa_z(z_effective):
     return z_effective**0.3
 
 
-@Algorithm.register_algorithm(return_keys=["B_t_out_mid", "B_pol_out_mid", "separatrix_average_poloidal_field", "cylindrical_safety_factor"])
+@Algorithm.register_algorithm(
+    return_keys=["B_t_out_mid", "B_pol_out_mid", "separatrix_average_poloidal_field", "cylindrical_safety_factor"]
+)
 def calc_magnetic_field_and_safety_factor(
-    magnetic_field_on_axis, major_radius, minor_radius, elongation_psi95, triangularity_psi95, plasma_current, ratio_of_upstream_to_average_poloidal_field
+    magnetic_field_on_axis,
+    major_radius,
+    minor_radius,
+    elongation_psi95,
+    triangularity_psi95,
+    plasma_current,
+    ratio_of_upstream_to_average_poloidal_field,
 ):
     """Calculate upstream magnetic field."""
     shaping_factor = np.sqrt((1.0 + elongation_psi95**2 * (1.0 + 2.0 * triangularity_psi95**2 - 1.2 * triangularity_psi95**3)) / 2.0)

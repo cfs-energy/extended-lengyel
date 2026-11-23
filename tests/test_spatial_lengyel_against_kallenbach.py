@@ -1,7 +1,6 @@
 import cfspopcon
 import numpy as np
 import xarray as xr
-from cfspopcon.named_options import AtomicSpecies
 from cfspopcon.unit_handling import ureg
 
 import extended_lengyel
