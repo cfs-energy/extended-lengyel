@@ -18,6 +18,7 @@ classifiers = [
 
 [tool.poetry.scripts]
 xlengyel = 'extended_lengyel.cli:run_extended_lengyel_cli'
+xlengyel-fit-convective-layer = 'extended_lengyel.fit_convective_layer:fit_convective_layer_cli'
 
 [tool.poetry.dependencies]
 python = ">=3.12"
