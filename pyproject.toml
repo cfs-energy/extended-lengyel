@@ -24,7 +24,7 @@ python = ">=3.12"
 
 # Core CFS Physics Libraries
 radas = "^1!1.0.0"
-cfspopcon = "^8.0.0"
+cfspopcon = "^9.0.1"
 
 # Data Science Stack (Synchronized with radas/cfspopcon)
 numpy = "^2.4.4"
