@@ -75,10 +75,14 @@ def test_input_yml_example_runs(tmp_path):
     assert "impurity_fraction" in yaml.safe_load(output_file.read_text())
 
 
-def test_cli_registers_extended_lengyel_without_a_plugins_section(tmp_path):
-    """A case file with no `plugins` section still finds the extended-lengyel algorithms (fresh interpreter)."""
+@pytest.mark.parametrize("plugins", [None, "absent", [], ["extended_lengyel"]], ids=["null", "absent", "empty", "listed"])
+def test_cli_always_registers_extended_lengyel(tmp_path, plugins):
+    """The command line interface registers extended_lengyel whatever the input file's `plugins` section holds (fresh interpreter)."""
     config = yaml.safe_load((REPO / "input.yml").read_text())
-    del config["plugins"]
+    if plugins == "absent":
+        del config["plugins"]
+    else:
+        config["plugins"] = plugins
     config_file = tmp_path / "input.yml"
     config_file.write_text(yaml.safe_dump(config))
     code = f"from extended_lengyel.cli import run_extended_lengyel; run_extended_lengyel({str(config_file)!r}, {str(tmp_path / 'output.yml')!r})"
