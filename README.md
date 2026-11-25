@@ -23,6 +23,8 @@ To run all of the notebooks to generate the outputs, you can also `poetry run py
 
 The notebooks do not modify the package. To regenerate the convective-layer fit stored in `extended_lengyel/curve_fit.yml`, run `poetry run xlengyel-fit-convective-layer`.
 
+The `xlengyel` command line interface (`poetry run xlengyel input.yml output.yml`) always registers the `extended_lengyel` plugin, whatever the input file's `plugins` section lists.
+
 The analysis in the notebooks is configured via the `notebooks/config.yml` file (which is read by `extended_lengyel.config.read_config`). This converts a list of unit-containing strings to [pint.Quantity](https://pint.readthedocs.io/en/stable/user/defining-quantities.html) objects.
 
 ## Installation (for developers)
