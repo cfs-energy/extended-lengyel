@@ -28,6 +28,7 @@ from .directories import module_directory, notebook_dir
 from .extended_lengyel_model.convective_loss_fits import temperature_fit_function
 
 DEFAULT_OUTPUT_FILE = module_directory / "curve_fit.yml"
+# The notebooks are only present in a source checkout, so the default config is looked up at run time.
 DEFAULT_CONFIG_FILE = notebook_dir / "config.yml"
 
 
@@ -86,6 +87,7 @@ def determine_fmomc_and_fpowc_fit_functions(ds: xr.Dataset, info: bool = False) 
 
 def build_reference_scan_dataset(config_file: Path = DEFAULT_CONFIG_FILE) -> xr.Dataset:
     """Run the Kallenbach model to the convection-conduction interface, scanning over the target electron temperature."""
+    cfspopcon.register_plugin("extended_lengyel")
     algorithm = cfspopcon.registry["kallenbach_model_to_cc"]
 
     ds = xr.Dataset(
@@ -118,9 +120,8 @@ def write_fit_coefficients(coefficients: dict, output_file: Path = DEFAULT_OUTPU
 @click.option(
     "--config-file",
     type=click.Path(exists=True, dir_okay=False, path_type=Path),
-    default=DEFAULT_CONFIG_FILE,
-    show_default=True,
-    help="Config file providing the 'base' and 'target_constraints' elements for the Kallenbach scan.",
+    default=None,
+    help=f"Config file providing the 'base' and 'target_constraints' elements for the Kallenbach scan. Defaults to {DEFAULT_CONFIG_FILE} (source checkouts only).",
 )
 @click.option(
     "--output-file",
@@ -130,9 +131,12 @@ def write_fit_coefficients(coefficients: dict, output_file: Path = DEFAULT_OUTPU
     help="YAML file to write the fit coefficients to.",
 )
 @click.option("--info", is_flag=True, help="Print the fit covariance and the fitted coefficients.")
-def fit_convective_layer_cli(config_file: Path, output_file: Path, info: bool) -> None:
+def fit_convective_layer_cli(config_file: Path | None, output_file: Path, info: bool) -> None:
     """Fit the convective-layer loss curves and write them to curve_fit.yml."""
-    cfspopcon.register_plugin("extended_lengyel")
+    if config_file is None:
+        if not DEFAULT_CONFIG_FILE.exists():
+            raise click.UsageError(f"{DEFAULT_CONFIG_FILE} not found. Pass --config-file (the notebooks are only in a source checkout).")
+        config_file = DEFAULT_CONFIG_FILE
     ds = build_reference_scan_dataset(config_file)
     coefficients, _ = determine_fmomc_and_fpowc_fit_functions(ds, info=info)
     write_fit_coefficients(coefficients, output_file)
