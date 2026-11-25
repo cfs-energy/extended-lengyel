@@ -7,3 +7,5 @@
 - The convective-layer fit in `curve_fit.yml` is regenerated with the new `xlengyel-fit-convective-layer` command (`extended_lengyel/fit_convective_layer.py`) instead of by running `notebooks/4.Studying_the_convective_layer.ipynb`, which no longer writes the file.
 - Default units are declared in `extended_lengyel/variables.yaml`, which replaces `extended_units.yaml`. Algorithms use `declare_algorithm` and `CompositeAlgorithm.declare`; look them up with `cfspopcon.registry["name"]` instead of `Algorithm.get_algorithm`.
 - Requires cfspopcon `^9.0.2` and radas `^1!2.0.1`.
+- The version is now `2.0.0a1`, a pre-release of v2.
+- `xlengyel-fit-convective-layer` refuses to write non-finite coefficients, and never leaves a partly written `curve_fit.yml`. `extended_lengyel.extended_lengyel_model.convective_loss_fits.read_fit_coefficients` and `fit_parameters` read the stored fit.

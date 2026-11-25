@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "extended_lengyel"
-version = "1.0.0"
+version = "2.0.0a1"
 description = "Extended Lengyel model for plasma edge modeling, as a cfspopcon plugin."
 authors = ["Commonwealth Fusion Systems"]
 readme = "README.md"

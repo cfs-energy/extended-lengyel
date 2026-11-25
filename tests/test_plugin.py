@@ -9,6 +9,7 @@ import pytest
 import yaml
 from cfspopcon.unit_handling import default_unit
 
+from extended_lengyel.cli import plugins_to_register, run_extended_lengyel
 
 REPO = Path(__file__).parents[1]
 
@@ -64,26 +65,33 @@ def test_variables_yaml_has_no_unused_entries(registered_plugin_algorithms):
     assert declared - used == set()
 
 
-_NO_PLUGINS_SECTION = object()
+def test_variables_yaml_is_sorted_and_described():
+    """Every entry of variables.yaml has a description, and the entries are in alphabetical order (ignoring case)."""
+    variables = yaml.safe_load((REPO / "extended_lengyel" / "variables.yaml").read_text())
+    assert list(variables) == sorted(variables, key=str.lower)
+    assert [name for name, entry in variables.items() if not entry.get("description")] == []
 
 
 @pytest.mark.parametrize(
-    "plugins",
+    ("plugins", "expected"),
     [
-        pytest.param(_NO_PLUGINS_SECTION, id="absent"),
-        pytest.param(None, id="null"),
-        pytest.param([], id="empty"),
-        pytest.param(["extended_lengyel"], id="listed"),
-        pytest.param("extended_lengyel", id="bare-string"),
+        pytest.param(None, ["extended_lengyel"], id="absent-or-null"),
+        pytest.param([], ["extended_lengyel"], id="empty"),
+        pytest.param("", ["extended_lengyel"], id="empty-string"),
+        pytest.param(["extended_lengyel"], ["extended_lengyel", "extended_lengyel"], id="listed"),
+        pytest.param("other_plugin", ["extended_lengyel", "other_plugin"], id="bare-string"),
+        pytest.param(["a", "b"], ["extended_lengyel", "a", "b"], id="others-keep-order"),
     ],
 )
-def test_cli_always_registers_extended_lengyel(tmp_path, plugins):
-    """The command line interface registers extended_lengyel for every form of the `plugins` section (fresh interpreter)."""
+def test_plugins_to_register_always_starts_with_extended_lengyel(plugins, expected):
+    """Whatever form the `plugins` section takes, extended_lengyel is registered first and the other names follow in order."""
+    assert plugins_to_register(plugins) == expected
+
+
+def test_cli_registers_extended_lengyel_in_a_fresh_interpreter(tmp_path):
+    """An input file with no `plugins` section runs end to end, because the command line interface registers the plugin itself."""
     config = yaml.safe_load((REPO / "input.yml").read_text())
-    if plugins is _NO_PLUGINS_SECTION:
-        del config["plugins"]
-    else:
-        config["plugins"] = plugins
+    del config["plugins"]
     config_file = tmp_path / "input.yml"
     config_file.write_text(yaml.safe_dump(config))
     output_file = tmp_path / "output.yml"
@@ -93,3 +101,14 @@ def test_cli_always_registers_extended_lengyel(tmp_path, plugins):
 
     assert result.returncode == 0, result.stderr
     assert "separatrix_electron_temp" in yaml.safe_load(output_file.read_text())
+
+
+def test_cli_names_the_plugins_section_when_a_plugin_is_misspelt(tmp_path):
+    """A plugin that cannot be imported is reported as a problem with the input file's `plugins` section."""
+    config = yaml.safe_load((REPO / "input.yml").read_text())
+    config["plugins"] = ["extended_lengyel_does_not_exist"]
+    config_file = tmp_path / "input.yml"
+    config_file.write_text(yaml.safe_dump(config))
+
+    with pytest.raises(ModuleNotFoundError, match="'plugins' section"):
+        run_extended_lengyel(config_file, tmp_path / "output.yml")
