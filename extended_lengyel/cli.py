@@ -18,17 +18,10 @@ from cfspopcon.unit_handling import UnitStrippedWarning
 PLUGIN_NAME = "extended_lengyel"
 
 
-def plugins_to_register(plugins: str | list[str] | None) -> list[str]:
-    """List the plugins to register for an input file, given its ``plugins`` section.
-
-    This package's own plugin always comes first, whatever the input file lists. The section may be absent or empty (``None``),
-    a list, or a single plugin name written as a string. Registering a plugin twice changes nothing, so repeats are harmless.
-    """
-    if not plugins:
-        plugins = []
-    elif isinstance(plugins, str):
-        plugins = [plugins]
-    return [PLUGIN_NAME, *plugins]
+def register_cli_plugins(raw_config: dict) -> None:
+    """Register this package, then the plugins named in the input file's ``plugins`` section."""
+    cfspopcon.register_plugin(PLUGIN_NAME)
+    process_plugins(raw_config)
 
 
 @click.command()
@@ -69,8 +62,7 @@ def run_extended_lengyel(config_file, output_file, cli_args=None) -> None:
     assert output_file.suffix == ".yml", f"{output_file} is not a YAML file."
 
     raw_config = config.read_config_from_yaml(config_file)
-    raw_config["plugins"] = plugins_to_register(raw_config.get("plugins"))
-    process_plugins(raw_config)
+    register_cli_plugins(raw_config)
 
     algorithm = cfspopcon.CompositeAlgorithm.from_list(raw_config["algorithms"])
 

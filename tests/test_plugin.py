@@ -9,9 +9,10 @@ import pytest
 import yaml
 from cfspopcon.unit_handling import default_unit
 
-from extended_lengyel.cli import plugins_to_register, run_extended_lengyel
+from extended_lengyel.cli import register_cli_plugins, run_extended_lengyel
 
 REPO = Path(__file__).parents[1]
+ABSENT = object()
 
 
 def test_importing_registers_nothing():
@@ -75,17 +76,30 @@ def test_variables_yaml_is_sorted_and_described():
 @pytest.mark.parametrize(
     ("plugins", "expected"),
     [
-        pytest.param(None, ["extended_lengyel"], id="absent-or-null"),
+        pytest.param(ABSENT, ["extended_lengyel"], id="absent"),
         pytest.param([], ["extended_lengyel"], id="empty"),
-        pytest.param("", ["extended_lengyel"], id="empty-string"),
+        pytest.param("", ["extended_lengyel", ""], id="empty-string"),
         pytest.param(["extended_lengyel"], ["extended_lengyel", "extended_lengyel"], id="listed"),
         pytest.param("other_plugin", ["extended_lengyel", "other_plugin"], id="bare-string"),
-        pytest.param(["a", "b"], ["extended_lengyel", "a", "b"], id="others-keep-order"),
+        pytest.param(["a", "b"], ["extended_lengyel", "a", "b"], id="others"),
     ],
 )
-def test_plugins_to_register_always_starts_with_extended_lengyel(plugins, expected):
-    """Whatever form the `plugins` section takes, extended_lengyel is registered first and the other names follow in order."""
-    assert plugins_to_register(plugins) == expected
+def test_cli_registers_extended_lengyel_for_any_plugins_section(plugins, expected, monkeypatch):
+    """Whatever form the `plugins` section takes, extended_lengyel is registered before the plugins that section names."""
+    registered = []
+
+    def register(name):
+        registered.append(name)
+        return []
+
+    # process_plugins holds its own reference to register_plugin, so both calls need the stand-in.
+    monkeypatch.setattr(cfspopcon, "register_plugin", register)
+    monkeypatch.setattr("cfspopcon.input_file_handling.register_plugin", register)
+
+    raw_config = {} if plugins is ABSENT else {"plugins": plugins}
+    register_cli_plugins(raw_config)
+
+    assert registered == expected
 
 
 def test_cli_registers_extended_lengyel_in_a_fresh_interpreter(tmp_path):
