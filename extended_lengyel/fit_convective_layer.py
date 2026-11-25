@@ -32,7 +32,7 @@ DEFAULT_OUTPUT_FILE = module_directory / "curve_fit.yml"
 DEFAULT_CONFIG_FILE = notebook_dir / "config.yml"
 
 
-def determine_temperature_fit_coefficients(x, y, info: bool = True) -> tuple[dict[str, float], Callable]:
+def determine_temperature_fit_coefficients(x, y, info: bool = False) -> tuple[dict[str, float], Callable]:
     """Fit a temperature-fit function to the data."""
     popt, pcov = curve_fit(
         temperature_fit_function,
