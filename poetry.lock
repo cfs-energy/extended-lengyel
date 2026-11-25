@@ -317,14 +317,14 @@ pycparser = {version = "*", markers = "implementation_name != \"PyPy\""}
 
 [[package]]
 name = "cfspopcon"
-version = "8.0.0"
+version = "9.0.2"
 description = "Empirically-derived scoping of tokamak operational space."
 optional = false
 python-versions = ">=3.12"
 groups = ["main"]
 files = [
-    {file = "cfspopcon-8.0.0-py3-none-any.whl", hash = "sha256:e6b70ff82ea4eefcad730f4c92c43db30cccf602b63ef3be4673ca29879abe44"},
-    {file = "cfspopcon-8.0.0.tar.gz", hash = "sha256:1aebf4fdf9d3a38629f489c2bf161cd0f71348169bacb1c372b433ff36a548d1"},
+    {file = "cfspopcon-9.0.2-py3-none-any.whl", hash = "sha256:993561b7531bca70993ce9ecc40f786e5cc0c881b42659ef3fec3c54bd2d2aec"},
+    {file = "cfspopcon-9.0.2.tar.gz", hash = "sha256:18b5368256c1189a7d7e0e2073886fb33930987a7ccb14d66465142605fd4d35"},
 ]
 
 [package.dependencies]
@@ -336,7 +336,7 @@ pandas = ">=3.0.2,<4.0.0"
 pint = ">=0.25.3,<0.26.0"
 pint-xarray = ">=0.6.1,<0.7.0"
 pyyaml = ">=6.0.3,<7.0.0"
-radas = ">=1!1.0.1,<1!2.0.0"
+radas = ">=1!2.0.1,<1!3.0.0"
 scipy = ">=1.17.1,<2.0.0"
 seaborn = ">=0.13,<0.14"
 xarray = ">=2026.2.0"
@@ -3078,14 +3078,14 @@ cffi = {version = "*", markers = "implementation_name == \"pypy\""}
 
 [[package]]
 name = "radas"
-version = "1!1.0.1"
+version = "1!2.0.1"
 description = "Plasma radiated power calculated using OpenADAS"
 optional = false
 python-versions = ">=3.12"
 groups = ["main"]
 files = [
-    {file = "radas-1!1.0.1-py3-none-any.whl", hash = "sha256:f6db8cbda4bf58ee6ec309d6aee931943ec423e3e2664ca6b55311ebbac24e85"},
-    {file = "radas-1!1.0.1.tar.gz", hash = "sha256:aae323959736d69f8c0276e2ac860fba2d8435f73bc04632cb12ee0cbb54813e"},
+    {file = "radas-1!2.0.1-py3-none-any.whl", hash = "sha256:99bb9e7ad104d354678dbab0ae2fe67190f7a55eb4787a3149eaeef0663968f0"},
+    {file = "radas-1!2.0.1.tar.gz", hash = "sha256:da31e67a3586f0f03bbbb542ecf2ae329124daa115ddb5dce4971b25147e3d69"},
 ]
 
 [package.dependencies]
@@ -3096,7 +3096,7 @@ meson = ">=1.10.2,<2.0.0"
 ninja = ">=1.13.0,<2.0.0"
 numpy = ">=2.4.4,<3.0.0"
 pandas = ">=3.0.2,<4.0.0"
-pint = ">=0.25.3,<0.26.0"
+pint = ">=0.25.3"
 pint-xarray = ">=0.6.1,<0.7.0"
 pyyaml = ">=6.0.3,<7.0.0"
 scipy = ">=1.17.1,<2.0.0"
@@ -3778,4 +3778,4 @@ viz = ["cartopy (>=0.24)", "matplotlib (>=3.10)", "nc-time-axis", "seaborn"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12"
-content-hash = "5843d1ca40a44d7ac9545fbf325dc1f6a2fdf33e9907449f4f593d9c1a8eb1f3"
+content-hash = "bdd05e35a79c8a82bb1eb09367f87cafb1a4caa5ff8bd4b4101540f4422270b4"

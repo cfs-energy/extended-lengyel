@@ -21,6 +21,10 @@ All of the analysis given in the paper is run via Jupyter notebooks, which are a
 
 To run all of the notebooks to generate the outputs, you can also `poetry run python notebooks/run_notebooks.py`.
 
+The notebooks do not modify the package. To regenerate the convective-layer fit stored in `extended_lengyel/curve_fit.yml`, run `poetry run xlengyel-fit-convective-layer`.
+
+The `xlengyel` command line interface (`poetry run xlengyel input.yml output.yml`) registers the plugins named in the input file's `plugins` section, and adds the `extended_lengyel` plugin when that section does not already include it.
+
 The analysis in the notebooks is configured via the `notebooks/config.yml` file (which is read by `extended_lengyel.config.read_config`). This converts a list of unit-containing strings to [pint.Quantity](https://pint.readthedocs.io/en/stable/user/defining-quantities.html) objects.
 
 ## Installation (for developers)
@@ -55,13 +59,17 @@ from cfspopcon.unit_handling import Quantity, ureg
 # We use enumerators to constrain the atomic species which can be selected.
 from cfspopcon.named_options import AtomicSpecies
 
+# extended_lengyel is a cfspopcon plugin. Register it to make its algorithms and variables available. See
+# https://cfspopcon.readthedocs.io/en/latest/doc_sources/authoring_a_plugin.html for how plugins work.
+cfspopcon.register_plugin("extended_lengyel")
+
 # The first step is to declare which computations we want to perform. Instead of having a single function block, we break
 # our analysis down into smaller 'algorithms'. These algorithms know the names and units of the input and output arguments.
 # For instance, "calc_ion_flux_to_target" defines the variable parallel_ion_flux_to_target with units of "m**-2 / s" (declared
-# in `extended_units.yaml`). This is needed by "calc_divertor_neutral_pressure".
+# in `variables.yaml`). This is needed by "calc_divertor_neutral_pressure".
 # 
 # To find an algorithm called "alg", search both cfspopcon and extended_lengyel for a function called "alg" with an
-# @Algorithm.register_algorithm decorator, or a CompositeAlgorithm with name="alg".
+# @declare_algorithm decorator, or a CompositeAlgorithm.declare call with name="alg".
 algorithm = cfspopcon.CompositeAlgorithm.from_list([
     "calc_magnetic_field_and_safety_factor",
     "calc_fieldline_pitch_at_omp",

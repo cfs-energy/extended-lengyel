@@ -12,7 +12,16 @@ from . import config
 from .xr_helpers import item
 import cfspopcon
 
+from cfspopcon.input_file_handling import process_plugins
 from cfspopcon.unit_handling import UnitStrippedWarning
+
+PLUGIN_NAME = "extended_lengyel"
+
+
+def register_cli_plugins(raw_config: dict) -> None:
+    """Register this package, then the plugins named in the input file's ``plugins`` section."""
+    cfspopcon.register_plugin(PLUGIN_NAME)
+    process_plugins(raw_config)
 
 
 @click.command()
@@ -52,9 +61,10 @@ def run_extended_lengyel(config_file, output_file, cli_args=None) -> None:
         click.confirm(f"{output_file} already exists. Overwrite?", abort=True)
     assert output_file.suffix == ".yml", f"{output_file} is not a YAML file."
 
-    algorithms = config.read_config_from_yaml(config_file)["algorithms"]
+    raw_config = config.read_config_from_yaml(config_file)
+    register_cli_plugins(raw_config)
 
-    algorithm = cfspopcon.CompositeAlgorithm.from_list(algorithms)
+    algorithm = cfspopcon.CompositeAlgorithm.from_list(raw_config["algorithms"])
 
     data_vars = config.read_config(
         elements=["input"],

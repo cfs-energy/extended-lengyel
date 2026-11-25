@@ -1,0 +1,432 @@
+1.3Psep/R/p0/lambda_int - 1:
+  default_units: ''
+  description:
+  - 'Vertical axis of Kallenbach et al. (2016) figure 7b: 1.3 Psep/R / p0 / lambda_int - 1, with Psep/R in MW/m, p0 in Pa and lambda_int normalised to 5 mm.'
+change_in_parallel_convective_heat_flux:
+  default_units: eV / s / meter ** 2
+  description:
+  - Change in the parallel convective heat flux between neighbouring points of the parallel grid, in the Kallenbach IDL translation.
+charge_exchange_integral:
+  default_units: eV / meter ** 3
+  description:
+  - Charge-exchange power loss accumulated along the fieldline, in the Kallenbach IDL translation.
+charge_exchange_power_loss:
+  default_units: eV / s / meter ** 3
+  description:
+  - Power density lost to charge exchange between ions and neutrals.
+conducted_fraction_at_cc_interface:
+  default_units: ''
+  description:
+  - Fraction of the parallel heat flux carried by conduction at which the convection-conduction interface is placed.
+conduction_prefactor_in_divertor:
+  default_units: ''
+  description:
+  - Prefactor of the conduction integral between the convection-conduction interface and the divertor entrance, which is 7/2 for Spitzer-Harm conduction with kappa proportional to T**(5/2).
+conduction_prefactor_in_main_chamber:
+  default_units: ''
+  description:
+  - Prefactor of the conduction integral between the divertor entrance and the separatrix, which is 7/2 for Spitzer-Harm conduction with kappa proportional to T**(5/2).
+conductive_heat_flux_at_target:
+  default_units: W / m**2
+  description:
+  - Parallel heat flux density carried by conduction at the target.
+convective_heat_flux_at_target:
+  default_units: W / m**2
+  description:
+  - Parallel heat flux density carried by convection at the target.
+cz*fz:
+  default_units: ''
+  description:
+  - 'Horizontal axis of Kallenbach et al. (2016) figure 7b: the product of the impurity fraction and the radiative efficiency.'
+CzLINT_for_fixed_impurities:
+  default_units: null
+  description:
+  - Callable giving the integral of the cooling factor times the heat conductivity over electron temperature, summed over the fixed (background) impurities.
+CzLINT_for_seed_impurities:
+  default_units: null
+  description:
+  - Callable giving the integral of the cooling factor times the heat conductivity over electron temperature, summed over the seed impurities.
+deuterium_adas_data:
+  default_units: null
+  description:
+  - Atomic data (OpenADAS rate coefficients) for deuterium.
+divertor_broadening_factor:
+  default_units: ''
+  description:
+  - Ratio of lambda_int to lambda_q, the broadening of the heat flux channel in the divertor.
+divertor_entrance_electron_density:
+  default_units: m**-3
+  description:
+  - Electron density at the divertor entrance.
+divertor_entrance_electron_temp:
+  default_units: eV
+  description:
+  - Electron temperature at the divertor entrance.
+divertor_entrance_parallel_heat_flux:
+  default_units: W / m**2
+  description:
+  - Parallel heat flux density at the divertor entrance.
+divertor_parallel_length:
+  default_units: m
+  description:
+  - Length along a magnetic fieldline from the divertor target to the divertor entrance.
+divertor_z_effective:
+  default_units: ''
+  description:
+  - Effective charge of the plasma in the divertor.
+dynamic_pressure:
+  default_units: Pa
+  description:
+  - Dynamic pressure of the plasma flow, the ion mass density times the square of the ion velocity.
+electron_density:
+  default_units: m**-3
+  description:
+  - Electron density along the fieldline.
+electron_density_at_cc_interface:
+  default_units: m**-3
+  description:
+  - Electron density at the convection-conduction interface.
+electron_density_at_target:
+  default_units: m**-3
+  description:
+  - Electron density at the divertor target.
+electron_density_ratio_in_convection_layer:
+  default_units: ''
+  description:
+  - Ratio of the electron density at the target to the electron density at the convection-conduction interface.
+electron_temp:
+  default_units: eV
+  description:
+  - Electron temperature along the fieldline.
+electron_temp_at_cc_interface:
+  default_units: eV
+  description:
+  - Electron temperature at the convection-conduction interface.
+electron_temp_ratio_in_convection_layer:
+  default_units: ''
+  description:
+  - Ratio of the electron temperature at the target to the electron temperature at the convection-conduction interface.
+fast_neutral_flux:
+  default_units: m**-2 / s
+  description:
+  - Flux density of fast neutrals along the fieldline.
+fast_neutral_flux_at_target:
+  default_units: m**-2 / s
+  description:
+  - Flux density of fast neutrals leaving the target.
+fast_neutral_fraction:
+  default_units: ''
+  description:
+  - Fraction of the recycled neutral flux from the target which is in the fast population.
+fast_neutral_penetration_factor:
+  default_units: ''
+  description:
+  - Ratio of the velocity of fast neutrals to the velocity of Franck-Condon neutrals.
+fast_neutral_velocity:
+  default_units: m / s
+  description:
+  - Mean velocity of fast neutrals, the Franck-Condon neutral velocity times the penetration factor.
+fixed_impurity_species:
+  default_units: null
+  description:
+  - Background impurity species, whose concentrations are fixed relative to the electron density.
+fixed_impurity_weights:
+  default_units: null
+  description:
+  - Concentrations of the fixed impurity species, relative to the electron density.
+flux_density_to_pascals_factor:
+  default_units: (m**-2 / s) / Pa
+  description:
+  - Factor to convert a particle flux density to a neutral pressure.
+flux_tube_cross_section_area_in_divertor:
+  default_units: m**2
+  description:
+  - Cross-sectional area of the flux tube in the divertor.
+flux_tube_cross_section_area_out_of_divertor:
+  default_units: m**2
+  description:
+  - Cross-sectional area of the flux tube above the X-point.
+Franck_condon_energy:
+  default_units: eV
+  description:
+  - Energy of the Franck-Condon neutrals.
+franck_condon_neutral_flux:
+  default_units: m**-2 / s
+  description:
+  - Flux density of Franck-Condon neutrals along the fieldline.
+franck_condon_neutral_flux_at_target:
+  default_units: m**-2 / s
+  description:
+  - Flux density of Franck-Condon neutrals leaving the target.
+franck_condon_neutral_velocity:
+  default_units: m / s
+  description:
+  - Mean velocity of Franck-Condon neutrals.
+heat_flux_perp_to_target:
+  default_units: W / m**2
+  description:
+  - Heat flux density perpendicular to the target surface.
+hydrogen_effective_ionization_energy:
+  default_units: eV
+  description:
+  - Effective energy cost of ionizing a hydrogen atom.
+hydrogen_radiated_power:
+  default_units: eV / s / meter ** 3
+  description:
+  - Power density radiated by hydrogen.
+impurity_adas_data:
+  default_units: null
+  description:
+  - Atomic data (OpenADAS rate coefficients) for the edge impurity.
+impurity_fraction:
+  default_units: percent
+  description:
+  - Concentration of the seed impurity, relative to the electron density.
+impurity_radiated_power:
+  default_units: eV / s / meter ** 3
+  description:
+  - Power density radiated by the impurity.
+ion_density:
+  default_units: m**-3
+  description:
+  - Ion density along the fieldline.
+ion_mass:
+  default_units: amu
+  description:
+  - Mass of the main ion species (or the average mass, for a mixture).
+ion_temp:
+  default_units: eV
+  description:
+  - Ion temperature along the fieldline.
+ion_velocity:
+  default_units: m / s
+  description:
+  - Parallel ion velocity along the fieldline.
+ion_velocity_at_cc_interface:
+  default_units: m / s
+  description:
+  - Parallel ion velocity at the convection-conduction interface.
+ion_velocity_epsilon:
+  default_units: null
+  description:
+  - Small offset which keeps the ion velocity at the target just below the sound speed, avoiding a division by zero at Mach 1.
+ionization_integral:
+  default_units: 1 / meter ** 2 / second
+  description:
+  - Ionization rate accumulated along the fieldline, in the Kallenbach IDL translation.
+ionization_power_loss:
+  default_units: eV / s / meter ** 3
+  description:
+  - Power density lost to ionization.
+iterations_for_alphat:
+  default_units: null
+  description:
+  - Number of iterations used to converge the dependence of the model on the turbulence parameter alpha_t.
+iterations_for_Lengyel_model:
+  default_units: null
+  description:
+  - Number of iterations used to converge the effective charge in the Lengyel model.
+kappa_z:
+  default_units: ''
+  description:
+  - Correction to the electron heat conductivity due to the effective charge.
+lambda_int:
+  default_units: m
+  description:
+  - Integral heat flux decay length, the width of the heat flux channel including divertor broadening.
+mach_number:
+  default_units: ''
+  description:
+  - Parallel Mach number along the fieldline.
+mach_number_at_target:
+  default_units: ''
+  description:
+  - Parallel Mach number at the target.
+mask_invalid_results:
+  default_units: null
+  description:
+  - Whether to replace results from a failed or unphysical solution with NaN.
+mean_charge_for_fixed_impurities:
+  default_units: null
+  description:
+  - Callable giving the mean charge of the fixed impurities as a function of electron temperature.
+mean_charge_for_seed_impurities:
+  default_units: null
+  description:
+  - Callable giving the mean charge of the seed impurities as a function of electron temperature.
+model_success:
+  default_units: null
+  description:
+  - Whether the model reached a valid solution.
+neutral_density:
+  default_units: m**-3
+  description:
+  - Neutral density along the fieldline.
+neutral_density_at_cc_interface:
+  default_units: m**-3
+  description:
+  - Neutral density at the convection-conduction interface.
+neutral_density_at_target:
+  default_units: m**-3
+  description:
+  - Neutral density at the target.
+neutral_pressure_in_divertor:
+  default_units: Pa
+  description:
+  - Neutral pressure in the divertor.
+number_of_grid_points:
+  default_units: ''
+  description:
+  - Number of points in the parallel grid.
+ode_atol:
+  default_units: null
+  description:
+  - Absolute tolerance of the ODE solver.
+ode_method:
+  default_units: null
+  description:
+  - Name of the scipy.integrate.solve_ivp method used to integrate the model.
+ode_rtol:
+  default_units: null
+  description:
+  - Relative tolerance of the ODE solver.
+p0(1+fz*cz)/1.3:
+  default_units: ''
+  description:
+  - 'Vertical axis of Kallenbach et al. (2016) figure 7a: p0 (1 + fz cz) / 1.3, with p0 in Pa.'
+parallel_conductive_heat_flux:
+  default_units: W / m**2
+  description:
+  - Parallel heat flux density carried by conduction.
+parallel_convective_heat_flux:
+  default_units: W / m**2
+  description:
+  - Parallel heat flux density carried by convection.
+parallel_heat_flux:
+  default_units: W / m**2
+  description:
+  - Total parallel heat flux density, conducted plus convected.
+parallel_heat_flux_at_cc_interface:
+  default_units: W / m**2
+  description:
+  - Parallel heat flux density at the convection-conduction interface.
+parallel_heat_flux_at_target:
+  default_units: W / m**2
+  description:
+  - Parallel heat flux density at the target.
+parallel_ion_flux_to_target:
+  default_units: m**-2 / s
+  description:
+  - Ion flux density to the target, parallel to the magnetic field.
+parallel_to_perp_factor:
+  default_units: ''
+  description:
+  - Factor which projects a quantity parallel to the field onto the direction perpendicular to the target.
+perp_ion_flux_to_target:
+  default_units: m**-2 / s
+  description:
+  - Ion flux density to the target, perpendicular to the target surface.
+Psep/R/lambda_int:
+  default_units: ''
+  description:
+  - 'Horizontal axis of Kallenbach et al. (2016) figure 7a: Psep/R in MW/m, divided by lambda_int normalised to 5 mm.'
+radiated_fraction_above_xpt:
+  default_units: ''
+  description:
+  - Fraction of the power crossing the separatrix which is radiated above the X-point.
+radiative_efficiency:
+  default_units: ''
+  description:
+  - Radiative efficiency of the impurity, the factor f_z in Kallenbach et al. (2016).
+ratio_of_upstream_to_average_poloidal_field:
+  default_units: ''
+  description:
+  - Ratio of the poloidal field at the outboard midplane to the average poloidal field at the separatrix.
+reference_electron_temp:
+  default_units: eV
+  description:
+  - Electron temperature at which the impurity's mean charge is evaluated, for its contribution to the effective charge.
+rtol_nearest_for_atomic_data:
+  default_units: null
+  description:
+  - Relative tolerance in ne*tau within which the nearest tabulated atomic data is used for the reference ne*tau.
+s_parallel:
+  default_units: m
+  description:
+  - Distance along a magnetic fieldline from the target.
+s_parallel_at_cc_interface:
+  default_units: m
+  description:
+  - Distance along a magnetic fieldline from the target to the convection-conduction interface.
+seed_impurity_species:
+  default_units: null
+  description:
+  - Impurity species used for seeding.
+seed_impurity_weights:
+  default_units: null
+  description:
+  - Concentrations of the seed impurity species relative to one another.
+separatrix_average_poloidal_field:
+  default_units: T
+  description:
+  - Poloidal magnetic field at the separatrix, averaged over the flux surface.
+separatrix_mach_number:
+  default_units: ''
+  description:
+  - Parallel Mach number at the separatrix.
+separatrix_ratio_of_electron_to_ion_density:
+  default_units: ''
+  description:
+  - Ratio of the electron density to the ion density at the separatrix.
+separatrix_ratio_of_ion_to_electron_temp:
+  default_units: ''
+  description:
+  - Ratio of the ion temperature to the electron temperature at the separatrix.
+separatrix_total_pressure:
+  default_units: Pa
+  description:
+  - Total (static plus dynamic) pressure at the separatrix.
+separatrix_z_effective:
+  default_units: ''
+  description:
+  - Effective charge of the plasma at the separatrix.
+SOL_momentum_loss_fraction:
+  default_units: ''
+  description:
+  - Fraction of the total pressure lost between the separatrix and the target.
+SOL_momentum_loss_fraction_in_convection_layer:
+  default_units: ''
+  description:
+  - Fraction of the total pressure lost across the convective layer near the target.
+SOL_power_loss_fraction_in_convection_layer:
+  default_units: ''
+  description:
+  - Fraction of the parallel heat flux lost across the convective layer near the target.
+sound_speed:
+  default_units: m / s
+  description:
+  - Ion sound speed along the fieldline.
+sound_speed_at_target:
+  default_units: m / s
+  description:
+  - Ion sound speed at the target.
+static_pressure:
+  default_units: Pa
+  description:
+  - Static pressure of the plasma, the sum of the electron and ion pressures.
+target_mach_number:
+  default_units: ''
+  description:
+  - Parallel Mach number at the target.
+target_ratio_of_electron_to_ion_density:
+  default_units: ''
+  description:
+  - Ratio of the electron density to the ion density at the target.
+target_ratio_of_ion_to_electron_temp:
+  default_units: ''
+  description:
+  - Ratio of the ion temperature to the electron temperature at the target.
+total_pressure:
+  default_units: Pa
+  description:
+  - Total pressure of the plasma, static plus dynamic.
