@@ -79,6 +79,9 @@ def test_variables_yaml_is_sorted_and_described():
         pytest.param(ABSENT, ["extended_lengyel"], id="absent"),
         pytest.param([], ["extended_lengyel"], id="empty"),
         pytest.param("", ["extended_lengyel", ""], id="empty-string"),
+        # Recorded twice: the CLI registers extended_lengyel, then process_plugins registers it
+        # again because the section lists it. A real second register_plugin call changes nothing
+        # and returns []; this stand-in only records the calls. See test_registering_twice_changes_nothing.
         pytest.param(["extended_lengyel"], ["extended_lengyel", "extended_lengyel"], id="listed"),
         pytest.param("other_plugin", ["extended_lengyel", "other_plugin"], id="bare-string"),
         pytest.param(["a", "b"], ["extended_lengyel", "a", "b"], id="others"),
