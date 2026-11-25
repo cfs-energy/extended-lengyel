@@ -1,8 +1,7 @@
 """Steady-state 1D detachment models.
 
-A cfspopcon plugin. Importing this package registers nothing; call
-``cfspopcon.register_plugin("extended_lengyel")`` or list ``extended_lengyel``
-in an input file's ``plugins`` section.
+This is a cfspopcon plugin. Register it with ``cfspopcon.register_plugin("extended_lengyel")``; see
+https://cfspopcon.readthedocs.io/en/latest/doc_sources/authoring_a_plugin.html for how plugins work.
 """
 
 from .config import read_config, promote_to_coordinate
