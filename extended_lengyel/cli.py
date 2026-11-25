@@ -53,7 +53,10 @@ def run_extended_lengyel(config_file, output_file, cli_args=None) -> None:
     assert output_file.suffix == ".yml", f"{output_file} is not a YAML file."
 
     raw_config = config.read_config_from_yaml(config_file)
-    plugins = list(raw_config.get("plugins") or [])
+    plugins = raw_config.get("plugins") or []
+    if isinstance(plugins, str):
+        plugins = [plugins]
+    plugins = list(plugins)
     if "extended_lengyel" not in plugins:
         plugins.insert(0, "extended_lengyel")
     for plugin in plugins:

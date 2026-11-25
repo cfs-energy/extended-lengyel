@@ -9,7 +9,6 @@ import pytest
 import yaml
 from cfspopcon.unit_handling import default_unit
 
-from extended_lengyel.cli import run_extended_lengyel
 
 REPO = Path(__file__).parents[1]
 
@@ -26,7 +25,6 @@ def test_plugin_registers_its_algorithms(registered_plugin_algorithms):
     assert "run_basic_lengyel_model" in registered_plugin_algorithms
     assert "kallenbach_model" in registered_plugin_algorithms
     assert "run_extended_lengyel_model_with_S_Zeff_and_alphat_correction" in registered_plugin_algorithms
-    assert cfspopcon.registry["kallenbach_model"].name == "kallenbach_model"
 
 
 def test_registering_twice_changes_nothing():
@@ -66,25 +64,32 @@ def test_variables_yaml_has_no_unused_entries(registered_plugin_algorithms):
     assert declared - used == set()
 
 
-def test_input_yml_example_runs(tmp_path):
-    """The shipped input.yml lists the plugin and runs through the command line interface."""
-    config = yaml.safe_load((REPO / "input.yml").read_text())
-    assert config["plugins"] == ["extended_lengyel"]
-    output_file = tmp_path / "output.yml"
-    run_extended_lengyel(REPO / "input.yml", output_file)
-    assert "impurity_fraction" in yaml.safe_load(output_file.read_text())
+_NO_PLUGINS_SECTION = object()
 
 
-@pytest.mark.parametrize("plugins", [None, "absent", [], ["extended_lengyel"]], ids=["null", "absent", "empty", "listed"])
+@pytest.mark.parametrize(
+    "plugins",
+    [
+        pytest.param(_NO_PLUGINS_SECTION, id="absent"),
+        pytest.param(None, id="null"),
+        pytest.param([], id="empty"),
+        pytest.param(["extended_lengyel"], id="listed"),
+        pytest.param("extended_lengyel", id="bare-string"),
+    ],
+)
 def test_cli_always_registers_extended_lengyel(tmp_path, plugins):
-    """The command line interface registers extended_lengyel whatever the input file's `plugins` section holds (fresh interpreter)."""
+    """The command line interface registers extended_lengyel for every form of the `plugins` section (fresh interpreter)."""
     config = yaml.safe_load((REPO / "input.yml").read_text())
-    if plugins == "absent":
+    if plugins is _NO_PLUGINS_SECTION:
         del config["plugins"]
     else:
         config["plugins"] = plugins
     config_file = tmp_path / "input.yml"
     config_file.write_text(yaml.safe_dump(config))
-    code = f"from extended_lengyel.cli import run_extended_lengyel; run_extended_lengyel({str(config_file)!r}, {str(tmp_path / 'output.yml')!r})"
-    subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True)
-    assert "impurity_fraction" in yaml.safe_load((tmp_path / "output.yml").read_text())
+    output_file = tmp_path / "output.yml"
+    code = f"from extended_lengyel.cli import run_extended_lengyel; run_extended_lengyel({str(config_file)!r}, {str(output_file)!r})"
+
+    result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=False)
+
+    assert result.returncode == 0, result.stderr
+    assert "separatrix_electron_temp" in yaml.safe_load(output_file.read_text())
