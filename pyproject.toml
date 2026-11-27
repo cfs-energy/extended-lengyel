@@ -27,24 +27,24 @@ radas = "^1!1.0.0"
 cfspopcon = "^8.0.0"
 
 # Data Science Stack (Synchronized with radas/cfspopcon)
-numpy = "^2.4.4"
-scipy = "^1.17.1"
-matplotlib = "^3.10.8"
-pandas = "^3.0.2"
-xarray = ">=2026.2.0"
+numpy = "^2.5.5"
+scipy = "^1.18.1"
+matplotlib = "^3.11.2"
+pandas = "^3.1.1"
+xarray = ">=2026.9.0"
 pint = "^0.25.3"
 pint-xarray = "^0.6.1"
-pyyaml = "^6.0.3"
-click = "^8.3.2"
+pyyaml = "^6.0.4"
+click = "^8.5.1"
 
 [tool.poetry.group.dev.dependencies]
-ipykernel = "^7.2.0"
+ipykernel = "^7.4.0"
 jupyter = "^1.1.1"
-pytest = "^9.0.3"
+pytest = "^9.2.0"
 pytest-cov = "^7.1.0"
-coverage = "^7.13.5"
-ruff = "^0.15.10"
-ty = "0.0.107"  # pinned: beta, diagnostics change between 0.0.x releases
+coverage = "^7.17.5"
+ruff = "^0.17.6"
+ty = "0.0.109"  # pinned: beta, diagnostics change between 0.0.x releases
 nbmake = "^1.5"
 ipdb = "^0.13.13"
 
